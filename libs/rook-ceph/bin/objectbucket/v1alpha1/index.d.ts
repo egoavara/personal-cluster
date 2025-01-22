@@ -1,0 +1,18 @@
+export { ObjectBucketArgs } from "./objectBucket";
+export type ObjectBucket = import("./objectBucket").ObjectBucket;
+export declare const ObjectBucket: typeof import("./objectBucket").ObjectBucket;
+export { ObjectBucketClaimArgs } from "./objectBucketClaim";
+export type ObjectBucketClaim = import("./objectBucketClaim").ObjectBucketClaim;
+export declare const ObjectBucketClaim: typeof import("./objectBucketClaim").ObjectBucketClaim;
+export { ObjectBucketClaimListArgs } from "./objectBucketClaimList";
+export type ObjectBucketClaimList = import("./objectBucketClaimList").ObjectBucketClaimList;
+export declare const ObjectBucketClaimList: typeof import("./objectBucketClaimList").ObjectBucketClaimList;
+export { ObjectBucketClaimPatchArgs } from "./objectBucketClaimPatch";
+export type ObjectBucketClaimPatch = import("./objectBucketClaimPatch").ObjectBucketClaimPatch;
+export declare const ObjectBucketClaimPatch: typeof import("./objectBucketClaimPatch").ObjectBucketClaimPatch;
+export { ObjectBucketListArgs } from "./objectBucketList";
+export type ObjectBucketList = import("./objectBucketList").ObjectBucketList;
+export declare const ObjectBucketList: typeof import("./objectBucketList").ObjectBucketList;
+export { ObjectBucketPatchArgs } from "./objectBucketPatch";
+export type ObjectBucketPatch = import("./objectBucketPatch").ObjectBucketPatch;
+export declare const ObjectBucketPatch: typeof import("./objectBucketPatch").ObjectBucketPatch;
