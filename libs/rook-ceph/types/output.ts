@@ -2,8 +2,8 @@
 // *** Do not edit by hand unless you're certain you know what you are doing! ***
 
 import * as pulumi from "@pulumi/pulumi";
-import * as inputs from "./input";
-import * as outputs from "./output";
+import * as inputs from "../types/input";
+import * as outputs from "../types/output";
 
 export namespace ceph {
     export namespace v1 {
@@ -10841,7 +10841,7 @@ export namespace ceph {
             /**
              * Add capabilities for user to send request to RGW Cache API header. Documented in https://docs.ceph.com/en/latest/radosgw/rgw-cache/#cache-api
              */
-            amz-cache: string;
+            "amz-cache": string;
             /**
              * Add capabilities for user to change bucket index logging. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */
@@ -10873,7 +10873,7 @@ export namespace ceph {
             /**
              * Add capabilities for user to change oidc provider. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */
-            oidc-provider: string;
+            "oidc-provider": string;
             /**
              * Add capabilities for user to set rate limiter for user and bucket. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */
@@ -10893,7 +10893,7 @@ export namespace ceph {
             /**
              * Add capabilities for user to change user policies. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */
-            user-policy: string;
+            "user-policy": string;
             /**
              * Admin capabilities to read/write Ceph object store users. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */
@@ -10911,7 +10911,7 @@ export namespace ceph {
             /**
              * Add capabilities for user to send request to RGW Cache API header. Documented in https://docs.ceph.com/en/latest/radosgw/rgw-cache/#cache-api
              */
-            amz-cache: string;
+            "amz-cache": string;
             /**
              * Add capabilities for user to change bucket index logging. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */
@@ -10943,7 +10943,7 @@ export namespace ceph {
             /**
              * Add capabilities for user to change oidc provider. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */
-            oidc-provider: string;
+            "oidc-provider": string;
             /**
              * Add capabilities for user to set rate limiter for user and bucket. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */
@@ -10963,7 +10963,7 @@ export namespace ceph {
             /**
              * Add capabilities for user to change user policies. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */
-            user-policy: string;
+            "user-policy": string;
             /**
              * Admin capabilities to read/write Ceph object store users. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
              */

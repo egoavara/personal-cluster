@@ -219,5 +219,5 @@ const _module = {
         }
     },
 };
-pulumi.runtime.registerResourceModule("crds", "ceph.rook.io/v1", _module);
+pulumi.runtime.registerResourceModule("rook-ceph", "ceph.rook.io/v1", _module);
 //# sourceMappingURL=index.js.map

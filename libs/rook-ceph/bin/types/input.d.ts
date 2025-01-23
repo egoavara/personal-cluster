@@ -1,5 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
-import * as inputs from "./input";
+import * as inputs from "../types/input";
 export declare namespace ceph {
     namespace v1 {
         /**
@@ -10466,1138 +10466,1266 @@ export declare namespace ceph {
          * Additional admin-level capabilities for the Ceph object store user
          */
         interface CephObjectStoreUserSpecCapabilities {
+            /**
+             * Add capabilities for user to send request to RGW Cache API header. Documented in https://docs.ceph.com/en/latest/radosgw/rgw-cache/#cache-api
+             */
+            "amz-cache"?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change bucket index logging. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            bilog?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store buckets. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            bucket?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store buckets. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            buckets?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change data logging. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            datalog?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write information about the user. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            info?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change metadata logging. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            mdlog?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store metadata. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            metadata?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change oidc provider. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            "oidc-provider"?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to set rate limiter for user and bucket. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            ratelimit?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write roles for user. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            roles?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store usage. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            usage?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store users. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            user?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change user policies. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            "user-policy"?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store users. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            users?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store zones. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            zone?: pulumi.Input<string>;
+        }
+        /**
+         * Additional admin-level capabilities for the Ceph object store user
+         */
+        interface CephObjectStoreUserSpecCapabilitiesPatch {
+            /**
+             * Add capabilities for user to send request to RGW Cache API header. Documented in https://docs.ceph.com/en/latest/radosgw/rgw-cache/#cache-api
+             */
+            "amz-cache"?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change bucket index logging. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            bilog?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store buckets. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            bucket?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store buckets. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            buckets?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change data logging. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            datalog?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write information about the user. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            info?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change metadata logging. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            mdlog?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store metadata. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            metadata?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change oidc provider. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            "oidc-provider"?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to set rate limiter for user and bucket. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            ratelimit?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write roles for user. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            roles?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store usage. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            usage?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store users. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            user?: pulumi.Input<string>;
+            /**
+             * Add capabilities for user to change user policies. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            "user-policy"?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store users. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            users?: pulumi.Input<string>;
+            /**
+             * Admin capabilities to read/write Ceph object store zones. Documented in https://docs.ceph.com/en/latest/radosgw/admin/?#add-remove-admin-capabilities
+             */
+            zone?: pulumi.Input<string>;
+        }
+        /**
+         * ObjectStoreUserSpec represent the spec of an Objectstoreuser
+         */
+        interface CephObjectStoreUserSpecPatch {
+            capabilities?: pulumi.Input<inputs.ceph.v1.CephObjectStoreUserSpecCapabilitiesPatch>;
+            /**
+             * The namespace where the parent CephCluster and CephObjectStore are found
+             */
+            clusterNamespace?: pulumi.Input<string>;
+            /**
+             * The display name for the ceph users
+             */
+            displayName?: pulumi.Input<string>;
+            quotas?: pulumi.Input<inputs.ceph.v1.CephObjectStoreUserSpecQuotasPatch>;
+            /**
+             * The store the user will be created in
+             */
+            store?: pulumi.Input<string>;
+        }
+        /**
+         * ObjectUserQuotaSpec can be used to set quotas for the object store user to limit their usage. See the [Ceph docs](https://docs.ceph.com/en/latest/radosgw/admin/?#quota-management) for more
+         */
+        interface CephObjectStoreUserSpecQuotas {
+            /**
+             * Maximum bucket limit for the ceph user
+             */
+            maxBuckets?: pulumi.Input<number>;
+            /**
+             * Maximum number of objects across all the user's buckets
+             */
+            maxObjects?: pulumi.Input<number>;
+            /**
+             * Maximum size limit of all objects across all the user's buckets
+             * See https://pkg.go.dev/k8s.io/apimachinery/pkg/api/resource#Quantity for more info.
+             */
+            maxSize?: pulumi.Input<number | string>;
+        }
+        /**
+         * ObjectUserQuotaSpec can be used to set quotas for the object store user to limit their usage. See the [Ceph docs](https://docs.ceph.com/en/latest/radosgw/admin/?#quota-management) for more
+         */
+        interface CephObjectStoreUserSpecQuotasPatch {
+            /**
+             * Maximum bucket limit for the ceph user
+             */
+            maxBuckets?: pulumi.Input<number>;
+            /**
+             * Maximum number of objects across all the user's buckets
+             */
+            maxObjects?: pulumi.Input<number>;
+            /**
+             * Maximum size limit of all objects across all the user's buckets
+             * See https://pkg.go.dev/k8s.io/apimachinery/pkg/api/resource#Quantity for more info.
+             */
+            maxSize?: pulumi.Input<number | string>;
+        }
+        /**
+         * CephObjectZone represents a Ceph Object Store Gateway Zone
+         */
+        interface CephObjectZone {
+            /**
+             * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+             */
+            apiVersion?: pulumi.Input<"ceph.rook.io/v1">;
+            /**
+             * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+             */
+            kind?: pulumi.Input<"CephObjectZone">;
+            /**
+             * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+             */
+            metadata?: pulumi.Input<inputs.meta.v1.ObjectMeta>;
+            spec?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpec>;
+            /**
+             * Status represents the status of an object
+             */
+            status?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+        }
+        /**
+         * CephObjectZoneGroup represents a Ceph Object Store Gateway Zone Group
+         */
+        interface CephObjectZoneGroup {
+            /**
+             * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+             */
+            apiVersion?: pulumi.Input<"ceph.rook.io/v1">;
+            /**
+             * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+             */
+            kind?: pulumi.Input<"CephObjectZoneGroup">;
+            /**
+             * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+             */
+            metadata?: pulumi.Input<inputs.meta.v1.ObjectMeta>;
+            spec?: pulumi.Input<inputs.ceph.v1.CephObjectZoneGroupSpec>;
+            /**
+             * Status represents the status of an object
+             */
+            status?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+        }
+        /**
+         * ObjectZoneGroupSpec represent the spec of an ObjectZoneGroup
+         */
+        interface CephObjectZoneGroupSpec {
+            /**
+             * The display name for the ceph users
+             */
+            realm?: pulumi.Input<string>;
+        }
+        /**
+         * ObjectZoneGroupSpec represent the spec of an ObjectZoneGroup
+         */
+        interface CephObjectZoneGroupSpecPatch {
+            /**
+             * The display name for the ceph users
+             */
+            realm?: pulumi.Input<string>;
+        }
+        /**
+         * ObjectZoneSpec represent the spec of an ObjectZone
+         */
+        interface CephObjectZoneSpec {
+            /**
+             * If this zone cannot be accessed from other peer Ceph clusters via the ClusterIP Service
+             * endpoint created by Rook, you must set this to the externally reachable endpoint(s). You may
+             * include the port in the definition. For example: "https://my-object-store.my-domain.net:443".
+             * In many cases, you should set this to the endpoint of the ingress resource that makes the
+             * CephObjectStore associated with this CephObjectStoreZone reachable to peer clusters.
+             * The list can have one or more endpoints pointing to different RGW servers in the zone.
+             *
+             * If a CephObjectStore endpoint is omitted from this list, that object store's gateways will
+             * not receive multisite replication data
+             * (see CephObjectStore.spec.gateway.disableMultisiteSyncTraffic).
+             */
+            customEndpoints?: pulumi.Input<pulumi.Input<string>[]>;
+            dataPool?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPool>;
+            metadataPool?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPool>;
+            /**
+             * Preserve pools on object zone deletion
+             */
+            preservePoolsOnDelete?: pulumi.Input<boolean>;
+            sharedPools?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPools>;
+            /**
+             * The display name for the ceph users
+             */
+            zoneGroup?: pulumi.Input<string>;
+        }
+        /**
+         * The data pool settings
+         */
+        interface CephObjectZoneSpecDataPool {
+            /**
+             * The application name to set on the pool. Only expected to be set for rgw pools.
+             */
+            application?: pulumi.Input<string>;
+            /**
+             * DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
+             * The inline compression mode in Bluestore OSD to set to (options are: none, passive, aggressive, force)
+             * Do NOT set a default value for kubebuilder as this will override the Parameters
+             */
+            compressionMode?: pulumi.Input<string>;
+            /**
+             * The root of the crush hierarchy utilized by the pool
+             */
+            crushRoot?: pulumi.Input<string>;
+            /**
+             * The device class the OSD should set to for use in the pool
+             */
+            deviceClass?: pulumi.Input<string>;
+            /**
+             * Allow rook operator to change the pool CRUSH tunables once the pool is created
+             */
+            enableCrushUpdates?: pulumi.Input<boolean>;
+            /**
+             * EnableRBDStats is used to enable gathering of statistics for all RBD images in the pool
+             */
+            enableRBDStats?: pulumi.Input<boolean>;
+            erasureCoded?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolErasureCoded>;
+            /**
+             * The failure domain: osd/host/(region or zone if available) - technically also any type in the crush map
+             */
+            failureDomain?: pulumi.Input<string>;
+            mirroring?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroring>;
+            /**
+             * Parameters is a list of properties to enable on a given pool
+             */
+            parameters?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            quotas?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolQuotas>;
+            replicated?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolReplicated>;
+            /**
+             * The mirroring statusCheck
+             */
+            statusCheck?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+        }
+        /**
+         * The erasure code settings
+         */
+        interface CephObjectZoneSpecDataPoolErasureCoded {
+            /**
+             * The algorithm for erasure coding
+             */
+            algorithm?: pulumi.Input<string>;
+            /**
+             * Number of coding chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
+             * This is the number of OSDs that can be lost simultaneously before data cannot be recovered.
+             */
+            codingChunks?: pulumi.Input<number>;
+            /**
+             * Number of data chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
+             * The number of chunks required to recover an object when any single OSD is lost is the same
+             * as dataChunks so be aware that the larger the number of data chunks, the higher the cost of recovery.
+             */
+            dataChunks?: pulumi.Input<number>;
+        }
+        /**
+         * The erasure code settings
+         */
+        interface CephObjectZoneSpecDataPoolErasureCodedPatch {
+            /**
+             * The algorithm for erasure coding
+             */
+            algorithm?: pulumi.Input<string>;
+            /**
+             * Number of coding chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
+             * This is the number of OSDs that can be lost simultaneously before data cannot be recovered.
+             */
+            codingChunks?: pulumi.Input<number>;
+            /**
+             * Number of data chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
+             * The number of chunks required to recover an object when any single OSD is lost is the same
+             * as dataChunks so be aware that the larger the number of data chunks, the higher the cost of recovery.
+             */
+            dataChunks?: pulumi.Input<number>;
+        }
+        /**
+         * The mirroring settings
+         */
+        interface CephObjectZoneSpecDataPoolMirroring {
+            /**
+             * Enabled whether this pool is mirrored or not
+             */
+            enabled?: pulumi.Input<boolean>;
+            /**
+             * Mode is the mirroring mode: either pool or image
+             */
+            mode?: pulumi.Input<string>;
+            peers?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringPeers>;
+            /**
+             * SnapshotSchedules is the scheduling of snapshot for mirrored images/pools
+             */
+            snapshotSchedules?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringSnapshotSchedules>[]>;
+        }
+        /**
+         * The mirroring settings
+         */
+        interface CephObjectZoneSpecDataPoolMirroringPatch {
+            /**
+             * Enabled whether this pool is mirrored or not
+             */
+            enabled?: pulumi.Input<boolean>;
+            /**
+             * Mode is the mirroring mode: either pool or image
+             */
+            mode?: pulumi.Input<string>;
+            peers?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringPeersPatch>;
+            /**
+             * SnapshotSchedules is the scheduling of snapshot for mirrored images/pools
+             */
+            snapshotSchedules?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringSnapshotSchedulesPatch>[]>;
+        }
+        /**
+         * Peers represents the peers spec
+         */
+        interface CephObjectZoneSpecDataPoolMirroringPeers {
+            /**
+             * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
+             */
+            secretNames?: pulumi.Input<pulumi.Input<string>[]>;
+        }
+        /**
+         * Peers represents the peers spec
+         */
+        interface CephObjectZoneSpecDataPoolMirroringPeersPatch {
+            /**
+             * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
+             */
+            secretNames?: pulumi.Input<pulumi.Input<string>[]>;
+        }
+        /**
+         * SnapshotScheduleSpec represents the snapshot scheduling settings of a mirrored pool
+         */
+        interface CephObjectZoneSpecDataPoolMirroringSnapshotSchedules {
+            /**
+             * Interval represent the periodicity of the snapshot.
+             */
+            interval?: pulumi.Input<string>;
+            /**
+             * Path is the path to snapshot, only valid for CephFS
+             */
+            path?: pulumi.Input<string>;
+            /**
+             * StartTime indicates when to start the snapshot
+             */
+            startTime?: pulumi.Input<string>;
+        }
+        /**
+         * SnapshotScheduleSpec represents the snapshot scheduling settings of a mirrored pool
+         */
+        interface CephObjectZoneSpecDataPoolMirroringSnapshotSchedulesPatch {
+            /**
+             * Interval represent the periodicity of the snapshot.
+             */
+            interval?: pulumi.Input<string>;
+            /**
+             * Path is the path to snapshot, only valid for CephFS
+             */
+            path?: pulumi.Input<string>;
+            /**
+             * StartTime indicates when to start the snapshot
+             */
+            startTime?: pulumi.Input<string>;
+        }
+        /**
+         * The data pool settings
+         */
+        interface CephObjectZoneSpecDataPoolPatch {
+            /**
+             * The application name to set on the pool. Only expected to be set for rgw pools.
+             */
+            application?: pulumi.Input<string>;
+            /**
+             * DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
+             * The inline compression mode in Bluestore OSD to set to (options are: none, passive, aggressive, force)
+             * Do NOT set a default value for kubebuilder as this will override the Parameters
+             */
+            compressionMode?: pulumi.Input<string>;
+            /**
+             * The root of the crush hierarchy utilized by the pool
+             */
+            crushRoot?: pulumi.Input<string>;
+            /**
+             * The device class the OSD should set to for use in the pool
+             */
+            deviceClass?: pulumi.Input<string>;
+            /**
+             * Allow rook operator to change the pool CRUSH tunables once the pool is created
+             */
+            enableCrushUpdates?: pulumi.Input<boolean>;
+            /**
+             * EnableRBDStats is used to enable gathering of statistics for all RBD images in the pool
+             */
+            enableRBDStats?: pulumi.Input<boolean>;
+            erasureCoded?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolErasureCodedPatch>;
+            /**
+             * The failure domain: osd/host/(region or zone if available) - technically also any type in the crush map
+             */
+            failureDomain?: pulumi.Input<string>;
+            mirroring?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringPatch>;
+            /**
+             * Parameters is a list of properties to enable on a given pool
+             */
+            parameters?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            quotas?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolQuotasPatch>;
+            replicated?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolReplicatedPatch>;
+            /**
+             * The mirroring statusCheck
+             */
+            statusCheck?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+        }
+        /**
+         * The quota settings
+         */
+        interface CephObjectZoneSpecDataPoolQuotas {
+            /**
+             * MaxBytes represents the quota in bytes
+             * Deprecated in favor of MaxSize
+             */
+            maxBytes?: pulumi.Input<number>;
+            /**
+             * MaxObjects represents the quota in objects
+             */
+            maxObjects?: pulumi.Input<number>;
+            /**
+             * MaxSize represents the quota in bytes as a string
+             */
+            maxSize?: pulumi.Input<string>;
+        }
+        /**
+         * The quota settings
+         */
+        interface CephObjectZoneSpecDataPoolQuotasPatch {
+            /**
+             * MaxBytes represents the quota in bytes
+             * Deprecated in favor of MaxSize
+             */
+            maxBytes?: pulumi.Input<number>;
+            /**
+             * MaxObjects represents the quota in objects
+             */
+            maxObjects?: pulumi.Input<number>;
+            /**
+             * MaxSize represents the quota in bytes as a string
+             */
+            maxSize?: pulumi.Input<string>;
+        }
+        /**
+         * The replication settings
+         */
+        interface CephObjectZoneSpecDataPoolReplicated {
+            hybridStorage?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolReplicatedHybridStorage>;
+            /**
+             * ReplicasPerFailureDomain the number of replica in the specified failure domain
+             */
+            replicasPerFailureDomain?: pulumi.Input<number>;
+            /**
+             * RequireSafeReplicaSize if false allows you to set replica 1
+             */
+            requireSafeReplicaSize?: pulumi.Input<boolean>;
+            /**
+             * Size - Number of copies per object in a replicated storage pool, including the object itself (required for replicated pool type)
+             */
+            size?: pulumi.Input<number>;
+            /**
+             * SubFailureDomain the name of the sub-failure domain
+             */
+            subFailureDomain?: pulumi.Input<string>;
+            /**
+             * TargetSizeRatio gives a hint (%) to Ceph in terms of expected consumption of the total cluster capacity
+             */
+            targetSizeRatio?: pulumi.Input<number>;
+        }
+        /**
+         * HybridStorage represents hybrid storage tier settings
+         */
+        interface CephObjectZoneSpecDataPoolReplicatedHybridStorage {
+            /**
+             * PrimaryDeviceClass represents high performance tier (for example SSD or NVME) for Primary OSD
+             */
+            primaryDeviceClass?: pulumi.Input<string>;
+            /**
+             * SecondaryDeviceClass represents low performance tier (for example HDDs) for remaining OSDs
+             */
+            secondaryDeviceClass?: pulumi.Input<string>;
+        }
+        /**
+         * HybridStorage represents hybrid storage tier settings
+         */
+        interface CephObjectZoneSpecDataPoolReplicatedHybridStoragePatch {
+            /**
+             * PrimaryDeviceClass represents high performance tier (for example SSD or NVME) for Primary OSD
+             */
+            primaryDeviceClass?: pulumi.Input<string>;
+            /**
+             * SecondaryDeviceClass represents low performance tier (for example HDDs) for remaining OSDs
+             */
+            secondaryDeviceClass?: pulumi.Input<string>;
+        }
+        /**
+         * The replication settings
+         */
+        interface CephObjectZoneSpecDataPoolReplicatedPatch {
+            hybridStorage?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolReplicatedHybridStoragePatch>;
+            /**
+             * ReplicasPerFailureDomain the number of replica in the specified failure domain
+             */
+            replicasPerFailureDomain?: pulumi.Input<number>;
+            /**
+             * RequireSafeReplicaSize if false allows you to set replica 1
+             */
+            requireSafeReplicaSize?: pulumi.Input<boolean>;
+            /**
+             * Size - Number of copies per object in a replicated storage pool, including the object itself (required for replicated pool type)
+             */
+            size?: pulumi.Input<number>;
+            /**
+             * SubFailureDomain the name of the sub-failure domain
+             */
+            subFailureDomain?: pulumi.Input<string>;
+            /**
+             * TargetSizeRatio gives a hint (%) to Ceph in terms of expected consumption of the total cluster capacity
+             */
+            targetSizeRatio?: pulumi.Input<number>;
+        }
+        /**
+         * The metadata pool settings
+         */
+        interface CephObjectZoneSpecMetadataPool {
+            /**
+             * The application name to set on the pool. Only expected to be set for rgw pools.
+             */
+            application?: pulumi.Input<string>;
+            /**
+             * DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
+             * The inline compression mode in Bluestore OSD to set to (options are: none, passive, aggressive, force)
+             * Do NOT set a default value for kubebuilder as this will override the Parameters
+             */
+            compressionMode?: pulumi.Input<string>;
+            /**
+             * The root of the crush hierarchy utilized by the pool
+             */
+            crushRoot?: pulumi.Input<string>;
+            /**
+             * The device class the OSD should set to for use in the pool
+             */
+            deviceClass?: pulumi.Input<string>;
+            /**
+             * Allow rook operator to change the pool CRUSH tunables once the pool is created
+             */
+            enableCrushUpdates?: pulumi.Input<boolean>;
+            /**
+             * EnableRBDStats is used to enable gathering of statistics for all RBD images in the pool
+             */
+            enableRBDStats?: pulumi.Input<boolean>;
+            erasureCoded?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolErasureCoded>;
+            /**
+             * The failure domain: osd/host/(region or zone if available) - technically also any type in the crush map
+             */
+            failureDomain?: pulumi.Input<string>;
+            mirroring?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroring>;
+            /**
+             * Parameters is a list of properties to enable on a given pool
+             */
+            parameters?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            quotas?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolQuotas>;
+            replicated?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolReplicated>;
+            /**
+             * The mirroring statusCheck
+             */
+            statusCheck?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+        }
+        /**
+         * The erasure code settings
+         */
+        interface CephObjectZoneSpecMetadataPoolErasureCoded {
+            /**
+             * The algorithm for erasure coding
+             */
+            algorithm?: pulumi.Input<string>;
+            /**
+             * Number of coding chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
+             * This is the number of OSDs that can be lost simultaneously before data cannot be recovered.
+             */
+            codingChunks?: pulumi.Input<number>;
+            /**
+             * Number of data chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
+             * The number of chunks required to recover an object when any single OSD is lost is the same
+             * as dataChunks so be aware that the larger the number of data chunks, the higher the cost of recovery.
+             */
+            dataChunks?: pulumi.Input<number>;
+        }
+        /**
+         * The erasure code settings
+         */
+        interface CephObjectZoneSpecMetadataPoolErasureCodedPatch {
+            /**
+             * The algorithm for erasure coding
+             */
+            algorithm?: pulumi.Input<string>;
+            /**
+             * Number of coding chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
+             * This is the number of OSDs that can be lost simultaneously before data cannot be recovered.
+             */
+            codingChunks?: pulumi.Input<number>;
+            /**
+             * Number of data chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
+             * The number of chunks required to recover an object when any single OSD is lost is the same
+             * as dataChunks so be aware that the larger the number of data chunks, the higher the cost of recovery.
+             */
+            dataChunks?: pulumi.Input<number>;
+        }
+        /**
+         * The mirroring settings
+         */
+        interface CephObjectZoneSpecMetadataPoolMirroring {
+            /**
+             * Enabled whether this pool is mirrored or not
+             */
+            enabled?: pulumi.Input<boolean>;
+            /**
+             * Mode is the mirroring mode: either pool or image
+             */
+            mode?: pulumi.Input<string>;
+            peers?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringPeers>;
+            /**
+             * SnapshotSchedules is the scheduling of snapshot for mirrored images/pools
+             */
+            snapshotSchedules?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringSnapshotSchedules>[]>;
+        }
+        /**
+         * The mirroring settings
+         */
+        interface CephObjectZoneSpecMetadataPoolMirroringPatch {
+            /**
+             * Enabled whether this pool is mirrored or not
+             */
+            enabled?: pulumi.Input<boolean>;
+            /**
+             * Mode is the mirroring mode: either pool or image
+             */
+            mode?: pulumi.Input<string>;
+            peers?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringPeersPatch>;
+            /**
+             * SnapshotSchedules is the scheduling of snapshot for mirrored images/pools
+             */
+            snapshotSchedules?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringSnapshotSchedulesPatch>[]>;
+        }
+        /**
+         * Peers represents the peers spec
+         */
+        interface CephObjectZoneSpecMetadataPoolMirroringPeers {
+            /**
+             * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
+             */
+            secretNames?: pulumi.Input<pulumi.Input<string>[]>;
+        }
+        /**
+         * Peers represents the peers spec
+         */
+        interface CephObjectZoneSpecMetadataPoolMirroringPeersPatch {
+            /**
+             * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
+             */
+            secretNames?: pulumi.Input<pulumi.Input<string>[]>;
+        }
+        /**
+         * SnapshotScheduleSpec represents the snapshot scheduling settings of a mirrored pool
+         */
+        interface CephObjectZoneSpecMetadataPoolMirroringSnapshotSchedules {
+            /**
+             * Interval represent the periodicity of the snapshot.
+             */
+            interval?: pulumi.Input<string>;
+            /**
+             * Path is the path to snapshot, only valid for CephFS
+             */
+            path?: pulumi.Input<string>;
+            /**
+             * StartTime indicates when to start the snapshot
+             */
+            startTime?: pulumi.Input<string>;
+        }
+        /**
+         * SnapshotScheduleSpec represents the snapshot scheduling settings of a mirrored pool
+         */
+        interface CephObjectZoneSpecMetadataPoolMirroringSnapshotSchedulesPatch {
+            /**
+             * Interval represent the periodicity of the snapshot.
+             */
+            interval?: pulumi.Input<string>;
+            /**
+             * Path is the path to snapshot, only valid for CephFS
+             */
+            path?: pulumi.Input<string>;
+            /**
+             * StartTime indicates when to start the snapshot
+             */
+            startTime?: pulumi.Input<string>;
+        }
+        /**
+         * The metadata pool settings
+         */
+        interface CephObjectZoneSpecMetadataPoolPatch {
+            /**
+             * The application name to set on the pool. Only expected to be set for rgw pools.
+             */
+            application?: pulumi.Input<string>;
+            /**
+             * DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
+             * The inline compression mode in Bluestore OSD to set to (options are: none, passive, aggressive, force)
+             * Do NOT set a default value for kubebuilder as this will override the Parameters
+             */
+            compressionMode?: pulumi.Input<string>;
+            /**
+             * The root of the crush hierarchy utilized by the pool
+             */
+            crushRoot?: pulumi.Input<string>;
+            /**
+             * The device class the OSD should set to for use in the pool
+             */
+            deviceClass?: pulumi.Input<string>;
+            /**
+             * Allow rook operator to change the pool CRUSH tunables once the pool is created
+             */
+            enableCrushUpdates?: pulumi.Input<boolean>;
+            /**
+             * EnableRBDStats is used to enable gathering of statistics for all RBD images in the pool
+             */
+            enableRBDStats?: pulumi.Input<boolean>;
+            erasureCoded?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolErasureCodedPatch>;
+            /**
+             * The failure domain: osd/host/(region or zone if available) - technically also any type in the crush map
+             */
+            failureDomain?: pulumi.Input<string>;
+            mirroring?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringPatch>;
+            /**
+             * Parameters is a list of properties to enable on a given pool
+             */
+            parameters?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            quotas?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolQuotasPatch>;
+            replicated?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolReplicatedPatch>;
+            /**
+             * The mirroring statusCheck
+             */
+            statusCheck?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+        }
+        /**
+         * The quota settings
+         */
+        interface CephObjectZoneSpecMetadataPoolQuotas {
+            /**
+             * MaxBytes represents the quota in bytes
+             * Deprecated in favor of MaxSize
+             */
+            maxBytes?: pulumi.Input<number>;
+            /**
+             * MaxObjects represents the quota in objects
+             */
+            maxObjects?: pulumi.Input<number>;
+            /**
+             * MaxSize represents the quota in bytes as a string
+             */
+            maxSize?: pulumi.Input<string>;
+        }
+        /**
+         * The quota settings
+         */
+        interface CephObjectZoneSpecMetadataPoolQuotasPatch {
+            /**
+             * MaxBytes represents the quota in bytes
+             * Deprecated in favor of MaxSize
+             */
+            maxBytes?: pulumi.Input<number>;
+            /**
+             * MaxObjects represents the quota in objects
+             */
+            maxObjects?: pulumi.Input<number>;
+            /**
+             * MaxSize represents the quota in bytes as a string
+             */
+            maxSize?: pulumi.Input<string>;
+        }
+        /**
+         * The replication settings
+         */
+        interface CephObjectZoneSpecMetadataPoolReplicated {
+            hybridStorage?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolReplicatedHybridStorage>;
+            /**
+             * ReplicasPerFailureDomain the number of replica in the specified failure domain
+             */
+            replicasPerFailureDomain?: pulumi.Input<number>;
+            /**
+             * RequireSafeReplicaSize if false allows you to set replica 1
+             */
+            requireSafeReplicaSize?: pulumi.Input<boolean>;
+            /**
+             * Size - Number of copies per object in a replicated storage pool, including the object itself (required for replicated pool type)
+             */
+            size?: pulumi.Input<number>;
+            /**
+             * SubFailureDomain the name of the sub-failure domain
+             */
+            subFailureDomain?: pulumi.Input<string>;
+            /**
+             * TargetSizeRatio gives a hint (%) to Ceph in terms of expected consumption of the total cluster capacity
+             */
+            targetSizeRatio?: pulumi.Input<number>;
+        }
+        /**
+         * HybridStorage represents hybrid storage tier settings
+         */
+        interface CephObjectZoneSpecMetadataPoolReplicatedHybridStorage {
+            /**
+             * PrimaryDeviceClass represents high performance tier (for example SSD or NVME) for Primary OSD
+             */
+            primaryDeviceClass?: pulumi.Input<string>;
+            /**
+             * SecondaryDeviceClass represents low performance tier (for example HDDs) for remaining OSDs
+             */
+            secondaryDeviceClass?: pulumi.Input<string>;
+        }
+        /**
+         * HybridStorage represents hybrid storage tier settings
+         */
+        interface CephObjectZoneSpecMetadataPoolReplicatedHybridStoragePatch {
+            /**
+             * PrimaryDeviceClass represents high performance tier (for example SSD or NVME) for Primary OSD
+             */
+            primaryDeviceClass?: pulumi.Input<string>;
+            /**
+             * SecondaryDeviceClass represents low performance tier (for example HDDs) for remaining OSDs
+             */
+            secondaryDeviceClass?: pulumi.Input<string>;
+        }
+        /**
+         * The replication settings
+         */
+        interface CephObjectZoneSpecMetadataPoolReplicatedPatch {
+            hybridStorage?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolReplicatedHybridStoragePatch>;
+            /**
+             * ReplicasPerFailureDomain the number of replica in the specified failure domain
+             */
+            replicasPerFailureDomain?: pulumi.Input<number>;
+            /**
+             * RequireSafeReplicaSize if false allows you to set replica 1
+             */
+            requireSafeReplicaSize?: pulumi.Input<boolean>;
+            /**
+             * Size - Number of copies per object in a replicated storage pool, including the object itself (required for replicated pool type)
+             */
+            size?: pulumi.Input<number>;
+            /**
+             * SubFailureDomain the name of the sub-failure domain
+             */
+            subFailureDomain?: pulumi.Input<string>;
+            /**
+             * TargetSizeRatio gives a hint (%) to Ceph in terms of expected consumption of the total cluster capacity
+             */
+            targetSizeRatio?: pulumi.Input<number>;
+        }
+        /**
+         * ObjectZoneSpec represent the spec of an ObjectZone
+         */
+        interface CephObjectZoneSpecPatch {
+            /**
+             * If this zone cannot be accessed from other peer Ceph clusters via the ClusterIP Service
+             * endpoint created by Rook, you must set this to the externally reachable endpoint(s). You may
+             * include the port in the definition. For example: "https://my-object-store.my-domain.net:443".
+             * In many cases, you should set this to the endpoint of the ingress resource that makes the
+             * CephObjectStore associated with this CephObjectStoreZone reachable to peer clusters.
+             * The list can have one or more endpoints pointing to different RGW servers in the zone.
+             *
+             * If a CephObjectStore endpoint is omitted from this list, that object store's gateways will
+             * not receive multisite replication data
+             * (see CephObjectStore.spec.gateway.disableMultisiteSyncTraffic).
+             */
+            customEndpoints?: pulumi.Input<pulumi.Input<string>[]>;
+            dataPool?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolPatch>;
+            metadataPool?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolPatch>;
+            /**
+             * Preserve pools on object zone deletion
+             */
+            preservePoolsOnDelete?: pulumi.Input<boolean>;
+            sharedPools?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPatch>;
+            /**
+             * The display name for the ceph users
+             */
+            zoneGroup?: pulumi.Input<string>;
+        }
+        /**
+         * The pool information when configuring RADOS namespaces in existing pools.
+         */
+        interface CephObjectZoneSpecSharedPools {
+            /**
+             * The data pool used for creating RADOS namespaces in the object store
+             */
+            dataPoolName?: pulumi.Input<string>;
+            /**
+             * The metadata pool used for creating RADOS namespaces in the object store
+             */
+            metadataPoolName?: pulumi.Input<string>;
+            /**
+             * PoolPlacements control which Pools are associated with a particular RGW bucket.
+             * Once PoolPlacements are defined, RGW client will be able to associate pool
+             * with ObjectStore bucket by providing "<LocationConstraint>" during s3 bucket creation
+             * or "X-Storage-Policy" header during swift container creation.
+             * See: https://docs.ceph.com/en/latest/radosgw/placement/#placement-targets
+             * PoolPlacement with name: "default" will be used as a default pool if no option
+             * is provided during bucket creation.
+             * If default placement is not provided, spec.sharedPools.dataPoolName and spec.sharedPools.MetadataPoolName will be used as default pools.
+             * If spec.sharedPools are also empty, then RGW pools (spec.dataPool and spec.metadataPool) will be used as defaults.
+             */
+            poolPlacements?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPoolPlacements>[]>;
+            /**
+             * Whether the RADOS namespaces should be preserved on deletion of the object store
+             */
+            preserveRadosNamespaceDataOnDelete?: pulumi.Input<boolean>;
+        }
+        /**
+         * The pool information when configuring RADOS namespaces in existing pools.
+         */
+        interface CephObjectZoneSpecSharedPoolsPatch {
+            /**
+             * The data pool used for creating RADOS namespaces in the object store
+             */
+            dataPoolName?: pulumi.Input<string>;
+            /**
+             * The metadata pool used for creating RADOS namespaces in the object store
+             */
+            metadataPoolName?: pulumi.Input<string>;
+            /**
+             * PoolPlacements control which Pools are associated with a particular RGW bucket.
+             * Once PoolPlacements are defined, RGW client will be able to associate pool
+             * with ObjectStore bucket by providing "<LocationConstraint>" during s3 bucket creation
+             * or "X-Storage-Policy" header during swift container creation.
+             * See: https://docs.ceph.com/en/latest/radosgw/placement/#placement-targets
+             * PoolPlacement with name: "default" will be used as a default pool if no option
+             * is provided during bucket creation.
+             * If default placement is not provided, spec.sharedPools.dataPoolName and spec.sharedPools.MetadataPoolName will be used as default pools.
+             * If spec.sharedPools are also empty, then RGW pools (spec.dataPool and spec.metadataPool) will be used as defaults.
+             */
+            poolPlacements?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPoolPlacementsPatch>[]>;
+            /**
+             * Whether the RADOS namespaces should be preserved on deletion of the object store
+             */
+            preserveRadosNamespaceDataOnDelete?: pulumi.Input<boolean>;
+        }
+        interface CephObjectZoneSpecSharedPoolsPoolPlacements {
+            /**
+             * The data pool used to store ObjectStore data that cannot use erasure coding (ex: multi-part uploads).
+             * If dataPoolName is not erasure coded, then there is no need for dataNonECPoolName.
+             */
+            dataNonECPoolName?: pulumi.Input<string>;
+            /**
+             * The data pool used to store ObjectStore objects data.
+             */
+            dataPoolName?: pulumi.Input<string>;
+            /**
+             * Sets given placement as default. Only one placement in the list can be marked as default.
+             * Default is false.
+             */
+            default?: pulumi.Input<boolean>;
+            /**
+             * The metadata pool used to store ObjectStore bucket index.
+             */
+            metadataPoolName?: pulumi.Input<string>;
+            /**
+             * Pool placement name. Name can be arbitrary. Placement with name "default" will be used as default.
+             */
+            name?: pulumi.Input<string>;
+            /**
+             * StorageClasses can be selected by user to override dataPoolName during object creation.
+             * Each placement has default STANDARD StorageClass pointing to dataPoolName.
+             * This list allows defining additional StorageClasses on top of default STANDARD storage class.
+             */
+            storageClasses?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPoolPlacementsStorageClasses>[]>;
+        }
+        interface CephObjectZoneSpecSharedPoolsPoolPlacementsPatch {
+            /**
+             * The data pool used to store ObjectStore data that cannot use erasure coding (ex: multi-part uploads).
+             * If dataPoolName is not erasure coded, then there is no need for dataNonECPoolName.
+             */
+            dataNonECPoolName?: pulumi.Input<string>;
+            /**
+             * The data pool used to store ObjectStore objects data.
+             */
+            dataPoolName?: pulumi.Input<string>;
+            /**
+             * Sets given placement as default. Only one placement in the list can be marked as default.
+             * Default is false.
+             */
+            default?: pulumi.Input<boolean>;
+            /**
+             * The metadata pool used to store ObjectStore bucket index.
+             */
+            metadataPoolName?: pulumi.Input<string>;
+            /**
+             * Pool placement name. Name can be arbitrary. Placement with name "default" will be used as default.
+             */
+            name?: pulumi.Input<string>;
+            /**
+             * StorageClasses can be selected by user to override dataPoolName during object creation.
+             * Each placement has default STANDARD StorageClass pointing to dataPoolName.
+             * This list allows defining additional StorageClasses on top of default STANDARD storage class.
+             */
+            storageClasses?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPoolPlacementsStorageClassesPatch>[]>;
+        }
+        interface CephObjectZoneSpecSharedPoolsPoolPlacementsStorageClasses {
+            /**
+             * DataPoolName is the data pool used to store ObjectStore objects data.
+             */
+            dataPoolName?: pulumi.Input<string>;
+            /**
+             * Name is the StorageClass name. Ceph allows arbitrary name for StorageClasses,
+             * however most clients/libs insist on AWS names so it is recommended to use
+             * one of the valid x-amz-storage-class values for better compatibility:
+             * REDUCED_REDUNDANCY | STANDARD_IA | ONEZONE_IA | INTELLIGENT_TIERING | GLACIER | DEEP_ARCHIVE | OUTPOSTS | GLACIER_IR | SNOW | EXPRESS_ONEZONE
+             * See AWS docs: https://aws.amazon.com/de/s3/storage-classes/
+             */
+            name?: pulumi.Input<string>;
+        }
+        interface CephObjectZoneSpecSharedPoolsPoolPlacementsStorageClassesPatch {
+            /**
+             * DataPoolName is the data pool used to store ObjectStore objects data.
+             */
+            dataPoolName?: pulumi.Input<string>;
+            /**
+             * Name is the StorageClass name. Ceph allows arbitrary name for StorageClasses,
+             * however most clients/libs insist on AWS names so it is recommended to use
+             * one of the valid x-amz-storage-class values for better compatibility:
+             * REDUCED_REDUNDANCY | STANDARD_IA | ONEZONE_IA | INTELLIGENT_TIERING | GLACIER | DEEP_ARCHIVE | OUTPOSTS | GLACIER_IR | SNOW | EXPRESS_ONEZONE
+             * See AWS docs: https://aws.amazon.com/de/s3/storage-classes/
+             */
+            name?: pulumi.Input<string>;
+        }
+        /**
+         * CephRBDMirror represents a Ceph RBD Mirror
+         */
+        interface CephRBDMirror {
+            /**
+             * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+             */
+            apiVersion?: pulumi.Input<"ceph.rook.io/v1">;
+            /**
+             * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+             */
+            kind?: pulumi.Input<"CephRBDMirror">;
+            /**
+             * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+             */
+            metadata?: pulumi.Input<inputs.meta.v1.ObjectMeta>;
+            spec?: pulumi.Input<inputs.ceph.v1.CephRBDMirrorSpec>;
+            /**
+             * Status represents the status of an object
+             */
+            status?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+        }
+        /**
+         * RBDMirroringSpec represents the specification of an RBD mirror daemon
+         */
+        interface CephRBDMirrorSpec {
+            /**
+             * The annotations-related configuration to add/set on each Pod related object.
+             */
+            annotations?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            /**
+             * Count represents the number of rbd mirror instance to run
+             */
+            count?: pulumi.Input<number>;
+            /**
+             * The labels-related configuration to add/set on each Pod related object.
+             */
+            labels?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            peers?: pulumi.Input<inputs.ceph.v1.CephRBDMirrorSpecPeers>;
+            placement?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            /**
+             * PriorityClassName sets priority class on the rbd mirror pods
+             */
+            priorityClassName?: pulumi.Input<string>;
+            /**
+             * The resource requirements for the rbd mirror pods
+             */
+            resources?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+        }
+        /**
+         * RBDMirroringSpec represents the specification of an RBD mirror daemon
+         */
+        interface CephRBDMirrorSpecPatch {
+            /**
+             * The annotations-related configuration to add/set on each Pod related object.
+             */
+            annotations?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            /**
+             * Count represents the number of rbd mirror instance to run
+             */
+            count?: pulumi.Input<number>;
+            /**
+             * The labels-related configuration to add/set on each Pod related object.
+             */
+            labels?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            peers?: pulumi.Input<inputs.ceph.v1.CephRBDMirrorSpecPeersPatch>;
+            placement?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+            /**
+             * PriorityClassName sets priority class on the rbd mirror pods
+             */
+            priorityClassName?: pulumi.Input<string>;
+            /**
+             * The resource requirements for the rbd mirror pods
+             */
+            resources?: pulumi.Input<{
+                [key: string]: any;
+            }>;
+        }
+        /**
+         * Peers represents the peers spec
+         */
+        interface CephRBDMirrorSpecPeers {
+            /**
+             * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
+             */
+            secretNames?: pulumi.Input<pulumi.Input<string>[]>;
+        }
+        /**
+         * Peers represents the peers spec
+         */
+        interface CephRBDMirrorSpecPeersPatch {
+            /**
+             * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
+             */
+            secretNames?: pulumi.Input<pulumi.Input<string>[]>;
         }
     }
-    /**
-     * Additional admin-level capabilities for the Ceph object store user
-     */
-    interface CephObjectStoreUserSpecCapabilitiesPatch {
-    }
-}
-/**
- * ObjectStoreUserSpec represent the spec of an Objectstoreuser
- */
-export interface CephObjectStoreUserSpecPatch {
-    capabilities?: pulumi.Input<inputs.ceph.v1.CephObjectStoreUserSpecCapabilitiesPatch>;
-    /**
-     * The namespace where the parent CephCluster and CephObjectStore are found
-     */
-    clusterNamespace?: pulumi.Input<string>;
-    /**
-     * The display name for the ceph users
-     */
-    displayName?: pulumi.Input<string>;
-    quotas?: pulumi.Input<inputs.ceph.v1.CephObjectStoreUserSpecQuotasPatch>;
-    /**
-     * The store the user will be created in
-     */
-    store?: pulumi.Input<string>;
-}
-/**
- * ObjectUserQuotaSpec can be used to set quotas for the object store user to limit their usage. See the [Ceph docs](https://docs.ceph.com/en/latest/radosgw/admin/?#quota-management) for more
- */
-export interface CephObjectStoreUserSpecQuotas {
-    /**
-     * Maximum bucket limit for the ceph user
-     */
-    maxBuckets?: pulumi.Input<number>;
-    /**
-     * Maximum number of objects across all the user's buckets
-     */
-    maxObjects?: pulumi.Input<number>;
-    /**
-     * Maximum size limit of all objects across all the user's buckets
-     * See https://pkg.go.dev/k8s.io/apimachinery/pkg/api/resource#Quantity for more info.
-     */
-    maxSize?: pulumi.Input<number | string>;
-}
-/**
- * ObjectUserQuotaSpec can be used to set quotas for the object store user to limit their usage. See the [Ceph docs](https://docs.ceph.com/en/latest/radosgw/admin/?#quota-management) for more
- */
-export interface CephObjectStoreUserSpecQuotasPatch {
-    /**
-     * Maximum bucket limit for the ceph user
-     */
-    maxBuckets?: pulumi.Input<number>;
-    /**
-     * Maximum number of objects across all the user's buckets
-     */
-    maxObjects?: pulumi.Input<number>;
-    /**
-     * Maximum size limit of all objects across all the user's buckets
-     * See https://pkg.go.dev/k8s.io/apimachinery/pkg/api/resource#Quantity for more info.
-     */
-    maxSize?: pulumi.Input<number | string>;
-}
-/**
- * CephObjectZone represents a Ceph Object Store Gateway Zone
- */
-export interface CephObjectZone {
-    /**
-     * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-     */
-    apiVersion?: pulumi.Input<"ceph.rook.io/v1">;
-    /**
-     * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-     */
-    kind?: pulumi.Input<"CephObjectZone">;
-    /**
-     * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
-     */
-    metadata?: pulumi.Input<inputs.meta.v1.ObjectMeta>;
-    spec?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpec>;
-    /**
-     * Status represents the status of an object
-     */
-    status?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-}
-/**
- * CephObjectZoneGroup represents a Ceph Object Store Gateway Zone Group
- */
-export interface CephObjectZoneGroup {
-    /**
-     * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-     */
-    apiVersion?: pulumi.Input<"ceph.rook.io/v1">;
-    /**
-     * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-     */
-    kind?: pulumi.Input<"CephObjectZoneGroup">;
-    /**
-     * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
-     */
-    metadata?: pulumi.Input<inputs.meta.v1.ObjectMeta>;
-    spec?: pulumi.Input<inputs.ceph.v1.CephObjectZoneGroupSpec>;
-    /**
-     * Status represents the status of an object
-     */
-    status?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-}
-/**
- * ObjectZoneGroupSpec represent the spec of an ObjectZoneGroup
- */
-export interface CephObjectZoneGroupSpec {
-    /**
-     * The display name for the ceph users
-     */
-    realm?: pulumi.Input<string>;
-}
-/**
- * ObjectZoneGroupSpec represent the spec of an ObjectZoneGroup
- */
-export interface CephObjectZoneGroupSpecPatch {
-    /**
-     * The display name for the ceph users
-     */
-    realm?: pulumi.Input<string>;
-}
-/**
- * ObjectZoneSpec represent the spec of an ObjectZone
- */
-export interface CephObjectZoneSpec {
-    /**
-     * If this zone cannot be accessed from other peer Ceph clusters via the ClusterIP Service
-     * endpoint created by Rook, you must set this to the externally reachable endpoint(s). You may
-     * include the port in the definition. For example: "https://my-object-store.my-domain.net:443".
-     * In many cases, you should set this to the endpoint of the ingress resource that makes the
-     * CephObjectStore associated with this CephObjectStoreZone reachable to peer clusters.
-     * The list can have one or more endpoints pointing to different RGW servers in the zone.
-     *
-     * If a CephObjectStore endpoint is omitted from this list, that object store's gateways will
-     * not receive multisite replication data
-     * (see CephObjectStore.spec.gateway.disableMultisiteSyncTraffic).
-     */
-    customEndpoints?: pulumi.Input<pulumi.Input<string>[]>;
-    dataPool?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPool>;
-    metadataPool?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPool>;
-    /**
-     * Preserve pools on object zone deletion
-     */
-    preservePoolsOnDelete?: pulumi.Input<boolean>;
-    sharedPools?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPools>;
-    /**
-     * The display name for the ceph users
-     */
-    zoneGroup?: pulumi.Input<string>;
-}
-/**
- * The data pool settings
- */
-export interface CephObjectZoneSpecDataPool {
-    /**
-     * The application name to set on the pool. Only expected to be set for rgw pools.
-     */
-    application?: pulumi.Input<string>;
-    /**
-     * DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
-     * The inline compression mode in Bluestore OSD to set to (options are: none, passive, aggressive, force)
-     * Do NOT set a default value for kubebuilder as this will override the Parameters
-     */
-    compressionMode?: pulumi.Input<string>;
-    /**
-     * The root of the crush hierarchy utilized by the pool
-     */
-    crushRoot?: pulumi.Input<string>;
-    /**
-     * The device class the OSD should set to for use in the pool
-     */
-    deviceClass?: pulumi.Input<string>;
-    /**
-     * Allow rook operator to change the pool CRUSH tunables once the pool is created
-     */
-    enableCrushUpdates?: pulumi.Input<boolean>;
-    /**
-     * EnableRBDStats is used to enable gathering of statistics for all RBD images in the pool
-     */
-    enableRBDStats?: pulumi.Input<boolean>;
-    erasureCoded?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolErasureCoded>;
-    /**
-     * The failure domain: osd/host/(region or zone if available) - technically also any type in the crush map
-     */
-    failureDomain?: pulumi.Input<string>;
-    mirroring?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroring>;
-    /**
-     * Parameters is a list of properties to enable on a given pool
-     */
-    parameters?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    quotas?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolQuotas>;
-    replicated?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolReplicated>;
-    /**
-     * The mirroring statusCheck
-     */
-    statusCheck?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-}
-/**
- * The erasure code settings
- */
-export interface CephObjectZoneSpecDataPoolErasureCoded {
-    /**
-     * The algorithm for erasure coding
-     */
-    algorithm?: pulumi.Input<string>;
-    /**
-     * Number of coding chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
-     * This is the number of OSDs that can be lost simultaneously before data cannot be recovered.
-     */
-    codingChunks?: pulumi.Input<number>;
-    /**
-     * Number of data chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
-     * The number of chunks required to recover an object when any single OSD is lost is the same
-     * as dataChunks so be aware that the larger the number of data chunks, the higher the cost of recovery.
-     */
-    dataChunks?: pulumi.Input<number>;
-}
-/**
- * The erasure code settings
- */
-export interface CephObjectZoneSpecDataPoolErasureCodedPatch {
-    /**
-     * The algorithm for erasure coding
-     */
-    algorithm?: pulumi.Input<string>;
-    /**
-     * Number of coding chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
-     * This is the number of OSDs that can be lost simultaneously before data cannot be recovered.
-     */
-    codingChunks?: pulumi.Input<number>;
-    /**
-     * Number of data chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
-     * The number of chunks required to recover an object when any single OSD is lost is the same
-     * as dataChunks so be aware that the larger the number of data chunks, the higher the cost of recovery.
-     */
-    dataChunks?: pulumi.Input<number>;
-}
-/**
- * The mirroring settings
- */
-export interface CephObjectZoneSpecDataPoolMirroring {
-    /**
-     * Enabled whether this pool is mirrored or not
-     */
-    enabled?: pulumi.Input<boolean>;
-    /**
-     * Mode is the mirroring mode: either pool or image
-     */
-    mode?: pulumi.Input<string>;
-    peers?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringPeers>;
-    /**
-     * SnapshotSchedules is the scheduling of snapshot for mirrored images/pools
-     */
-    snapshotSchedules?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringSnapshotSchedules>[]>;
-}
-/**
- * The mirroring settings
- */
-export interface CephObjectZoneSpecDataPoolMirroringPatch {
-    /**
-     * Enabled whether this pool is mirrored or not
-     */
-    enabled?: pulumi.Input<boolean>;
-    /**
-     * Mode is the mirroring mode: either pool or image
-     */
-    mode?: pulumi.Input<string>;
-    peers?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringPeersPatch>;
-    /**
-     * SnapshotSchedules is the scheduling of snapshot for mirrored images/pools
-     */
-    snapshotSchedules?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringSnapshotSchedulesPatch>[]>;
-}
-/**
- * Peers represents the peers spec
- */
-export interface CephObjectZoneSpecDataPoolMirroringPeers {
-    /**
-     * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
-     */
-    secretNames?: pulumi.Input<pulumi.Input<string>[]>;
-}
-/**
- * Peers represents the peers spec
- */
-export interface CephObjectZoneSpecDataPoolMirroringPeersPatch {
-    /**
-     * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
-     */
-    secretNames?: pulumi.Input<pulumi.Input<string>[]>;
-}
-/**
- * SnapshotScheduleSpec represents the snapshot scheduling settings of a mirrored pool
- */
-export interface CephObjectZoneSpecDataPoolMirroringSnapshotSchedules {
-    /**
-     * Interval represent the periodicity of the snapshot.
-     */
-    interval?: pulumi.Input<string>;
-    /**
-     * Path is the path to snapshot, only valid for CephFS
-     */
-    path?: pulumi.Input<string>;
-    /**
-     * StartTime indicates when to start the snapshot
-     */
-    startTime?: pulumi.Input<string>;
-}
-/**
- * SnapshotScheduleSpec represents the snapshot scheduling settings of a mirrored pool
- */
-export interface CephObjectZoneSpecDataPoolMirroringSnapshotSchedulesPatch {
-    /**
-     * Interval represent the periodicity of the snapshot.
-     */
-    interval?: pulumi.Input<string>;
-    /**
-     * Path is the path to snapshot, only valid for CephFS
-     */
-    path?: pulumi.Input<string>;
-    /**
-     * StartTime indicates when to start the snapshot
-     */
-    startTime?: pulumi.Input<string>;
-}
-/**
- * The data pool settings
- */
-export interface CephObjectZoneSpecDataPoolPatch {
-    /**
-     * The application name to set on the pool. Only expected to be set for rgw pools.
-     */
-    application?: pulumi.Input<string>;
-    /**
-     * DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
-     * The inline compression mode in Bluestore OSD to set to (options are: none, passive, aggressive, force)
-     * Do NOT set a default value for kubebuilder as this will override the Parameters
-     */
-    compressionMode?: pulumi.Input<string>;
-    /**
-     * The root of the crush hierarchy utilized by the pool
-     */
-    crushRoot?: pulumi.Input<string>;
-    /**
-     * The device class the OSD should set to for use in the pool
-     */
-    deviceClass?: pulumi.Input<string>;
-    /**
-     * Allow rook operator to change the pool CRUSH tunables once the pool is created
-     */
-    enableCrushUpdates?: pulumi.Input<boolean>;
-    /**
-     * EnableRBDStats is used to enable gathering of statistics for all RBD images in the pool
-     */
-    enableRBDStats?: pulumi.Input<boolean>;
-    erasureCoded?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolErasureCodedPatch>;
-    /**
-     * The failure domain: osd/host/(region or zone if available) - technically also any type in the crush map
-     */
-    failureDomain?: pulumi.Input<string>;
-    mirroring?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolMirroringPatch>;
-    /**
-     * Parameters is a list of properties to enable on a given pool
-     */
-    parameters?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    quotas?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolQuotasPatch>;
-    replicated?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolReplicatedPatch>;
-    /**
-     * The mirroring statusCheck
-     */
-    statusCheck?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-}
-/**
- * The quota settings
- */
-export interface CephObjectZoneSpecDataPoolQuotas {
-    /**
-     * MaxBytes represents the quota in bytes
-     * Deprecated in favor of MaxSize
-     */
-    maxBytes?: pulumi.Input<number>;
-    /**
-     * MaxObjects represents the quota in objects
-     */
-    maxObjects?: pulumi.Input<number>;
-    /**
-     * MaxSize represents the quota in bytes as a string
-     */
-    maxSize?: pulumi.Input<string>;
-}
-/**
- * The quota settings
- */
-export interface CephObjectZoneSpecDataPoolQuotasPatch {
-    /**
-     * MaxBytes represents the quota in bytes
-     * Deprecated in favor of MaxSize
-     */
-    maxBytes?: pulumi.Input<number>;
-    /**
-     * MaxObjects represents the quota in objects
-     */
-    maxObjects?: pulumi.Input<number>;
-    /**
-     * MaxSize represents the quota in bytes as a string
-     */
-    maxSize?: pulumi.Input<string>;
-}
-/**
- * The replication settings
- */
-export interface CephObjectZoneSpecDataPoolReplicated {
-    hybridStorage?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolReplicatedHybridStorage>;
-    /**
-     * ReplicasPerFailureDomain the number of replica in the specified failure domain
-     */
-    replicasPerFailureDomain?: pulumi.Input<number>;
-    /**
-     * RequireSafeReplicaSize if false allows you to set replica 1
-     */
-    requireSafeReplicaSize?: pulumi.Input<boolean>;
-    /**
-     * Size - Number of copies per object in a replicated storage pool, including the object itself (required for replicated pool type)
-     */
-    size?: pulumi.Input<number>;
-    /**
-     * SubFailureDomain the name of the sub-failure domain
-     */
-    subFailureDomain?: pulumi.Input<string>;
-    /**
-     * TargetSizeRatio gives a hint (%) to Ceph in terms of expected consumption of the total cluster capacity
-     */
-    targetSizeRatio?: pulumi.Input<number>;
-}
-/**
- * HybridStorage represents hybrid storage tier settings
- */
-export interface CephObjectZoneSpecDataPoolReplicatedHybridStorage {
-    /**
-     * PrimaryDeviceClass represents high performance tier (for example SSD or NVME) for Primary OSD
-     */
-    primaryDeviceClass?: pulumi.Input<string>;
-    /**
-     * SecondaryDeviceClass represents low performance tier (for example HDDs) for remaining OSDs
-     */
-    secondaryDeviceClass?: pulumi.Input<string>;
-}
-/**
- * HybridStorage represents hybrid storage tier settings
- */
-export interface CephObjectZoneSpecDataPoolReplicatedHybridStoragePatch {
-    /**
-     * PrimaryDeviceClass represents high performance tier (for example SSD or NVME) for Primary OSD
-     */
-    primaryDeviceClass?: pulumi.Input<string>;
-    /**
-     * SecondaryDeviceClass represents low performance tier (for example HDDs) for remaining OSDs
-     */
-    secondaryDeviceClass?: pulumi.Input<string>;
-}
-/**
- * The replication settings
- */
-export interface CephObjectZoneSpecDataPoolReplicatedPatch {
-    hybridStorage?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolReplicatedHybridStoragePatch>;
-    /**
-     * ReplicasPerFailureDomain the number of replica in the specified failure domain
-     */
-    replicasPerFailureDomain?: pulumi.Input<number>;
-    /**
-     * RequireSafeReplicaSize if false allows you to set replica 1
-     */
-    requireSafeReplicaSize?: pulumi.Input<boolean>;
-    /**
-     * Size - Number of copies per object in a replicated storage pool, including the object itself (required for replicated pool type)
-     */
-    size?: pulumi.Input<number>;
-    /**
-     * SubFailureDomain the name of the sub-failure domain
-     */
-    subFailureDomain?: pulumi.Input<string>;
-    /**
-     * TargetSizeRatio gives a hint (%) to Ceph in terms of expected consumption of the total cluster capacity
-     */
-    targetSizeRatio?: pulumi.Input<number>;
-}
-/**
- * The metadata pool settings
- */
-export interface CephObjectZoneSpecMetadataPool {
-    /**
-     * The application name to set on the pool. Only expected to be set for rgw pools.
-     */
-    application?: pulumi.Input<string>;
-    /**
-     * DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
-     * The inline compression mode in Bluestore OSD to set to (options are: none, passive, aggressive, force)
-     * Do NOT set a default value for kubebuilder as this will override the Parameters
-     */
-    compressionMode?: pulumi.Input<string>;
-    /**
-     * The root of the crush hierarchy utilized by the pool
-     */
-    crushRoot?: pulumi.Input<string>;
-    /**
-     * The device class the OSD should set to for use in the pool
-     */
-    deviceClass?: pulumi.Input<string>;
-    /**
-     * Allow rook operator to change the pool CRUSH tunables once the pool is created
-     */
-    enableCrushUpdates?: pulumi.Input<boolean>;
-    /**
-     * EnableRBDStats is used to enable gathering of statistics for all RBD images in the pool
-     */
-    enableRBDStats?: pulumi.Input<boolean>;
-    erasureCoded?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolErasureCoded>;
-    /**
-     * The failure domain: osd/host/(region or zone if available) - technically also any type in the crush map
-     */
-    failureDomain?: pulumi.Input<string>;
-    mirroring?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroring>;
-    /**
-     * Parameters is a list of properties to enable on a given pool
-     */
-    parameters?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    quotas?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolQuotas>;
-    replicated?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolReplicated>;
-    /**
-     * The mirroring statusCheck
-     */
-    statusCheck?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-}
-/**
- * The erasure code settings
- */
-export interface CephObjectZoneSpecMetadataPoolErasureCoded {
-    /**
-     * The algorithm for erasure coding
-     */
-    algorithm?: pulumi.Input<string>;
-    /**
-     * Number of coding chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
-     * This is the number of OSDs that can be lost simultaneously before data cannot be recovered.
-     */
-    codingChunks?: pulumi.Input<number>;
-    /**
-     * Number of data chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
-     * The number of chunks required to recover an object when any single OSD is lost is the same
-     * as dataChunks so be aware that the larger the number of data chunks, the higher the cost of recovery.
-     */
-    dataChunks?: pulumi.Input<number>;
-}
-/**
- * The erasure code settings
- */
-export interface CephObjectZoneSpecMetadataPoolErasureCodedPatch {
-    /**
-     * The algorithm for erasure coding
-     */
-    algorithm?: pulumi.Input<string>;
-    /**
-     * Number of coding chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
-     * This is the number of OSDs that can be lost simultaneously before data cannot be recovered.
-     */
-    codingChunks?: pulumi.Input<number>;
-    /**
-     * Number of data chunks per object in an erasure coded storage pool (required for erasure-coded pool type).
-     * The number of chunks required to recover an object when any single OSD is lost is the same
-     * as dataChunks so be aware that the larger the number of data chunks, the higher the cost of recovery.
-     */
-    dataChunks?: pulumi.Input<number>;
-}
-/**
- * The mirroring settings
- */
-export interface CephObjectZoneSpecMetadataPoolMirroring {
-    /**
-     * Enabled whether this pool is mirrored or not
-     */
-    enabled?: pulumi.Input<boolean>;
-    /**
-     * Mode is the mirroring mode: either pool or image
-     */
-    mode?: pulumi.Input<string>;
-    peers?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringPeers>;
-    /**
-     * SnapshotSchedules is the scheduling of snapshot for mirrored images/pools
-     */
-    snapshotSchedules?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringSnapshotSchedules>[]>;
-}
-/**
- * The mirroring settings
- */
-export interface CephObjectZoneSpecMetadataPoolMirroringPatch {
-    /**
-     * Enabled whether this pool is mirrored or not
-     */
-    enabled?: pulumi.Input<boolean>;
-    /**
-     * Mode is the mirroring mode: either pool or image
-     */
-    mode?: pulumi.Input<string>;
-    peers?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringPeersPatch>;
-    /**
-     * SnapshotSchedules is the scheduling of snapshot for mirrored images/pools
-     */
-    snapshotSchedules?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringSnapshotSchedulesPatch>[]>;
-}
-/**
- * Peers represents the peers spec
- */
-export interface CephObjectZoneSpecMetadataPoolMirroringPeers {
-    /**
-     * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
-     */
-    secretNames?: pulumi.Input<pulumi.Input<string>[]>;
-}
-/**
- * Peers represents the peers spec
- */
-export interface CephObjectZoneSpecMetadataPoolMirroringPeersPatch {
-    /**
-     * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
-     */
-    secretNames?: pulumi.Input<pulumi.Input<string>[]>;
-}
-/**
- * SnapshotScheduleSpec represents the snapshot scheduling settings of a mirrored pool
- */
-export interface CephObjectZoneSpecMetadataPoolMirroringSnapshotSchedules {
-    /**
-     * Interval represent the periodicity of the snapshot.
-     */
-    interval?: pulumi.Input<string>;
-    /**
-     * Path is the path to snapshot, only valid for CephFS
-     */
-    path?: pulumi.Input<string>;
-    /**
-     * StartTime indicates when to start the snapshot
-     */
-    startTime?: pulumi.Input<string>;
-}
-/**
- * SnapshotScheduleSpec represents the snapshot scheduling settings of a mirrored pool
- */
-export interface CephObjectZoneSpecMetadataPoolMirroringSnapshotSchedulesPatch {
-    /**
-     * Interval represent the periodicity of the snapshot.
-     */
-    interval?: pulumi.Input<string>;
-    /**
-     * Path is the path to snapshot, only valid for CephFS
-     */
-    path?: pulumi.Input<string>;
-    /**
-     * StartTime indicates when to start the snapshot
-     */
-    startTime?: pulumi.Input<string>;
-}
-/**
- * The metadata pool settings
- */
-export interface CephObjectZoneSpecMetadataPoolPatch {
-    /**
-     * The application name to set on the pool. Only expected to be set for rgw pools.
-     */
-    application?: pulumi.Input<string>;
-    /**
-     * DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
-     * The inline compression mode in Bluestore OSD to set to (options are: none, passive, aggressive, force)
-     * Do NOT set a default value for kubebuilder as this will override the Parameters
-     */
-    compressionMode?: pulumi.Input<string>;
-    /**
-     * The root of the crush hierarchy utilized by the pool
-     */
-    crushRoot?: pulumi.Input<string>;
-    /**
-     * The device class the OSD should set to for use in the pool
-     */
-    deviceClass?: pulumi.Input<string>;
-    /**
-     * Allow rook operator to change the pool CRUSH tunables once the pool is created
-     */
-    enableCrushUpdates?: pulumi.Input<boolean>;
-    /**
-     * EnableRBDStats is used to enable gathering of statistics for all RBD images in the pool
-     */
-    enableRBDStats?: pulumi.Input<boolean>;
-    erasureCoded?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolErasureCodedPatch>;
-    /**
-     * The failure domain: osd/host/(region or zone if available) - technically also any type in the crush map
-     */
-    failureDomain?: pulumi.Input<string>;
-    mirroring?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolMirroringPatch>;
-    /**
-     * Parameters is a list of properties to enable on a given pool
-     */
-    parameters?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    quotas?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolQuotasPatch>;
-    replicated?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolReplicatedPatch>;
-    /**
-     * The mirroring statusCheck
-     */
-    statusCheck?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-}
-/**
- * The quota settings
- */
-export interface CephObjectZoneSpecMetadataPoolQuotas {
-    /**
-     * MaxBytes represents the quota in bytes
-     * Deprecated in favor of MaxSize
-     */
-    maxBytes?: pulumi.Input<number>;
-    /**
-     * MaxObjects represents the quota in objects
-     */
-    maxObjects?: pulumi.Input<number>;
-    /**
-     * MaxSize represents the quota in bytes as a string
-     */
-    maxSize?: pulumi.Input<string>;
-}
-/**
- * The quota settings
- */
-export interface CephObjectZoneSpecMetadataPoolQuotasPatch {
-    /**
-     * MaxBytes represents the quota in bytes
-     * Deprecated in favor of MaxSize
-     */
-    maxBytes?: pulumi.Input<number>;
-    /**
-     * MaxObjects represents the quota in objects
-     */
-    maxObjects?: pulumi.Input<number>;
-    /**
-     * MaxSize represents the quota in bytes as a string
-     */
-    maxSize?: pulumi.Input<string>;
-}
-/**
- * The replication settings
- */
-export interface CephObjectZoneSpecMetadataPoolReplicated {
-    hybridStorage?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolReplicatedHybridStorage>;
-    /**
-     * ReplicasPerFailureDomain the number of replica in the specified failure domain
-     */
-    replicasPerFailureDomain?: pulumi.Input<number>;
-    /**
-     * RequireSafeReplicaSize if false allows you to set replica 1
-     */
-    requireSafeReplicaSize?: pulumi.Input<boolean>;
-    /**
-     * Size - Number of copies per object in a replicated storage pool, including the object itself (required for replicated pool type)
-     */
-    size?: pulumi.Input<number>;
-    /**
-     * SubFailureDomain the name of the sub-failure domain
-     */
-    subFailureDomain?: pulumi.Input<string>;
-    /**
-     * TargetSizeRatio gives a hint (%) to Ceph in terms of expected consumption of the total cluster capacity
-     */
-    targetSizeRatio?: pulumi.Input<number>;
-}
-/**
- * HybridStorage represents hybrid storage tier settings
- */
-export interface CephObjectZoneSpecMetadataPoolReplicatedHybridStorage {
-    /**
-     * PrimaryDeviceClass represents high performance tier (for example SSD or NVME) for Primary OSD
-     */
-    primaryDeviceClass?: pulumi.Input<string>;
-    /**
-     * SecondaryDeviceClass represents low performance tier (for example HDDs) for remaining OSDs
-     */
-    secondaryDeviceClass?: pulumi.Input<string>;
-}
-/**
- * HybridStorage represents hybrid storage tier settings
- */
-export interface CephObjectZoneSpecMetadataPoolReplicatedHybridStoragePatch {
-    /**
-     * PrimaryDeviceClass represents high performance tier (for example SSD or NVME) for Primary OSD
-     */
-    primaryDeviceClass?: pulumi.Input<string>;
-    /**
-     * SecondaryDeviceClass represents low performance tier (for example HDDs) for remaining OSDs
-     */
-    secondaryDeviceClass?: pulumi.Input<string>;
-}
-/**
- * The replication settings
- */
-export interface CephObjectZoneSpecMetadataPoolReplicatedPatch {
-    hybridStorage?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolReplicatedHybridStoragePatch>;
-    /**
-     * ReplicasPerFailureDomain the number of replica in the specified failure domain
-     */
-    replicasPerFailureDomain?: pulumi.Input<number>;
-    /**
-     * RequireSafeReplicaSize if false allows you to set replica 1
-     */
-    requireSafeReplicaSize?: pulumi.Input<boolean>;
-    /**
-     * Size - Number of copies per object in a replicated storage pool, including the object itself (required for replicated pool type)
-     */
-    size?: pulumi.Input<number>;
-    /**
-     * SubFailureDomain the name of the sub-failure domain
-     */
-    subFailureDomain?: pulumi.Input<string>;
-    /**
-     * TargetSizeRatio gives a hint (%) to Ceph in terms of expected consumption of the total cluster capacity
-     */
-    targetSizeRatio?: pulumi.Input<number>;
-}
-/**
- * ObjectZoneSpec represent the spec of an ObjectZone
- */
-export interface CephObjectZoneSpecPatch {
-    /**
-     * If this zone cannot be accessed from other peer Ceph clusters via the ClusterIP Service
-     * endpoint created by Rook, you must set this to the externally reachable endpoint(s). You may
-     * include the port in the definition. For example: "https://my-object-store.my-domain.net:443".
-     * In many cases, you should set this to the endpoint of the ingress resource that makes the
-     * CephObjectStore associated with this CephObjectStoreZone reachable to peer clusters.
-     * The list can have one or more endpoints pointing to different RGW servers in the zone.
-     *
-     * If a CephObjectStore endpoint is omitted from this list, that object store's gateways will
-     * not receive multisite replication data
-     * (see CephObjectStore.spec.gateway.disableMultisiteSyncTraffic).
-     */
-    customEndpoints?: pulumi.Input<pulumi.Input<string>[]>;
-    dataPool?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecDataPoolPatch>;
-    metadataPool?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecMetadataPoolPatch>;
-    /**
-     * Preserve pools on object zone deletion
-     */
-    preservePoolsOnDelete?: pulumi.Input<boolean>;
-    sharedPools?: pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPatch>;
-    /**
-     * The display name for the ceph users
-     */
-    zoneGroup?: pulumi.Input<string>;
-}
-/**
- * The pool information when configuring RADOS namespaces in existing pools.
- */
-export interface CephObjectZoneSpecSharedPools {
-    /**
-     * The data pool used for creating RADOS namespaces in the object store
-     */
-    dataPoolName?: pulumi.Input<string>;
-    /**
-     * The metadata pool used for creating RADOS namespaces in the object store
-     */
-    metadataPoolName?: pulumi.Input<string>;
-    /**
-     * PoolPlacements control which Pools are associated with a particular RGW bucket.
-     * Once PoolPlacements are defined, RGW client will be able to associate pool
-     * with ObjectStore bucket by providing "<LocationConstraint>" during s3 bucket creation
-     * or "X-Storage-Policy" header during swift container creation.
-     * See: https://docs.ceph.com/en/latest/radosgw/placement/#placement-targets
-     * PoolPlacement with name: "default" will be used as a default pool if no option
-     * is provided during bucket creation.
-     * If default placement is not provided, spec.sharedPools.dataPoolName and spec.sharedPools.MetadataPoolName will be used as default pools.
-     * If spec.sharedPools are also empty, then RGW pools (spec.dataPool and spec.metadataPool) will be used as defaults.
-     */
-    poolPlacements?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPoolPlacements>[]>;
-    /**
-     * Whether the RADOS namespaces should be preserved on deletion of the object store
-     */
-    preserveRadosNamespaceDataOnDelete?: pulumi.Input<boolean>;
-}
-/**
- * The pool information when configuring RADOS namespaces in existing pools.
- */
-export interface CephObjectZoneSpecSharedPoolsPatch {
-    /**
-     * The data pool used for creating RADOS namespaces in the object store
-     */
-    dataPoolName?: pulumi.Input<string>;
-    /**
-     * The metadata pool used for creating RADOS namespaces in the object store
-     */
-    metadataPoolName?: pulumi.Input<string>;
-    /**
-     * PoolPlacements control which Pools are associated with a particular RGW bucket.
-     * Once PoolPlacements are defined, RGW client will be able to associate pool
-     * with ObjectStore bucket by providing "<LocationConstraint>" during s3 bucket creation
-     * or "X-Storage-Policy" header during swift container creation.
-     * See: https://docs.ceph.com/en/latest/radosgw/placement/#placement-targets
-     * PoolPlacement with name: "default" will be used as a default pool if no option
-     * is provided during bucket creation.
-     * If default placement is not provided, spec.sharedPools.dataPoolName and spec.sharedPools.MetadataPoolName will be used as default pools.
-     * If spec.sharedPools are also empty, then RGW pools (spec.dataPool and spec.metadataPool) will be used as defaults.
-     */
-    poolPlacements?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPoolPlacementsPatch>[]>;
-    /**
-     * Whether the RADOS namespaces should be preserved on deletion of the object store
-     */
-    preserveRadosNamespaceDataOnDelete?: pulumi.Input<boolean>;
-}
-export interface CephObjectZoneSpecSharedPoolsPoolPlacements {
-    /**
-     * The data pool used to store ObjectStore data that cannot use erasure coding (ex: multi-part uploads).
-     * If dataPoolName is not erasure coded, then there is no need for dataNonECPoolName.
-     */
-    dataNonECPoolName?: pulumi.Input<string>;
-    /**
-     * The data pool used to store ObjectStore objects data.
-     */
-    dataPoolName?: pulumi.Input<string>;
-    /**
-     * Sets given placement as default. Only one placement in the list can be marked as default.
-     * Default is false.
-     */
-    default?: pulumi.Input<boolean>;
-    /**
-     * The metadata pool used to store ObjectStore bucket index.
-     */
-    metadataPoolName?: pulumi.Input<string>;
-    /**
-     * Pool placement name. Name can be arbitrary. Placement with name "default" will be used as default.
-     */
-    name?: pulumi.Input<string>;
-    /**
-     * StorageClasses can be selected by user to override dataPoolName during object creation.
-     * Each placement has default STANDARD StorageClass pointing to dataPoolName.
-     * This list allows defining additional StorageClasses on top of default STANDARD storage class.
-     */
-    storageClasses?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPoolPlacementsStorageClasses>[]>;
-}
-export interface CephObjectZoneSpecSharedPoolsPoolPlacementsPatch {
-    /**
-     * The data pool used to store ObjectStore data that cannot use erasure coding (ex: multi-part uploads).
-     * If dataPoolName is not erasure coded, then there is no need for dataNonECPoolName.
-     */
-    dataNonECPoolName?: pulumi.Input<string>;
-    /**
-     * The data pool used to store ObjectStore objects data.
-     */
-    dataPoolName?: pulumi.Input<string>;
-    /**
-     * Sets given placement as default. Only one placement in the list can be marked as default.
-     * Default is false.
-     */
-    default?: pulumi.Input<boolean>;
-    /**
-     * The metadata pool used to store ObjectStore bucket index.
-     */
-    metadataPoolName?: pulumi.Input<string>;
-    /**
-     * Pool placement name. Name can be arbitrary. Placement with name "default" will be used as default.
-     */
-    name?: pulumi.Input<string>;
-    /**
-     * StorageClasses can be selected by user to override dataPoolName during object creation.
-     * Each placement has default STANDARD StorageClass pointing to dataPoolName.
-     * This list allows defining additional StorageClasses on top of default STANDARD storage class.
-     */
-    storageClasses?: pulumi.Input<pulumi.Input<inputs.ceph.v1.CephObjectZoneSpecSharedPoolsPoolPlacementsStorageClassesPatch>[]>;
-}
-export interface CephObjectZoneSpecSharedPoolsPoolPlacementsStorageClasses {
-    /**
-     * DataPoolName is the data pool used to store ObjectStore objects data.
-     */
-    dataPoolName?: pulumi.Input<string>;
-    /**
-     * Name is the StorageClass name. Ceph allows arbitrary name for StorageClasses,
-     * however most clients/libs insist on AWS names so it is recommended to use
-     * one of the valid x-amz-storage-class values for better compatibility:
-     * REDUCED_REDUNDANCY | STANDARD_IA | ONEZONE_IA | INTELLIGENT_TIERING | GLACIER | DEEP_ARCHIVE | OUTPOSTS | GLACIER_IR | SNOW | EXPRESS_ONEZONE
-     * See AWS docs: https://aws.amazon.com/de/s3/storage-classes/
-     */
-    name?: pulumi.Input<string>;
-}
-export interface CephObjectZoneSpecSharedPoolsPoolPlacementsStorageClassesPatch {
-    /**
-     * DataPoolName is the data pool used to store ObjectStore objects data.
-     */
-    dataPoolName?: pulumi.Input<string>;
-    /**
-     * Name is the StorageClass name. Ceph allows arbitrary name for StorageClasses,
-     * however most clients/libs insist on AWS names so it is recommended to use
-     * one of the valid x-amz-storage-class values for better compatibility:
-     * REDUCED_REDUNDANCY | STANDARD_IA | ONEZONE_IA | INTELLIGENT_TIERING | GLACIER | DEEP_ARCHIVE | OUTPOSTS | GLACIER_IR | SNOW | EXPRESS_ONEZONE
-     * See AWS docs: https://aws.amazon.com/de/s3/storage-classes/
-     */
-    name?: pulumi.Input<string>;
-}
-/**
- * CephRBDMirror represents a Ceph RBD Mirror
- */
-export interface CephRBDMirror {
-    /**
-     * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-     */
-    apiVersion?: pulumi.Input<"ceph.rook.io/v1">;
-    /**
-     * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-     */
-    kind?: pulumi.Input<"CephRBDMirror">;
-    /**
-     * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
-     */
-    metadata?: pulumi.Input<inputs.meta.v1.ObjectMeta>;
-    spec?: pulumi.Input<inputs.ceph.v1.CephRBDMirrorSpec>;
-    /**
-     * Status represents the status of an object
-     */
-    status?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-}
-/**
- * RBDMirroringSpec represents the specification of an RBD mirror daemon
- */
-export interface CephRBDMirrorSpec {
-    /**
-     * The annotations-related configuration to add/set on each Pod related object.
-     */
-    annotations?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    /**
-     * Count represents the number of rbd mirror instance to run
-     */
-    count?: pulumi.Input<number>;
-    /**
-     * The labels-related configuration to add/set on each Pod related object.
-     */
-    labels?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    peers?: pulumi.Input<inputs.ceph.v1.CephRBDMirrorSpecPeers>;
-    placement?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    /**
-     * PriorityClassName sets priority class on the rbd mirror pods
-     */
-    priorityClassName?: pulumi.Input<string>;
-    /**
-     * The resource requirements for the rbd mirror pods
-     */
-    resources?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-}
-/**
- * RBDMirroringSpec represents the specification of an RBD mirror daemon
- */
-export interface CephRBDMirrorSpecPatch {
-    /**
-     * The annotations-related configuration to add/set on each Pod related object.
-     */
-    annotations?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    /**
-     * Count represents the number of rbd mirror instance to run
-     */
-    count?: pulumi.Input<number>;
-    /**
-     * The labels-related configuration to add/set on each Pod related object.
-     */
-    labels?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    peers?: pulumi.Input<inputs.ceph.v1.CephRBDMirrorSpecPeersPatch>;
-    placement?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-    /**
-     * PriorityClassName sets priority class on the rbd mirror pods
-     */
-    priorityClassName?: pulumi.Input<string>;
-    /**
-     * The resource requirements for the rbd mirror pods
-     */
-    resources?: pulumi.Input<{
-        [key: string]: any;
-    }>;
-}
-/**
- * Peers represents the peers spec
- */
-export interface CephRBDMirrorSpecPeers {
-    /**
-     * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
-     */
-    secretNames?: pulumi.Input<pulumi.Input<string>[]>;
-}
-/**
- * Peers represents the peers spec
- */
-export interface CephRBDMirrorSpecPeersPatch {
-    /**
-     * SecretNames represents the Kubernetes Secret names to add rbd-mirror or cephfs-mirror peers
-     */
-    secretNames?: pulumi.Input<pulumi.Input<string>[]>;
 }
 export declare namespace meta {
     namespace v1 {

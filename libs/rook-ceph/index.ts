@@ -21,7 +21,7 @@ export {
     objectbucket,
     types,
 };
-pulumi.runtime.registerResourcePackage("crds", {
+pulumi.runtime.registerResourcePackage("rook-ceph", {
     version: utilities.getVersion(),
     constructProvider: (name: string, type: string, urn: string): pulumi.ProviderResource => {
         if (type !== "pulumi:providers:kubernetes") {

@@ -6,18 +6,40 @@ settings:
 
 importers:
 
-  clusters/meta-cluster:
+  clusters/app-cluster:
     dependencies:
+      '@pulumi/istio':
+        specifier: workspace:*
+        version: link:../../libs/istio
       '@pulumi/kubernetes':
         specifier: ^4.21.0
         version: 4.21.0(typescript@5.7.3)
       '@pulumi/pulumi':
         specifier: ^3.147.0
         version: 3.147.0(typescript@5.7.3)
-      istio:
+      '@pulumi/rook-ceph':
+        specifier: workspace:*
+        version: link:../../libs/rook-ceph
+    devDependencies:
+      '@types/node':
+        specifier: ^18.19.71
+        version: 18.19.71
+      typescript:
+        specifier: ^5.7.3
+        version: 5.7.3
+
+  clusters/meta-cluster:
+    dependencies:
+      '@pulumi/istio':
         specifier: workspace:*
         version: link:../../libs/istio
-      rook-ceph:
+      '@pulumi/kubernetes':
+        specifier: ^4.21.0
+        version: 4.21.0(typescript@5.7.3)
+      '@pulumi/pulumi':
+        specifier: ^3.147.0
+        version: 3.147.0(typescript@5.7.3)
+      '@pulumi/rook-ceph':
         specifier: workspace:*
         version: link:../../libs/rook-ceph
     devDependencies:
@@ -77,41 +99,41 @@ importers:
         specifier: 4.18.0
         version: 4.18.0(encoding@0.1.13)(typescript@4.9.5)
       '@pulumi/pulumi':
-        specifier: ^3.25.0
+        specifier: ^3.147.0
         version: 3.147.0(typescript@4.9.5)
       '@types/node-fetch':
-        specifier: ^2.1.4
+        specifier: ^2.6.12
         version: 2.6.12
       '@types/tmp':
         specifier: ^0.0.33
         version: 0.0.33
       glob:
-        specifier: ^10.3.10
+        specifier: ^10.4.5
         version: 10.4.5
       node-fetch:
-        specifier: ^2.3.0
+        specifier: ^2.7.0
         version: 2.7.0(encoding@0.1.13)
       shell-quote:
-        specifier: ^1.6.1
+        specifier: ^1.8.2
         version: 1.8.2
       tmp:
         specifier: ^0.0.33
         version: 0.0.33
     devDependencies:
       '@types/mocha':
-        specifier: ^5.2.5
+        specifier: ^5.2.7
         version: 5.2.7
       '@types/node':
-        specifier: ^14
+        specifier: ^14.18.63
         version: 14.18.63
       '@types/shell-quote':
-        specifier: ^1.6.0
+        specifier: ^1.7.5
         version: 1.7.5
       mocha:
         specifier: ^5.2.0
         version: 5.2.0
       typescript:
-        specifier: ^4.3.5
+        specifier: ^4.9.5
         version: 4.9.5
 
 packages:
@@ -1762,7 +1784,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 14.18.63
+      '@types/node': 18.19.71
       '@types/responselike': 1.0.3
 
   '@types/google-protobuf@3.15.12': {}
@@ -1771,7 +1793,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 14.18.63
+      '@types/node': 18.19.71
 
   '@types/mocha@5.2.7': {}
 
@@ -1788,7 +1810,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 14.18.63
+      '@types/node': 18.19.71
 
   '@types/semver@7.5.8': {}
 
@@ -2477,7 +2499,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 14.18.63
+      '@types/node': 18.19.71
       long: 5.2.4
 
   pump@3.0.2:

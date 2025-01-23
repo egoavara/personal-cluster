@@ -57,4 +57,4 @@ const _module = {
         }
     },
 };
-pulumi.runtime.registerResourceModule("crds", "objectbucket.io/v1alpha1", _module)
+pulumi.runtime.registerResourceModule("rook-ceph", "objectbucket.io/v1alpha1", _module)

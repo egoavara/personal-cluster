@@ -14,7 +14,7 @@ const objectbucket = require("./objectbucket");
 exports.objectbucket = objectbucket;
 const types = require("./types");
 exports.types = types;
-pulumi.runtime.registerResourcePackage("crds", {
+pulumi.runtime.registerResourcePackage("rook-ceph", {
     version: utilities.getVersion(),
     constructProvider: (name, type, urn) => {
         if (type !== "pulumi:providers:kubernetes") {

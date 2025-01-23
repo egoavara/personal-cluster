@@ -34,5 +34,5 @@ class Provider extends pulumi.ProviderResource {
 }
 exports.Provider = Provider;
 /** @internal */
-Provider.__pulumiType = 'crds';
+Provider.__pulumiType = 'rook-ceph';
 //# sourceMappingURL=provider.js.map
