@@ -1,5 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
-import * as kubernetes from "@pulumi/kubernetes";
+import * as k8s from "@pulumi/kubernetes";
 import * as rookceph from "@pulumi/rook-ceph";
 import * as istio from "@pulumi/istio";
 
@@ -7,15 +7,10 @@ const config = new pulumi.Config();
 const storageClass = config.require("storage-class");
 const monPvcSize = config.require("mon-pvc-size");
 
-const rookCephSystem = new kubernetes.core.v1.Namespace("rook-ceph-system", {
-  metadata: {
-    name: "rook-ceph-system",
-  },
-});
 const namespace = {
-  ceph: new kubernetes.core.v1.Namespace("ceph", {
+  rookceph: new k8s.core.v1.Namespace("rook-ceph", {
     metadata: {
-      name: "ceph",
+      name: "rook-ceph",
     },
   }),
 } as const;
@@ -44,13 +39,15 @@ const namespace = {
 //     version: "0.14.1",
 // });
 
-const rookcephOperator = new kubernetes.helm.v3.Release("rook-ceph", {
+const rookcephOperator = new k8s.helm.v3.Release("rook-ceph", {
   chart: "rook-ceph",
+  name:"rook-ceph-1c3727e9",
   version: "1.16.2",
-  namespace: rookCephSystem.metadata.name,
+  namespace: namespace.rookceph.metadata.name,
   repositoryOpts: {
     repo: "https://charts.rook.io/release",
   },
+  skipCrds: true,
   values: {},
 });
 
@@ -58,7 +55,7 @@ const cephCluster = new rookceph.ceph.v1.CephCluster(
   "ceph-cluster",
   {
     metadata: {
-      namespace: namespace.ceph.metadata.name,
+      namespace: namespace.rookceph.metadata.name,
     },
     spec: {
       cephVersion: {
