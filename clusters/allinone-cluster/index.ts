@@ -41,18 +41,26 @@ export const global = {
   },
 
   redis: {
-    enabled: config.getBoolean("cluster:redis.enabled") ?? true,
+    enabled: config.getBoolean("redis.enabled") ?? true,
   },
+
+  test: {
+    enabled: config.getBoolean("test.enabled") ?? false,
+  }
 } as const;
 
 
 const result: {
   namespace: {
+    runtime?: k8s.core.v1.Namespace,
     telemetry?: k8s.core.v1.Namespace,
   },
   prometheus: {
     dashboards: Array<k8s.core.v1.ConfigMap>
   }
+  istio?: {
+    "waypoint-gateway": Array<gateway.gateway.v1.Gateway>,
+  },
   helm: {
     certmanager?: k8s.helm.v3.Release,
     prometheus?: k8s.helm.v3.Release,
@@ -64,15 +72,18 @@ const result: {
   },
   helm: {},
 };
+pulumi.output("")
 
-if (global.prometheus.enabled) {
-  result.namespace.telemetry = new k8s.core.v1.Namespace("telemetry", {
-    metadata: {
-      name: "telemetry",
-    },
-  });
-}
-
+result.namespace.runtime = new k8s.core.v1.Namespace("runtime", {
+  metadata: {
+    name: "runtime",
+    labels: {
+      ...(global.istio.enabled ? {
+        "istio.io/dataplane-mode": "ambient",
+      } : {}),
+    }
+  },
+});
 
 if (global["gateway-api"].enabled) {
   const gateway_api_crd = new k8s.yaml.ConfigFile("gateway-api", {
@@ -205,6 +216,32 @@ if (global.istio.enabled) {
   }, {
     dependsOn: [istio_cni],
   });
+  result.istio = {
+    "waypoint-gateway": [],
+  };
+
+  for (const ns of Object.values(result.namespace)) {
+    result.istio["waypoint-gateway"]
+      .push(new gateway.gateway.v1.Gateway("waypoint-gateway", {
+        metadata: {
+          name: "waypoint",
+          namespace: ns.metadata.name,
+          labels: {
+            "istio.io/waypoint-for": "service"
+          }
+        },
+        spec: {
+          gatewayClassName: "istio-waypoint",
+          listeners: [
+            {
+              name: "mesh",
+              protocol: "HBONE",
+              port: 15008,
+            }
+          ]
+        }
+      }));
+  }
 }
 
 // rock-ceph 구성
@@ -394,7 +431,7 @@ if (global.rookceph.enabled) {
 
 
   // 기타 대시보드 추가
-  if (result.namespace.telemetry !== undefined) {
+  if (global.prometheus.enabled) {
     result.prometheus.dashboards.push(new k8s.core.v1.ConfigMap("grafana-ceph-cluster", {
       metadata: {
         name: "grafana-ceph",
@@ -413,6 +450,7 @@ if (global.rookceph.enabled) {
   }
 
 }
+
 if (global["cert-manager"].enabled) {
   result.helm.certmanager = new k8s.helm.v3.Release("cert-manager", {
     chart: "cert-manager",
@@ -438,9 +476,11 @@ if (global.prometheus.enabled) {
   if (certmanager === undefined) {
     throw new Error("cert-manager is required for prometheus");
   }
-  if (result.namespace.telemetry === undefined) {
-    throw new Error("telemetry namespace is required for prometheus");
-  }
+  result.namespace.telemetry = new k8s.core.v1.Namespace("telemetry", {
+    metadata: {
+      name: "telemetry",
+    },
+  });
   // prometheus 설치
   result.helm.prometheus = new k8s.helm.v3.Release("kube-prometheus-stack", {
     chart: "kube-prometheus-stack",
@@ -580,3 +620,114 @@ if (global.vault.enabled) {
   //   });
 }
 
+
+if (global.test.enabled) {
+  const test = new k8s.apps.v1.Deployment("test", {
+    metadata: {
+      namespace: result.namespace.runtime.metadata.name,
+      name: "nginx-test",
+    },
+    spec: {
+      replicas: 1,
+      selector: {
+        matchLabels: {
+          app: "nginx-test",
+
+        }
+      },
+      template: {
+        metadata: {
+          labels: {
+            app: "nginx-test",
+          }
+        },
+        spec: {
+          containers: [
+            {
+              name: "nginx",
+              image: "nginx",
+              ports: [
+                {
+                  containerPort: 80,
+                }
+              ]
+            }
+          ]
+        }
+      },
+    },
+  });
+
+  const testsvc = new k8s.core.v1.Service("test", {
+    metadata: {
+      namespace: result.namespace.runtime.metadata.name,
+      name: "nginx-test",
+    },
+    spec: {
+      selector: {
+        app: "nginx-test",
+      },
+      ports: [
+        {
+          port: 80,
+          targetPort: 80,
+        }
+      ],
+    },
+  });
+
+  if (global.istio.enabled && result.istio !== undefined) {
+    const testgw = new gateway.gateway.v1.Gateway("default", {
+      metadata: {
+        name: "default",
+        namespace: result.namespace.runtime.metadata.name,
+      },
+      spec: {
+        gatewayClassName: "istio",
+        listeners: [
+          {
+            name: "tcp-http",
+            protocol: "HTTP",
+            port: 80,
+            hostname: "www.egoavara.net",
+          }
+        ]
+      }
+    })
+    const testroute = new gateway.gateway.v1.HTTPRoute("test", {
+      metadata: {
+        name: "nginx-test",
+        namespace: result.namespace.runtime.metadata.name,
+      },
+      spec: {
+        hostnames: ["www.egoavara.net"],
+        rules: [
+          {
+            matches: [
+              {
+                path: {
+                  type: "PathPrefix",
+                  value: "/",
+                }
+              }
+            ],
+            backendRefs: [
+              {
+                kind: "Service",
+                name: testsvc.metadata.name,
+                namespace: testsvc.metadata.namespace,
+                port: testsvc.spec.ports[0].port,
+              }
+            ]
+          }
+        ],
+        parentRefs: [
+          {
+            kind: "Gateway",
+            name: testgw.metadata.name,
+          }
+        ],
+      }
+    })
+  }
+}
