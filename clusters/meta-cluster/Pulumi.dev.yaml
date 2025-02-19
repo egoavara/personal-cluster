@@ -1,5 +1,0 @@
-encryptionsalt: v1:XLYycVmyF8c=:v1:CAQduYJkbKq9m2h+:DFkuAY3xjjQSPz/OHAl4RrlbDE9ynQ==
-config:
-  kubernetes:context: k3d-egoavara-net
-  meta-cluster:storage-class: "local-path"
-  meta-cluster:mon-pvc-size: "5Gi"

@@ -12,7 +12,7 @@ kernel 버전은 6.1.21.2 으로 빌드. (5 아님 주의)
 
 - Ceph 에서 요구
 
-### XT_NAT 관련 설정
+### NETFILTER 관련 설정
 
 - istio ambient mode 설정을 위해 필요
 

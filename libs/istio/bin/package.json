@@ -1,5 +1,5 @@
 {
-    "name": "istio",
+    "name": "@pulumi/istio",
     "version": "1.24.2",
     "keywords": [
         "pulumi",
@@ -17,20 +17,20 @@
     },
     "dependencies": {
         "@pulumi/kubernetes": "4.18.0",
-        "@pulumi/pulumi": "^3.25.0",
-        "@types/node-fetch": "^2.1.4",
+        "@pulumi/pulumi": "^3.147.0",
+        "@types/node-fetch": "^2.6.12",
         "@types/tmp": "^0.0.33",
-        "glob": "^10.3.10",
-        "node-fetch": "^2.3.0",
-        "shell-quote": "^1.6.1",
+        "glob": "^10.4.5",
+        "node-fetch": "^2.7.0",
+        "shell-quote": "^1.8.2",
         "tmp": "^0.0.33"
     },
     "devDependencies": {
-        "@types/mocha": "^5.2.5",
-        "@types/node": "^14",
-        "@types/shell-quote": "^1.6.0",
+        "@types/mocha": "^5.2.7",
+        "@types/node": "^14.18.63",
+        "@types/shell-quote": "^1.7.5",
         "mocha": "^5.2.0",
-        "typescript": "^4.3.5"
+        "typescript": "^4.9.5"
     },
     "pulumi": {
         "resource": true,
