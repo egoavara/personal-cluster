@@ -360,7 +360,7 @@ kubectl get nodes
 
 #### 필수 컴포넌트인 CNI 설치
 
-처음에는 calico + metallb로 구성했다가 수많은 억까와 ARP 무응답과 네트워크 문제가 발생해 그냥 calico로 설치
+처음에는 calico + metallb로 구성했다가 수많은 억까와 ARP 무응답과 네트워크 문제가 발생해 그냥 cilium으로 설치
 CNI를 설치해야 `kubectl get nodes`를 했을때 노드가 `Ready`상태가 되더라.
 
 ```bash
