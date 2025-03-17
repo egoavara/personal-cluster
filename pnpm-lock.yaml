@@ -8,24 +8,33 @@ importers:
 
   clusters/allinone-cluster:
     dependencies:
+      '@pulumi/eck':
+        specifier: workspace:*
+        version: link:../../libs/eck
       '@pulumi/gateway-api':
         specifier: workspace:*
         version: link:../../libs/gateway-api
       '@pulumi/istio':
         specifier: workspace:*
         version: link:../../libs/istio
+      '@pulumi/jaeger':
+        specifier: workspace:*
+        version: link:../../libs/jaeger
       '@pulumi/kubernetes':
         specifier: ^4.21.0
-        version: 4.21.1(typescript@5.7.3)
+        version: 4.21.1(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))(typescript@5.7.3)
       '@pulumi/pulumi':
         specifier: ^3.148.0
-        version: 3.148.0(typescript@5.7.3)
+        version: 3.148.0(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))(typescript@5.7.3)
       '@pulumi/random':
         specifier: ^4.17.0
-        version: 4.17.0(typescript@5.7.3)
+        version: 4.17.0(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))(typescript@5.7.3)
       '@pulumi/rook-ceph':
         specifier: workspace:*
         version: link:../../libs/rook-ceph
+      ts-node:
+        specifier: ^10
+        version: 10.9.2(@types/node@22.13.1)(typescript@5.7.3)
     devDependencies:
       '@types/node':
         specifier: ^22.13.1
@@ -34,14 +43,57 @@ importers:
         specifier: ^5.7.3
         version: 5.7.3
 
+  libs/eck:
+    dependencies:
+      '@pulumi/kubernetes':
+        specifier: 4.18.0
+        version: 4.18.0(encoding@0.1.13)(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
+      '@pulumi/pulumi':
+        specifier: ^3.25.0
+        version: 3.148.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
+      '@types/node-fetch':
+        specifier: ^2.1.4
+        version: 2.6.12
+      '@types/tmp':
+        specifier: ^0.0.33
+        version: 0.0.33
+      glob:
+        specifier: ^10.3.10
+        version: 10.4.5
+      node-fetch:
+        specifier: ^2.3.0
+        version: 2.7.0(encoding@0.1.13)
+      shell-quote:
+        specifier: ^1.6.1
+        version: 1.8.2
+      tmp:
+        specifier: ^0.0.33
+        version: 0.0.33
+    devDependencies:
+      '@types/mocha':
+        specifier: ^5.2.5
+        version: 5.2.7
+      '@types/node':
+        specifier: ^14
+        version: 14.18.63
+      '@types/shell-quote':
+        specifier: ^1.6.0
+        version: 1.7.5
+      mocha:
+        specifier: ^5.2.0
+        version: 5.2.0
+      typescript:
+        specifier: ^4.3.5
+        version: 4.9.5
+
   libs/gateway-api:
     dependencies:
       '@pulumi/kubernetes':
         specifier: 4.18.0
-        version: 4.18.0(encoding@0.1.13)(typescript@4.9.5)
+        version: 4.18.0(encoding@0.1.13)(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
       '@pulumi/pulumi':
         specifier: ^3.25.0
-        version: 3.148.0(typescript@4.9.5)
+        version: 3.148.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
       '@types/node-fetch':
         specifier: ^2.1.4
         version: 2.6.12
@@ -81,10 +133,10 @@ importers:
     dependencies:
       '@pulumi/kubernetes':
         specifier: 4.18.0
-        version: 4.18.0(encoding@0.1.13)(typescript@4.9.5)
+        version: 4.18.0(encoding@0.1.13)(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
       '@pulumi/pulumi':
         specifier: ^3.147.0
-        version: 3.147.0(typescript@4.9.5)
+        version: 3.147.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
       '@types/node-fetch':
         specifier: ^2.6.12
         version: 2.6.12
@@ -120,14 +172,57 @@ importers:
         specifier: ^4.9.5
         version: 4.9.5
 
+  libs/jaeger:
+    dependencies:
+      '@pulumi/kubernetes':
+        specifier: 4.18.0
+        version: 4.18.0(encoding@0.1.13)(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
+      '@pulumi/pulumi':
+        specifier: ^3.25.0
+        version: 3.148.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
+      '@types/node-fetch':
+        specifier: ^2.1.4
+        version: 2.6.12
+      '@types/tmp':
+        specifier: ^0.0.33
+        version: 0.0.33
+      glob:
+        specifier: ^10.3.10
+        version: 10.4.5
+      node-fetch:
+        specifier: ^2.3.0
+        version: 2.7.0(encoding@0.1.13)
+      shell-quote:
+        specifier: ^1.6.1
+        version: 1.8.2
+      tmp:
+        specifier: ^0.0.33
+        version: 0.0.33
+    devDependencies:
+      '@types/mocha':
+        specifier: ^5.2.5
+        version: 5.2.7
+      '@types/node':
+        specifier: ^14
+        version: 14.18.63
+      '@types/shell-quote':
+        specifier: ^1.6.0
+        version: 1.7.5
+      mocha:
+        specifier: ^5.2.0
+        version: 5.2.0
+      typescript:
+        specifier: ^4.3.5
+        version: 4.9.5
+
   libs/rook-ceph:
     dependencies:
       '@pulumi/kubernetes':
         specifier: 4.18.0
-        version: 4.18.0(encoding@0.1.13)(typescript@4.9.5)
+        version: 4.18.0(encoding@0.1.13)(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
       '@pulumi/pulumi':
         specifier: ^3.147.0
-        version: 3.147.0(typescript@4.9.5)
+        version: 3.147.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
       '@types/node-fetch':
         specifier: ^2.6.12
         version: 2.6.12
@@ -165,6 +260,10 @@ importers:
 
 packages:
 
+  '@cspotcode/source-map-support@0.8.1':
+    resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
+    engines: {node: '>=12'}
+
   '@grpc/grpc-js@1.12.5':
     resolution: {integrity: sha512-d3iiHxdpg5+ZcJ6jnDSOT8Z0O0VMVGy34jAnYLUX8yd36b1qn8f1TwOA/Lc7TsOh03IkPJ38eGI5qD2EjNkoEA==}
     engines: {node: '>=12.10.0'}
@@ -180,6 +279,16 @@ packages:
 
   '@isaacs/string-locale-compare@1.1.0':
     resolution: {integrity: sha512-SQ7Kzhh9+D+ZW9MA0zkYv3VXhIDNx+LzM6EJ+/65I3QY+enU6Itte7E5XX7EWrqLW2FN4n06GWzBnPoC3th2aQ==}
+
+  '@jridgewell/resolve-uri@3.1.2':
+    resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
+    engines: {node: '>=6.0.0'}
+
+  '@jridgewell/sourcemap-codec@1.5.0':
+    resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
+
+  '@jridgewell/trace-mapping@0.3.9':
+    resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
@@ -424,6 +533,18 @@ packages:
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
     engines: {node: '>=10'}
 
+  '@tsconfig/node10@1.0.11':
+    resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
+
+  '@tsconfig/node12@1.0.11':
+    resolution: {integrity: sha512-cqefuRsh12pWyGsIoBKJA9luFu3mRxCA+ORZvA4ktLSzIuCUtWVxGIuXigEwO5/ywWFMZ2QEGKWvkZG1zDMTag==}
+
+  '@tsconfig/node14@1.0.3':
+    resolution: {integrity: sha512-ysT8mhdixWK6Hw3i1V2AeRqZ5WfXg1G43mqoYlM2nc6388Fq5jcXyr5mRsqViLx/GJYdoL0bfXD8nmF+Zn/Iow==}
+
+  '@tsconfig/node16@1.0.4':
+    resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
+
   '@tufjs/canonical-json@2.0.0':
     resolution: {integrity: sha512-yVtV8zsdo8qFHe+/3kw81dSLyF7D576A5cCFCi4X7B39tWT7SekaEFUnvnWJHz+9qO7qJTah1JbrDjWKqFtdWA==}
     engines: {node: ^16.14.0 || >=18.0.0}
@@ -483,6 +604,10 @@ packages:
     peerDependencies:
       acorn: ^8
 
+  acorn-walk@8.3.4:
+    resolution: {integrity: sha512-ueEepnujpqee2o5aIYnvHU6C0A42MNdsIDeqy5BydrkuC5R1ZuUFnm27EeFJGoEHJQgn3uleRvmTXaJgfXbt4g==}
+    engines: {node: '>=0.4.0'}
+
   acorn@8.14.0:
     resolution: {integrity: sha512-cl669nCJTZBsL97OF4kUQm5g5hC2uihk0NxY3WENAC0TYdILVkAyHymAntgxGkl7K+t0cXIrH5siy5S4XkFycA==}
     engines: {node: '>=0.4.0'}
@@ -511,6 +636,9 @@ packages:
   ansi-styles@6.2.1:
     resolution: {integrity: sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug==}
     engines: {node: '>=12'}
+
+  arg@4.1.3:
+    resolution: {integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==}
 
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
@@ -591,6 +719,9 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
+  create-require@1.1.1:
+    resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
+
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -631,6 +762,10 @@ packages:
 
   diff@3.5.0:
     resolution: {integrity: sha512-A46qtFgd+g7pDZinpnwiRJtxbC1hpgf0uzP3iG89scHk0AUC7A1TGxf5OiiOUv/JMZR8GOt8hL900hV0bOy5xA==}
+    engines: {node: '>=0.3.1'}
+
+  diff@4.0.2:
+    resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
 
   eastasianwidth@0.2.0:
@@ -887,6 +1022,9 @@ packages:
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
+
+  make-error@1.3.6:
+    resolution: {integrity: sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==}
 
   make-fetch-happen@13.0.1:
     resolution: {integrity: sha512-cKTUFc/rbKUd/9meOvgrpJ2WrNzymt6jfRDdwg5UCnVzv9dTpEj9JS5m3wtziXVCjluIXyL8pcaukYqezIzZQA==}
@@ -1315,6 +1453,20 @@ packages:
     resolution: {integrity: sha512-gcANaAnd2QDZFmHFEOF4k7uc1J/6a6z3DJMd/QwEyxLoKGiptJRwid582r7QIsFlFMIZ3SnxfS52S4hm2DHkuQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
+  ts-node@10.9.2:
+    resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
+    hasBin: true
+    peerDependencies:
+      '@swc/core': '>=1.2.50'
+      '@swc/wasm': '>=1.2.50'
+      '@types/node': '*'
+      typescript: '>=2.7'
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      '@swc/wasm':
+        optional: true
+
   tuf-js@2.2.1:
     resolution: {integrity: sha512-GwIJau9XaA8nLVbUXsN3IlFi7WmQ48gBUrl3FTkkL/XLu/POhBzfmX9hd33FNMX1qAsfl6ozO1iMmW9NC8YniA==}
     engines: {node: ^16.14.0 || >=18.0.0}
@@ -1346,6 +1498,9 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  v8-compile-cache-lib@3.0.1:
+    resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
 
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
@@ -1403,11 +1558,19 @@ packages:
     resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
     engines: {node: '>=12'}
 
+  yn@3.1.1:
+    resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}
+    engines: {node: '>=6'}
+
   yocto-queue@1.1.1:
     resolution: {integrity: sha512-b4JR1PFR10y1mKjhHY9LaGo6tmrgjit7hxVIeAmyMw3jegXR4dhYqLaQF5zMXZxY7tLpMyJeLjr1C4rLmkVe8g==}
     engines: {node: '>=12.20'}
 
 snapshots:
+
+  '@cspotcode/source-map-support@0.8.1':
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.9
 
   '@grpc/grpc-js@1.12.5':
     dependencies:
@@ -1431,6 +1594,15 @@ snapshots:
       wrap-ansi-cjs: wrap-ansi@7.0.0
 
   '@isaacs/string-locale-compare@1.1.0': {}
+
+  '@jridgewell/resolve-uri@3.1.2': {}
+
+  '@jridgewell/sourcemap-codec@1.5.0': {}
+
+  '@jridgewell/trace-mapping@0.3.9':
+    dependencies:
+      '@jridgewell/resolve-uri': 3.1.2
+      '@jridgewell/sourcemap-codec': 1.5.0
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
@@ -1672,9 +1844,9 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@pulumi/kubernetes@4.18.0(encoding@0.1.13)(typescript@4.9.5)':
+  '@pulumi/kubernetes@4.18.0(encoding@0.1.13)(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)':
     dependencies:
-      '@pulumi/pulumi': 3.148.0(typescript@4.9.5)
+      '@pulumi/pulumi': 3.148.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
       '@types/node-fetch': 2.6.12
       '@types/tmp': 0.0.33
       glob: 10.4.5
@@ -1688,9 +1860,9 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pulumi/kubernetes@4.21.1(typescript@5.7.3)':
+  '@pulumi/kubernetes@4.21.1(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))(typescript@5.7.3)':
     dependencies:
-      '@pulumi/pulumi': 3.148.0(typescript@5.7.3)
+      '@pulumi/pulumi': 3.148.0(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))(typescript@5.7.3)
       glob: 10.4.5
       shell-quote: 1.8.2
     transitivePeerDependencies:
@@ -1699,7 +1871,7 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pulumi/pulumi@3.147.0(typescript@4.9.5)':
+  '@pulumi/pulumi@3.147.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)':
     dependencies:
       '@grpc/grpc-js': 1.12.5
       '@logdna/tail-file': 2.2.0
@@ -1732,12 +1904,13 @@ snapshots:
       tmp: 0.2.3
       upath: 1.2.0
     optionalDependencies:
+      ts-node: 10.9.2(@types/node@14.18.63)(typescript@4.9.5)
       typescript: 4.9.5
     transitivePeerDependencies:
       - bluebird
       - supports-color
 
-  '@pulumi/pulumi@3.148.0(typescript@4.9.5)':
+  '@pulumi/pulumi@3.148.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)':
     dependencies:
       '@grpc/grpc-js': 1.12.5
       '@logdna/tail-file': 2.2.0
@@ -1770,12 +1943,13 @@ snapshots:
       tmp: 0.2.3
       upath: 1.2.0
     optionalDependencies:
+      ts-node: 10.9.2(@types/node@14.18.63)(typescript@4.9.5)
       typescript: 4.9.5
     transitivePeerDependencies:
       - bluebird
       - supports-color
 
-  '@pulumi/pulumi@3.148.0(typescript@5.7.3)':
+  '@pulumi/pulumi@3.148.0(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))(typescript@5.7.3)':
     dependencies:
       '@grpc/grpc-js': 1.12.5
       '@logdna/tail-file': 2.2.0
@@ -1808,6 +1982,7 @@ snapshots:
       tmp: 0.2.3
       upath: 1.2.0
     optionalDependencies:
+      ts-node: 10.9.2(@types/node@22.13.1)(typescript@5.7.3)
       typescript: 5.7.3
     transitivePeerDependencies:
       - bluebird
@@ -1815,9 +1990,9 @@ snapshots:
 
   '@pulumi/query@0.3.0': {}
 
-  '@pulumi/random@4.17.0(typescript@5.7.3)':
+  '@pulumi/random@4.17.0(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))(typescript@5.7.3)':
     dependencies:
-      '@pulumi/pulumi': 3.148.0(typescript@5.7.3)
+      '@pulumi/pulumi': 3.148.0(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))(typescript@5.7.3)
     transitivePeerDependencies:
       - bluebird
       - supports-color
@@ -1861,6 +2036,14 @@ snapshots:
   '@szmarczak/http-timer@4.0.6':
     dependencies:
       defer-to-connect: 2.0.1
+
+  '@tsconfig/node10@1.0.11': {}
+
+  '@tsconfig/node12@1.0.11': {}
+
+  '@tsconfig/node14@1.0.3': {}
+
+  '@tsconfig/node16@1.0.4': {}
 
   '@tufjs/canonical-json@2.0.0': {}
 
@@ -1917,6 +2100,10 @@ snapshots:
     dependencies:
       acorn: 8.14.0
 
+  acorn-walk@8.3.4:
+    dependencies:
+      acorn: 8.14.0
+
   acorn@8.14.0: {}
 
   agent-base@7.1.3: {}
@@ -1935,6 +2122,8 @@ snapshots:
       color-convert: 2.0.1
 
   ansi-styles@6.2.1: {}
+
+  arg@4.1.3: {}
 
   argparse@1.0.10:
     dependencies:
@@ -2025,6 +2214,8 @@ snapshots:
 
   concat-map@0.0.1: {}
 
+  create-require@1.1.1: {}
+
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -2052,6 +2243,8 @@ snapshots:
   delayed-stream@1.0.0: {}
 
   diff@3.5.0: {}
+
+  diff@4.0.2: {}
 
   eastasianwidth@0.2.0: {}
 
@@ -2295,6 +2488,8 @@ snapshots:
   lowercase-keys@2.0.0: {}
 
   lru-cache@10.4.3: {}
+
+  make-error@1.3.6: {}
 
   make-fetch-happen@13.0.1:
     dependencies:
@@ -2752,6 +2947,43 @@ snapshots:
 
   treeverse@3.0.0: {}
 
+  ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.11
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 14.18.63
+      acorn: 8.14.0
+      acorn-walk: 8.3.4
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 4.9.5
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+    optional: true
+
+  ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.11
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 22.13.1
+      acorn: 8.14.0
+      acorn-walk: 8.3.4
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.7.3
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+
   tuf-js@2.2.1:
     dependencies:
       '@tufjs/models': 2.0.1
@@ -2777,6 +3009,8 @@ snapshots:
   upath@1.2.0: {}
 
   util-deprecate@1.0.2: {}
+
+  v8-compile-cache-lib@3.0.1: {}
 
   validate-npm-package-license@3.0.4:
     dependencies:
@@ -2836,5 +3070,7 @@ snapshots:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+
+  yn@3.1.1: {}
 
   yocto-queue@1.1.1: {}

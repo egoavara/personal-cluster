@@ -2,16 +2,12 @@ encryptionsalt: v1:uWbXflxtKhw=:v1:XkNxpfu2+52dmz9m:oFkQeu9otemwjwddYFNJHUutLgBp
 config:
   kubernetes:context: admin@kubernetes-egoavara-net
   allinone-cluster:istio.enabled: "true"
-  allinone-cluster:gateway-api.enabled: "true"
   allinone-cluster:rook-ceph.enabled: "true"
   allinone-cluster:vault.enabled: "true"
   allinone-cluster:prometheus.enabled: "true"
-  allinone-cluster:kube-prometheus-stack.enabled: "true"
   allinone-cluster:grafana.enabled: "true"
   allinone-cluster:postgres.enabled: "true"
   allinone-cluster:elasticsearch.enabled: "true"
   allinone-cluster:kibana.enabled: "true"
   allinone-cluster:redis.enabled: "true"
-
-  allinone-cluster:test.enabled: "true"
-
+  allinone-cluster:cert-manager.enabled: "true"

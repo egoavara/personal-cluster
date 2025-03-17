@@ -2,15 +2,21 @@
     "compilerOptions": {
         "strict": true,
         "outDir": "bin",
-        "target": "es2022",
-        "module": "es2022",
+        "target": "ESNext",
+        "module": "ESNext",
         "moduleResolution": "node",
         "sourceMap": true,
         "experimentalDecorators": true,
         "pretty": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "allowImportingTsExtensions": true,
+        
     }
 }

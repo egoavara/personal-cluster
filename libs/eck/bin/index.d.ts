@@ -1,0 +1,15 @@
+export { ProviderArgs } from "./provider";
+export type Provider = import("./provider").Provider;
+export declare const Provider: typeof import("./provider").Provider;
+import * as agent from "./agent";
+import * as apm from "./apm";
+import * as autoscaling from "./autoscaling";
+import * as beat from "./beat";
+import * as elasticsearch from "./elasticsearch";
+import * as enterprisesearch from "./enterprisesearch";
+import * as kibana from "./kibana";
+import * as logstash from "./logstash";
+import * as maps from "./maps";
+import * as stackconfigpolicy from "./stackconfigpolicy";
+import * as types from "./types";
+export { agent, apm, autoscaling, beat, elasticsearch, enterprisesearch, kibana, logstash, maps, stackconfigpolicy, types, };
