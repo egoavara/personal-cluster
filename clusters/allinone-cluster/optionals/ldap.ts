@@ -188,8 +188,8 @@ export const ldap = handle(options.ldap.enabled)
                     baseDn: "ou=groups,dc=egoavara,dc=net",
                     filter: "(objectClass=groupOfNames)",
                     userMatchers: {
+                        userAttr: "DN",
                         groupAttr: "member",
-                        userAttr: "uid",
                     },
                     nameAttr: "cn",
                 },

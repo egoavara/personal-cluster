@@ -8,6 +8,9 @@ importers:
 
   clusters/allinone-cluster:
     dependencies:
+      '@pulumi/certmanager':
+        specifier: workspace:*
+        version: link:../../libs/certmanager
       '@pulumi/eck':
         specifier: workspace:*
         version: link:../../libs/eck
@@ -42,6 +45,49 @@ importers:
       typescript:
         specifier: ^5.7.3
         version: 5.7.3
+
+  libs/certmanager:
+    dependencies:
+      '@pulumi/kubernetes':
+        specifier: 4.18.0
+        version: 4.18.0(encoding@0.1.13)(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
+      '@pulumi/pulumi':
+        specifier: ^3.25.0
+        version: 3.148.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
+      '@types/node-fetch':
+        specifier: ^2.1.4
+        version: 2.6.12
+      '@types/tmp':
+        specifier: ^0.0.33
+        version: 0.0.33
+      glob:
+        specifier: ^10.3.10
+        version: 10.4.5
+      node-fetch:
+        specifier: ^2.3.0
+        version: 2.7.0(encoding@0.1.13)
+      shell-quote:
+        specifier: ^1.6.1
+        version: 1.8.2
+      tmp:
+        specifier: ^0.0.33
+        version: 0.0.33
+    devDependencies:
+      '@types/mocha':
+        specifier: ^5.2.5
+        version: 5.2.7
+      '@types/node':
+        specifier: ^14
+        version: 14.18.63
+      '@types/shell-quote':
+        specifier: ^1.6.0
+        version: 1.7.5
+      mocha:
+        specifier: ^5.2.0
+        version: 5.2.0
+      typescript:
+        specifier: ^4.3.5
+        version: 4.9.5
 
   libs/eck:
     dependencies:

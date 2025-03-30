@@ -68,6 +68,9 @@ export const dex = handle(options.dex.enabled)
                 replicaCount: 2,
                 config: {
                     issuer: options.dex.issuer,
+                    oauth2: {
+                        responseTypes: ["code", "id_token", "token"],
+                    },
                     storage: {
                         type: "etcd",
                         config: {
@@ -79,6 +82,18 @@ export const dex = handle(options.dex.enabled)
                             password: storage.password,
                         },
                     },
+                    staticClients: [
+                        {
+                            id: "debug",
+                            redirectURIs: [
+                                "https://debug.kafe.or.kr/api/oidc/callback",
+                                "https://oidcdebugger.com/debug",
+                                "https://openidconnect.net/callback",
+                            ],
+                            name: "Example App",
+                            secret: "debug-secret-debug-secret-debug-secret",
+                        }
+                    ],
                     connectors: connectors,
                 },
                 service: {

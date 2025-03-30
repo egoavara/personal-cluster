@@ -1,10 +1,12 @@
 import { core, helm } from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
+import { cert_manager } from "@pulumi/certmanager";
 import { onNamespaceLoaded, requireNamespace, tryNamespace } from "../essentials/namespaces.ts";
 import { gateway } from "@pulumi/gateway-api";
 import { options } from "../utils/config.ts";
 import assert from "assert";
 import { handle } from "../utils/handle.ts";
+import { certmanager } from "./certmanager.ts";
 
 const istioVersion = "1.24.3";
 const istioRepository = "https://istio-release.storage.googleapis.com/charts";
@@ -40,8 +42,14 @@ const meshConfig = {
 };
 
 export const istio = handle(options.istio.enabled)
-    .join(() => [requireNamespace("istio-system")])
-    .letIf(([_, ns]) => {
+    .join(() => [requireNamespace("istio-system"), certmanager])
+    .letIf(([_, ns, certmanager]) => {
+        assert(certmanager, "certmanager is required for istio");
+        assert(options["cert-manager"].email, "cert-manager.email is required for istio tls certificates");
+        assert(options["cert-manager"].dns01.projectId, "cert-manager.dns01.projectId is required for istio tls certificates");
+        assert(options["cert-manager"].dns01.serviceAccountSecretRef.name, "cert-manager.dns01.serviceAccountSecretRef.name is required for istio tls certificates");
+        assert(options["cert-manager"].dns01.serviceAccountSecretRef.key, "cert-manager.dns01.serviceAccountSecretRef.name is required for istio tls certificates");
+
         onNamespaceLoaded("runtime", (ns) => {
             setupWaypoint(ns);
         });
@@ -133,6 +141,52 @@ export const istio = handle(options.istio.enabled)
         }, {
             dependsOn: [istioCni],
         });
+        const certIssuer = new cert_manager.v1.ClusterIssuer("istio-ca", {
+            metadata: {
+                name: "istio-ca",
+            },
+            spec: {
+                acme: {
+                    email: options["cert-manager"].email,
+                    server: "https://acme-v02.api.letsencrypt.org/directory",
+                    privateKeySecretRef: {
+                        name: "letsencrypt-account"
+                    },
+                    solvers: [
+                        {
+                            dns01: {
+                                cloudDNS: {
+                                    project: options["cert-manager"].dns01.projectId,
+                                    serviceAccountSecretRef: {
+                                        name: options["cert-manager"].dns01.serviceAccountSecretRef.name,
+                                        key: options["cert-manager"].dns01.serviceAccountSecretRef.key,
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        });
+
+        const certificate = new cert_manager.v1.Certificate("default-tls", {
+            metadata: {
+                name: "default-tls",
+                namespace: ns.metadata.name,
+            },
+            spec: {
+                secretName: "default-tls",
+                issuerRef: {
+                    name: certIssuer.metadata.name,
+                    kind: "ClusterIssuer",
+                },
+                commonName: "egoavara.net",
+                dnsNames: [
+                    "egoavara.net",
+                    "*.egoavara.net",
+                ]
+            }
+        });
 
         const defaultGateway = new gateway.v1.Gateway("default", {
             metadata: {
@@ -158,9 +212,33 @@ export const istio = handle(options.istio.enabled)
                             }
                         }
                     },
+                    {
+                        name: "tcp-https",
+                        protocol: "HTTPS",
+                        port: 443,
+                        tls: {
+                            mode: "Terminate",
+                            certificateRefs: [
+                                {
+                                    kind: "Secret",
+                                    namespace: ns.metadata.name,
+                                    name: certificate.spec.secretName,
+                                }
+                            ]
+                        },
+                        allowedRoutes: {
+                            namespaces: {
+                                from: "Selector",
+                                selector: {
+                                    matchLabels: Object.assign({}, useAmbientLabel)
+                                }
+                            }
+                        }
+                    }
                 ]
             }
         });
+
         return {
             base,
             istiod,

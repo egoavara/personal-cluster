@@ -27,6 +27,14 @@ export const options = {
 
     "cert-manager": {
         enabled: (config.getBoolean("cert-manager.enabled") ?? true),
+        email: config.get("cert-manager.email"),
+        dns01: {
+            projectId: config.get("cert-manager.dns01.projectId"),
+            serviceAccountSecretRef: {
+                name: config.get("cert-manager.dns01.serviceAccountSecretRef.name"),
+                key: config.get("cert-manager.dns01.serviceAccountSecretRef.key"),
+            }
+        },
     },
 
     postgres: {
