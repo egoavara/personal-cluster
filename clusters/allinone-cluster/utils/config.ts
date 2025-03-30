@@ -49,6 +49,14 @@ export const options = {
         enabled: config.getBoolean("ldap.enabled") ?? true
     },
 
+    temporal: {
+        enabled: config.getBoolean("temporal.enabled") ?? true
+    },
+
+    yugabytedb: {
+        enabled: config.getBoolean("yugabytedb.enabled") ?? true,
+    },
+
     "gateway-api": {
     },
 } as const;

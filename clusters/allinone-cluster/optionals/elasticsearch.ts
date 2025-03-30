@@ -1,13 +1,15 @@
-import { helm } from "@pulumi/kubernetes";
+import { core, helm } from "@pulumi/kubernetes";
 import * as eck from "@pulumi/eck";
 import { handle } from "../utils/handle.ts";
 import { options } from "../utils/config.ts";
 import { requireNamespace } from "../essentials/namespaces.ts";
 import { useWaypoint } from "./istio.ts";
+import { interpolate } from "@pulumi/pulumi";
 
-export const eckOperator = handle(options["elasticsearch"].enabled)
-    .letIf((_) => {
-        return new helm.v3.Release("eck-operator", {
+export const elasticsearch = handle(options["elasticsearch"].enabled)
+    .join(() => [requireNamespace("runtime")])
+    .letIf(([_, ns]) => {
+        const eckOperator = new helm.v3.Release("eck-operator", {
             chart: "eck-operator",
             name: "eck-operator",
             version: "2.10.0",
@@ -31,11 +33,7 @@ export const eckOperator = handle(options["elasticsearch"].enabled)
                 }
             },
         })
-    })
-export const elasticsearch = handle(eckOperator)
-    .join(requireNamespace("runtime"))
-    .letIf(([eckOperator, ns]) => {
-        return new eck.elasticsearch.v1.Elasticsearch("elasticsearch", {
+        const es = new eck.elasticsearch.v1.Elasticsearch("elasticsearch", {
             metadata: {
                 name: "elastic",
                 namespace: ns.metadata.name,
@@ -108,5 +106,17 @@ bin/elasticsearch-plugin install --batch analysis-nori
                     },
                 },
             },
+        }, {
+            dependsOn: [eckOperator],
         })
+        const passwordSecret = core.v1.Secret.get("elastic-password", interpolate`${ns.metadata.name}/${es.metadata.name}-es-elastic-user`, {
+            dependsOn: [es],
+        })
+        return {
+            eckOperator: eckOperator,
+            cluster: es,
+            hostname: interpolate`${es.metadata.name}-es-http.${ns.metadata.name}.svc.cluster.local`,
+            username: "elastic",
+            password: passwordSecret.data["elastic"].apply(v => Buffer.from(v, 'base64').toString("utf8")),
+        }
     })

@@ -12,4 +12,6 @@ import "./optionals/ldap.ts";
 import "./optionals/postgres.ts";
 import "./optionals/prometheus.ts";
 import "./optionals/redis.ts";
+import "./optionals/temporal.ts";
 import "./optionals/vault.ts";
+import "./optionals/yugabytedb.ts";

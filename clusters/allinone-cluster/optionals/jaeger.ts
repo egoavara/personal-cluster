@@ -13,7 +13,7 @@ const [jaeger, setJaeger] = pulumi.deferredOutput<jaegertracing.v1.Jaeger | unde
 
 if (options.jaeger.enabled) {
     const cm = must(certmanager, "cert-manager is required for jaeger");
-    const es = must(elasticsearch, "elasticsearch is required for jaeger");
+    const { cluster: esCluster } = must(elasticsearch, "elasticsearch is required for jaeger");
 
     const ns = requireNamespace("telemetry");
 
@@ -34,8 +34,8 @@ if (options.jaeger.enabled) {
     })
 
     const esSecret = pulumi.all({
-        "esSecret": pulumi.interpolate`${es.metadata.name}-es-elastic-user`,
-        "esSecretId": pulumi.interpolate`${es.metadata.namespace}/${es.metadata.name}-es-elastic-user`,
+        "esSecret": pulumi.interpolate`${esCluster.metadata.name}-es-elastic-user`,
+        "esSecretId": pulumi.interpolate`${esCluster.metadata.namespace}/${esCluster.metadata.name}-es-elastic-user`,
     }).apply(({ esSecret, esSecretId }) => {
         return core.v1.Secret.get(esSecret, esSecretId);
     })
@@ -74,7 +74,7 @@ if (options.jaeger.enabled) {
                 },
                 options: {
                     es: {
-                        "server-urls": pulumi.interpolate`http://${es.metadata.name}-es-http.${es.metadata.namespace}.svc.cluster.local:9200`,
+                        "server-urls": pulumi.interpolate`http://${esCluster.metadata.name}-es-http.${esCluster.metadata.namespace}.svc.cluster.local:9200`,
                         "index-prefix": "jaeger",
                     }
                 }

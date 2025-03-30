@@ -6,7 +6,7 @@ config:
   allinone-cluster:vault.enabled: "true"
   allinone-cluster:prometheus.enabled: "true"
   allinone-cluster:grafana.enabled: "true"
-  allinone-cluster:postgres.enabled: "true"
+  allinone-cluster:postgres.enabled: "false"
   allinone-cluster:elasticsearch.enabled: "true"
   allinone-cluster:kibana.enabled: "true"
   allinone-cluster:redis.enabled: "true"

@@ -26,14 +26,20 @@ export class Handle<T, O, U> {
         this.#handleUndefined = output.handleUndefined;
     }
 
-    join<A extends any[]>(...handles: A): Handle<JoinItemAndArray<T, A>, O, U> {
+    join<H extends (() => [any, ...any[]])>(handle: H): Handle<JoinItemAndArray<T, ReturnType<H>>, O, U> {
         return new Handle({
-            val: pulumi.all([this.#val, ...handles]).apply(([v, ...vs]) => {
-                return v !== undefined ? [v, ...vs] as any : undefined;
-            }),
-            handleOutput: (v) => this.#handleOutput(v[0]),
+            val: this.#val
+                .apply(v => {
+                    if (v === undefined) {
+                        return undefined;
+                    }
+                    return pulumi.all([v, ...handle()]).apply(([v, ...vs]) => {
+                        return [v, ...vs];
+                    })
+                }),
+            handleOutput: (v) => this.#handleOutput(v[0] as any),
             handleUndefined: () => this.#handleUndefined()
-        });
+        }) as any;
     }
 
     letIf<N>(f: (val: T) => N): pulumi.Output<N | undefined> {
