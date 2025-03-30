@@ -11,3 +11,8 @@ config:
   allinone-cluster:kibana.enabled: "true"
   allinone-cluster:redis.enabled: "true"
   allinone-cluster:cert-manager.enabled: "true"
+  
+  allinone-cluster:dex.enabled: "true"
+  allinone-cluster:dex.issuer: "https://dex.egoavara.net"
+  
+  allinone-cluster:etcd.enabled: "true"

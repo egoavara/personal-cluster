@@ -57,6 +57,15 @@ export const options = {
         enabled: config.getBoolean("yugabytedb.enabled") ?? true,
     },
 
+    etcd: {
+        enabled: config.getBoolean("etcd.enabled") ?? true,
+    },
+
+    dex: {
+        enabled: config.getBoolean("dex.enabled") ?? true,
+        issuer: config.get("dex.issuer"),
+    },
+
     "gateway-api": {
     },
 } as const;

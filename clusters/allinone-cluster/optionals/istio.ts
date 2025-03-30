@@ -4,6 +4,7 @@ import { onNamespaceLoaded, requireNamespace, tryNamespace } from "../essentials
 import { gateway } from "@pulumi/gateway-api";
 import { options } from "../utils/config.ts";
 import assert from "assert";
+import { handle } from "../utils/handle.ts";
 
 const istioVersion = "1.24.3";
 const istioRepository = "https://istio-release.storage.googleapis.com/charts";
@@ -38,163 +39,146 @@ const meshConfig = {
     trustDomain: "cluster.local"
 };
 
-const [base, setBase] = pulumi.deferredOutput<helm.v3.Release | undefined>();
-const [istiod, setIstiod] = pulumi.deferredOutput<helm.v3.Release | undefined>();
-const [istioCni, setIstioCni] = pulumi.deferredOutput<helm.v3.Release | undefined>();
-const [ztunnel, setZtunnel] = pulumi.deferredOutput<helm.v3.Release | undefined>();
-const [defaultGateway, setDefaultGateway] = pulumi.deferredOutput<gateway.v1.Gateway | undefined>();
+export const istio = handle(options.istio.enabled)
+    .join(() => [requireNamespace("istio-system")])
+    .letIf(([_, ns]) => {
+        onNamespaceLoaded("runtime", (ns) => {
+            setupWaypoint(ns);
+        });
 
-if (options["istio"].enabled) {
-    const ns = requireNamespace("istio-system");
-    
-    const base = new helm.v3.Release("istio-base", {
-        chart: "base",
-        name: "istio-base",
-        version: istioVersion,
-        namespace: ns.metadata.name,
-        repositoryOpts: {
-            repo: istioRepository,
-        },
-        createNamespace: false,
-        skipCrds: false,
-        values: {
-            global: {
-                namespace: ns.metadata.name,
-            },
-        },
-    });
-    const istiod = new helm.v3.Release("istiod", {
-        chart: "istiod",
-        name: "istiod",
-        version: istioVersion,
-        namespace: ns.metadata.name,
-        repositoryOpts: {
-            repo: istioRepository,
-        },
-        createNamespace: false,
-        skipCrds: false,
-        values: {
-            profile: "ambient",
-            global: {
-                namespace: ns.metadata.name,
-            },
-            pilot: {
-                autoscaleMin: 2,
-                cni: {
-                    enabled: true
-                },
-                traceSampling: 1.0,
-            },
-            meshConfig: meshConfig,
-        },
-    }, {
-        dependsOn: [base],
-    });
-
-    const istioCni = new helm.v3.Release("istio-cni", {
-        chart: "cni",
-        name: "istio-cni",
-        version: istioVersion,
-        namespace: ns.metadata.name,
-        repositoryOpts: {
-            repo: istioRepository,
-        },
-        createNamespace: false,
-        skipCrds: false,
-        values: {
-            profile: "ambient",
-            cni: {
-                cniBinDir: "/opt/cni/bin",
-                cniConfDir: "/etc/cni/net.d",
-                ambient: {
-                    dnsCapture: false,
-                    ipv6: false,
-                },
-            },
-        },
-    }, {
-        dependsOn: [istiod],
-    });
-
-    const ztunnel = new helm.v3.Release("ztunnel", {
-        chart: "ztunnel",
-        name: "ztunnel",
-        version: istioVersion,
-        namespace: ns.metadata.name,
-        repositoryOpts: {
-            repo: istioRepository,
-        },
-        createNamespace: false,
-        skipCrds: false,
-        values: {
-            istioNamespace: ns.metadata.name,
-            meshConfig: meshConfig,
-        },
-    }, {
-        dependsOn: [istioCni],
-    });
-
-    const defaultGateway = new gateway.v1.Gateway("default", {
-        metadata: {
-            name: "default",
+        const base = new helm.v3.Release("istio-base", {
+            chart: "base",
+            name: "istio-base",
+            version: istioVersion,
             namespace: ns.metadata.name,
-            annotations: {
-                "networking.istio.io/service-type": "NodePort"
-            }
-        },
-        spec: {
-            gatewayClassName: "istio",
-            listeners: [
-                {
-                    name: "tcp-http",
-                    protocol: "HTTP",
-                    port: 80,
-                    allowedRoutes: {
-                        namespaces: {
-                            from: "Selector",
-                            selector: {
-                                matchLabels: Object.assign({}, useAmbientLabel)
+            repositoryOpts: {
+                repo: istioRepository,
+            },
+            createNamespace: false,
+            skipCrds: false,
+            values: {
+                global: {
+                    namespace: ns.metadata.name,
+                },
+            },
+        });
+
+        const istiod = new helm.v3.Release("istiod", {
+            chart: "istiod",
+            name: "istiod",
+            version: istioVersion,
+            namespace: ns.metadata.name,
+            repositoryOpts: {
+                repo: istioRepository,
+            },
+            createNamespace: false,
+            skipCrds: false,
+            values: {
+                profile: "ambient",
+                global: {
+                    namespace: ns.metadata.name,
+                },
+                pilot: {
+                    autoscaleMin: 2,
+                    cni: {
+                        enabled: true
+                    },
+                    traceSampling: 1.0,
+                },
+                meshConfig: meshConfig,
+            },
+        }, {
+            dependsOn: [base],
+        });
+
+        const istioCni = new helm.v3.Release("istio-cni", {
+            chart: "cni",
+            name: "istio-cni",
+            version: istioVersion,
+            namespace: ns.metadata.name,
+            repositoryOpts: {
+                repo: istioRepository,
+            },
+            createNamespace: false,
+            skipCrds: false,
+            values: {
+                profile: "ambient",
+                cni: {
+                    cniBinDir: "/opt/cni/bin",
+                    cniConfDir: "/etc/cni/net.d",
+                    ambient: {
+                        dnsCapture: false,
+                        ipv6: false,
+                    },
+                },
+            },
+        }, {
+            dependsOn: [istiod],
+        });
+
+        const ztunnel = new helm.v3.Release("ztunnel", {
+            chart: "ztunnel",
+            name: "ztunnel",
+            version: istioVersion,
+            namespace: ns.metadata.name,
+            repositoryOpts: {
+                repo: istioRepository,
+            },
+            createNamespace: false,
+            skipCrds: false,
+            values: {
+                istioNamespace: ns.metadata.name,
+                meshConfig: meshConfig,
+            },
+        }, {
+            dependsOn: [istioCni],
+        });
+
+        const defaultGateway = new gateway.v1.Gateway("default", {
+            metadata: {
+                name: "default",
+                namespace: ns.metadata.name,
+                annotations: {
+                    "networking.istio.io/service-type": "NodePort"
+                }
+            },
+            spec: {
+                gatewayClassName: "istio",
+                listeners: [
+                    {
+                        name: "tcp-http",
+                        protocol: "HTTP",
+                        port: 80,
+                        allowedRoutes: {
+                            namespaces: {
+                                from: "Selector",
+                                selector: {
+                                    matchLabels: Object.assign({}, useAmbientLabel)
+                                }
                             }
                         }
-                    }
-                },
-            ]
+                    },
+                ]
+            }
+        });
+        return {
+            base,
+            istiod,
+            istioCni,
+            ztunnel,
+            defaultGateway
         }
-    });
+    })
 
-    setBase(pulumi.output(base));
-    setIstiod(pulumi.output(istiod));
-    setIstioCni(pulumi.output(istioCni));
-    setZtunnel(pulumi.output(ztunnel));
-    setDefaultGateway(pulumi.output(defaultGateway));
-
-    onNamespaceLoaded("runtime", (ns)=>{
-        setupWaypoint(ns);
-    });
-} else {
-    setBase(pulumi.output(undefined));
-    setIstiod(pulumi.output(undefined));
-    setIstioCni(pulumi.output(undefined));
-    setZtunnel(pulumi.output(undefined));
-    setDefaultGateway(pulumi.output(undefined));
-}
-
-export {
-    base,
-    istiod,
-    istioCni,
-    ztunnel,
-    defaultGateway
-}
 
 export function setupWaypoint(target: core.v1.Namespace): pulumi.Output<{ gateway: gateway.v1.Gateway, namespace: core.v1.NamespacePatch } | undefined> {
     return pulumi.all([
-        base,
+        istio,
         target.metadata.name,
         pulumi.interpolate`${target.metadata.name}-labeler`,
         pulumi.interpolate`${target.metadata.name}-waypoint-gateway`
-    ]).apply(([base, namespaceName, urlName, gatewayName]) => {
-        if (base === undefined) {
+    ]).apply(([istio, namespaceName, urlName, gatewayName]) => {
+        if (istio === undefined) {
             return undefined;
         }
         return {
@@ -232,9 +216,6 @@ export function useWaypoint(target: core.v1.Namespace): pulumi.Output<core.v1.Na
 export function useWaypoint(target: core.v1.Service): pulumi.Output<core.v1.ServicePatch>;
 export function useWaypoint(target?: pulumi.Input<any>): pulumi.Output<any> {
     if (target === undefined) {
-        if (base === undefined) {
-            return pulumi.output({ "istio.io/use-waypoint": "waypoint" });
-        }
         return pulumi.output({ "istio.io/use-waypoint": "waypoint" });
     }
 

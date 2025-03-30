@@ -8,8 +8,7 @@ export type Extract<T> = T extends pulumi.Output<infer U>
 export type ForEachExtract<T extends any[]> = {
     [K in keyof T]: Extract<T[K]>;
 }
-export type JoinItemAndArray<T, A extends any[]> = [Extract<T>, ...ForEachExtract<A>];
-
+export type JoinWithExtract<T, A extends any[]> = [Extract<T>, ...ForEachExtract<A>];
 export class Handle<T, O, U> {
     #val: pulumi.Output<T | undefined>;
     #handleOutput: ((val: T) => O);
@@ -26,7 +25,7 @@ export class Handle<T, O, U> {
         this.#handleUndefined = output.handleUndefined;
     }
 
-    join<H extends (() => [any, ...any[]])>(handle: H): Handle<JoinItemAndArray<T, ReturnType<H>>, O, U> {
+    join<H extends (() => [any, ...any[]])>(handle: H): Handle<JoinWithExtract<T, ReturnType<H>>, O, U> {
         return new Handle({
             val: this.#val
                 .apply(v => {
