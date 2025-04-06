@@ -24,7 +24,7 @@ export const cephCluster = new rookceph.ceph.v1.CephCluster(
             namespace: ns.metadata.name,
         },
         spec: {
-            cephVersion: { image: "quay.io/ceph/ceph:v19.2.0" },
+            cephVersion: { image: "quay.io/ceph/ceph:v19.2.1" },
             dataDirHostPath: "/var/lib/rook",
             // skipUpgradeChecks: false,
             waitTimeoutForHealthyOSDInMinutes: 10,
@@ -162,10 +162,10 @@ export const cephBlock = new storage.v1.StorageClass(
 );
 
 // S3 호환되는 객체 스토어 생성
-export const defaultObjectStore = new rookceph.ceph.v1.CephObjectStore("default-object-store", {
+export const objectStore = new rookceph.ceph.v1.CephObjectStore("object-store", {
     metadata: {
         namespace: ns.metadata.name,
-        name: "default-object-store",
+        name: "object-store",
     },
     spec: {
         metadataPool: {
@@ -184,9 +184,42 @@ export const defaultObjectStore = new rookceph.ceph.v1.CephObjectStore("default-
         gateway: {
             port: 80,
             instances: 2,
+            rgwConfig: {}
         }
     },
 })
+
+export const objectStoreUser = new rookceph.ceph.v1.CephObjectStoreUser("object-store-user", {
+    metadata: {
+        namespace: ns.metadata.name,
+        name: "object-store-user",
+    },
+    spec: {
+        store: objectStore.metadata.name,
+        displayName: "object-store-user",
+        quotas: {
+            maxBuckets: 100,
+            maxSize: "10G",
+            maxObjects: 10000,
+        },
+        capabilities: {
+            "users": "*",
+            "buckets": "*",
+            "usage": "*",
+            "metadata": "*",
+            "zone": "*",
+            "roles": "*",
+            "info": "*",
+            "amz-cache": "*",
+            "bilog": "*",
+            "mdlog": "*",
+            "datalog": "*",
+            "user-policy": "*",
+            "oidc-provider": "*",
+            "ratelimit": "*",
+        }
+    },
+}, { dependsOn: [objectStore] });
 
 // ceph dashboard 서비스 생성 (80 포트를 위해 생성)
 export const cephDashboard = new core.v1.Service("ceph-dashboard", {

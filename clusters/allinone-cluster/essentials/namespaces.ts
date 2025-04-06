@@ -21,9 +21,13 @@ const containers: Record<string, { ns: core.v1.Namespace | undefined, fn: ((ns: 
         ns: undefined,
         fn: [],
     },
+    kubesystem: {
+        ns: undefined,
+        fn: [],
+    }
 }
 
-export type NamespaceEnum = "runtime" | "core-system" | "telemetry" | "istio-system" | "rook-ceph";
+export type NamespaceEnum = "runtime" | "core-system" | "telemetry" | "istio-system" | "rook-ceph" | "kube-system";
 
 export function requireNamespace(ns: NamespaceEnum): core.v1.Namespace {
     switch (ns) {
@@ -80,6 +84,12 @@ export function requireNamespace(ns: NamespaceEnum): core.v1.Namespace {
                 containers.rookceph.fn.forEach(fn => fn(containers.rookceph.ns!));
             }
             return containers.rookceph.ns;
+        case "kube-system":
+            if (containers.rookceph.ns === undefined) {
+                containers.rookceph.ns = core.v1.Namespace.get("kube-system", "kube-system");
+                containers.rookceph.fn.forEach(fn => fn(containers.rookceph.ns!));
+            }
+            return containers.rookceph.ns;
     }
 }
 export function tryNamespace(ns: NamespaceEnum): core.v1.Namespace | undefined {
@@ -94,6 +104,8 @@ export function tryNamespace(ns: NamespaceEnum): core.v1.Namespace | undefined {
             return containers.istiosystem.ns;
         case "rook-ceph":
             return containers.rookceph.ns;
+        case "kube-system":
+            return containers.kubesystem.ns;
     }
 }
 export function onNamespaceLoaded(ns: NamespaceEnum, fn: (ns: core.v1.Namespace) => void) {
@@ -127,6 +139,12 @@ export function onNamespaceLoaded(ns: NamespaceEnum, fn: (ns: core.v1.Namespace)
                 fn(containers.rookceph.ns);
             }
             containers.rookceph.fn.push(fn);
+            break;
+        case "kube-system":
+            if (containers.kubesystem.ns !== undefined) {
+                fn(containers.kubesystem.ns);
+            }
+            containers.kubesystem.fn.push(fn);
             break;
     }
 

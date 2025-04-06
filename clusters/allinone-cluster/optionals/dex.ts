@@ -9,14 +9,43 @@ import { ldap } from "./ldap.ts";
 import { istio } from "./istio.ts";
 import { gateway } from "@pulumi/gateway-api";
 import assert from "assert";
+import { RandomPassword } from "@pulumi/random";
 
 
 export const dex = handle(options.dex.enabled)
     .join(() => [requireNamespace("runtime"), etcd, ldap, istio])
     .letIf(([_, ns, rawEtcd, rawLdap, rawIstio]) => {
         assert(options.dex.issuer, "issuer is required for dex");
+
         const storage = must(rawEtcd, "etcd is required for dex");
         const { defaultGateway } = must(rawIstio, "istio is required for dex");
+
+        const staticClients = {
+            "debug": {
+                id: "debug",
+                redirectURIs: [
+                    "https://debug.kafe.or.kr/api/oidc/callback",
+                    "https://oidcdebugger.com/debug",
+                    "https://openidconnect.net/callback",
+                ],
+                name: "Debug",
+                secret: "debug-secret-debug-secret-debug-secret",
+            },
+            "mcp-db": {
+                id: "mcp-db",
+                redirectURIs: [
+                    "https://mcp-db.egoavara.net/oauth2/callback",
+                    "https://mcp-db.egoavara.net/",
+                    "https://oidcdebugger.com/debug",
+                ],
+                name: "MCP DB",
+                secret: (new RandomPassword("mcp-db-static-client", {
+                    length: 24,
+                    special: false,
+                    overrideSpecial: "_",
+                })).result,
+            },
+        }
 
         const connectors: any[] = []
         if (rawLdap !== undefined) {
@@ -64,6 +93,7 @@ export const dex = handle(options.dex.enabled)
             version: "0.23.0",
             namespace: ns.metadata.name,
             createNamespace: false,
+            maxHistory: 5,
             values: {
                 replicaCount: 2,
                 config: {
@@ -82,18 +112,7 @@ export const dex = handle(options.dex.enabled)
                             password: storage.password,
                         },
                     },
-                    staticClients: [
-                        {
-                            id: "debug",
-                            redirectURIs: [
-                                "https://debug.kafe.or.kr/api/oidc/callback",
-                                "https://oidcdebugger.com/debug",
-                                "https://openidconnect.net/callback",
-                            ],
-                            name: "Example App",
-                            secret: "debug-secret-debug-secret-debug-secret",
-                        }
-                    ],
+                    staticClients: Object.values(staticClients),
                     connectors: connectors,
                 },
                 service: {
@@ -118,14 +137,44 @@ export const dex = handle(options.dex.enabled)
                     name: defaultGateway.metadata.name,
                     namespace: defaultGateway.metadata.namespace,
                 }],
-                rules: [{
-                    backendRefs: [{
-                        kind: "Service",
-                        name: svc.metadata.name,
-                        namespace: svc.metadata.namespace,
-                        port: 5556,
-                    }]
-                }]
+                rules: [
+                    {
+                        matches: [
+                            {
+                                method: "GET",
+                                path: {
+                                    type: "Exact",
+                                    value: "/.well-known/oauth-authorization-server",
+                                }
+                            },
+                        ],
+                        filters: [
+                            {
+                                type: "URLRewrite",
+                                urlRewrite: {
+                                    path: {
+                                        type: "ReplaceFullPath",
+                                        replaceFullPath: "/.well-known/openid-configuration",
+                                    },
+                                },
+                            },
+                        ],
+                        backendRefs: [{
+                            kind: "Service",
+                            name: svc.metadata.name,
+                            namespace: svc.metadata.namespace,
+                            port: 5556,
+                        }]
+                    },
+                    {
+                        backendRefs: [{
+                            kind: "Service",
+                            name: svc.metadata.name,
+                            namespace: svc.metadata.namespace,
+                            port: 5556,
+                        }]
+                    },
+                ]
             }
         }, {
             dependsOn: [svc],
@@ -134,5 +183,7 @@ export const dex = handle(options.dex.enabled)
             issuer: options.dex.issuer,
             httproute: httproute,
             helm: chart,
+            staticClients: staticClients,
+            url: options.dex.issuer,
         }
     })

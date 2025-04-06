@@ -1,3 +1,4 @@
+import { elasticsearch } from "@pulumi/eck";
 import * as pulumi from "@pulumi/pulumi";
 const config = new pulumi.Config();
 
@@ -5,12 +6,11 @@ export const options = {
     "rook-ceph": {
     },
 
-    vault: {
-        enabled: config.getBoolean("vault.enabled") ?? true,
-    },
-
     istio: {
         enabled: config.getBoolean("istio.enabled") ?? true,
+    },
+    infisical: {
+        enabled: config.getBoolean("infisical.enabled") ?? true,
     },
 
     prometheus: {
@@ -74,6 +74,24 @@ export const options = {
         issuer: config.get("dex.issuer"),
     },
 
+    mcp: {
+        postgres: {
+            enabled: config.getBoolean("mcp.postgres.enabled") ?? true,
+        },
+        redis: {
+            enabled: config.getBoolean("mcp.redis.enabled") ?? true,
+        },
+        elasticsearch: {
+            enabled: config.getBoolean("mcp.elasticsearch.enabled") ?? true,
+        },
+        s3:{
+            enabled: config.getBoolean("mcp.s3.enabled") ?? true,
+        },
+        playwright:{
+            enabled: config.getBoolean("mcp.playwright.enabled") ?? true,
+        },
+        
+    },
     "gateway-api": {
     },
 } as const;
