@@ -66,9 +66,6 @@ export function requireNamespace(ns: NamespaceEnum): core.v1.Namespace {
                 containers.istiosystem.ns = new core.v1.Namespace("istio-system", {
                     metadata: {
                         name: "istio-system",
-                        labels: {
-                            "istio-injection": "enabled",
-                        },
                     },
                 });
                 containers.istiosystem.fn.forEach(fn => fn(containers.istiosystem.ns!));

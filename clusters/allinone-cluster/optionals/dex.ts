@@ -6,7 +6,7 @@ import { etcd } from "./etcd.ts";
 import { interpolate } from "@pulumi/pulumi";
 import { must } from "../utils/must.ts";
 import { ldap } from "./ldap.ts";
-import { istio } from "./istio.ts";
+import { istio, useWaypoint } from "./istio.ts";
 import { gateway } from "@pulumi/gateway-api";
 import assert from "assert";
 import { RandomPassword } from "@pulumi/random";
@@ -35,7 +35,9 @@ export const dex = handle(options.dex.enabled)
                 id: "mcp-db",
                 redirectURIs: [
                     "https://mcp-db.egoavara.net/oauth2/callback",
+                    "https://mcp-db.egoavara.net/swagger/oauth2-redirect.html",
                     "https://mcp-db.egoavara.net/",
+                    "http://127.0.0.1:6274/oauth/callback",
                     "https://oidcdebugger.com/debug",
                 ],
                 name: "MCP DB",
@@ -123,7 +125,10 @@ export const dex = handle(options.dex.enabled)
                 },
             },
         })
+
         const svc = core.v1.Service.get("dex", interpolate`${chart.namespace}/${chart.name}`, { dependsOn: [chart] })
+        useWaypoint(svc)
+        
         const issuerHostname = new URL(options.dex.issuer).hostname
         const httproute = new gateway.v1.HTTPRoute("dex-route", {
             metadata: {

@@ -13,6 +13,7 @@ import "./optionals/jaeger.ts";
 import "./optionals/kibana.ts";
 import "./optionals/ldap.ts";
 import "./optionals/mcp-db.ts";
+import "./optionals/openfga.ts";
 import "./optionals/postgres.ts";
 import "./optionals/prometheus.ts";
 import "./optionals/redis.ts";

@@ -1,6 +1,7 @@
 import * as eck from "@pulumi/eck";
 import { elasticsearch } from "./elasticsearch.ts";
 import { handle } from "../utils/handle.ts";
+import { useWaypoint } from "./istio.ts";
 
 
 export const kibana = handle(elasticsearch).letIf(({cluster}) => {
@@ -17,8 +18,12 @@ export const kibana = handle(elasticsearch).letIf(({cluster}) => {
             },
             http: {
                 service: {
+                    metadata:{
+                        labels: useWaypoint()
+                    },
                     spec: {
                         type: "LoadBalancer",
+                        
                         ports: [
                             {
                                 name: "http",

@@ -5,6 +5,7 @@ import { requireNamespace } from "../essentials/namespaces.ts";
 import { options } from "../utils/config.ts";
 import { handle } from "../utils/handle.ts";
 import { interpolate } from "@pulumi/pulumi";
+import { useWaypoint } from "./istio.ts";
 
 
 export const ldap = handle(options.ldap.enabled)
@@ -150,6 +151,7 @@ export const ldap = handle(options.ldap.enabled)
             metadata: {
                 name: "ldap",
                 namespace: ns.metadata.name,
+                labels: useWaypoint("none"),
             },
             spec: {
                 type: "LoadBalancer",

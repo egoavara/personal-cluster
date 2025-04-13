@@ -90,8 +90,12 @@ export const options = {
         playwright:{
             enabled: config.getBoolean("mcp.playwright.enabled") ?? true,
         },
-        
     },
+
+    openfga: {
+        enabled: config.getBoolean("openfga.enabled") ?? true,
+    },
+    
     "gateway-api": {
     },
 } as const;

@@ -7,6 +7,8 @@ import { options } from "../utils/config.ts";
 import assert from "assert";
 import { handle } from "../utils/handle.ts";
 import { certmanager } from "./certmanager.ts";
+import { telemetry } from "@pulumi/istio";
+import { on } from "events";
 
 const istioVersion = "1.24.3";
 const istioRepository = "https://istio-release.storage.googleapis.com/charts";
@@ -21,13 +23,18 @@ const meshConfig = {
     ],
     defaultConfig: {
         tracing: {
-            enabled: true,
             sampling: 100,
+        },
+        proxyHeaders: {
+            server: {
+                disable: true
+            }
         }
     },
     defaultProviders: {
         tracing: ["opentelemetry"]
     },
+    enableTracing: true,
     extensionProviders: [
         {
             name: "opentelemetry",
@@ -49,8 +56,13 @@ export const istio = handle(options.istio.enabled)
         assert(options["cert-manager"].dns01.projectId, "cert-manager.dns01.projectId is required for istio tls certificates");
         assert(options["cert-manager"].dns01.serviceAccountSecretRef.name, "cert-manager.dns01.serviceAccountSecretRef.name is required for istio tls certificates");
         assert(options["cert-manager"].dns01.serviceAccountSecretRef.key, "cert-manager.dns01.serviceAccountSecretRef.name is required for istio tls certificates");
-
+        onNamespaceLoaded("istio-system", (ns) => {
+            setupWaypoint(ns);
+        });
         onNamespaceLoaded("runtime", (ns) => {
+            setupWaypoint(ns);
+        });
+        onNamespaceLoaded("telemetry", (ns) => {
             setupWaypoint(ns);
         });
 
@@ -86,12 +98,15 @@ export const istio = handle(options.istio.enabled)
                 global: {
                     namespace: ns.metadata.name,
                 },
+                tracing: {
+                    enabled: true,
+                },
                 pilot: {
                     autoscaleMin: 2,
                     cni: {
                         enabled: true
                     },
-                    traceSampling: 1.0,
+                    traceSampling: 100,
                 },
                 meshConfig: meshConfig,
             },
@@ -188,12 +203,36 @@ export const istio = handle(options.istio.enabled)
             }
         });
 
+        const tele = new telemetry.v1.Telemetry("istio-telemetry", {
+            metadata: {
+                name: "istio-telemetry",
+                namespace: ns.metadata.name,
+            },
+            spec: {
+                tracing: [
+                    {
+                        providers: [
+                            { name: "opentelemetry" }
+                        ],
+                        randomSamplingPercentage: 100,
+                    },
+                ],
+            }
+        }, {
+            dependsOn: [istiod],
+        })
+
         const defaultGateway = new gateway.v1.Gateway("default", {
             metadata: {
                 name: "default",
                 namespace: ns.metadata.name,
                 annotations: {
-                    "networking.istio.io/service-type": "NodePort"
+                    "networking.istio.io/service-type": "LoadBalancer",
+                    "proxy.istio.io/config": JSON.stringify({
+                        "gatewayTopology": {
+                            "numTrustedProxies": 1,
+                        }
+                    }),
                 }
             },
             spec: {
@@ -270,9 +309,6 @@ export function setupWaypoint(target: core.v1.Namespace): pulumi.Output<{ gatewa
                 metadata: {
                     name: "waypoint",
                     namespace: namespaceName,
-                    labels: {
-                        "istio.io/waypoint-for": "service"
-                    }
                 },
                 spec: {
                     gatewayClassName: "istio-waypoint",
@@ -290,24 +326,29 @@ export function setupWaypoint(target: core.v1.Namespace): pulumi.Output<{ gatewa
 }
 
 export function useWaypoint(): pulumi.Output<Record<string, pulumi.Output<string>>>;
+export function useWaypoint(label: "none"): pulumi.Output<Record<string, pulumi.Output<string>>>;
+export function useWaypoint(label: pulumi.Output<"none">): pulumi.Output<Record<string, pulumi.Output<string>>>;
 export function useWaypoint(target: core.v1.Namespace): pulumi.Output<core.v1.NamespacePatch>;
 export function useWaypoint(target: core.v1.Service): pulumi.Output<core.v1.ServicePatch>;
-export function useWaypoint(target?: pulumi.Input<any>): pulumi.Output<any> {
+export function useWaypoint(target?: pulumi.Input<any> | string): pulumi.Output<any> {
     if (target === undefined) {
         return pulumi.output({ "istio.io/use-waypoint": "waypoint" });
     }
-
-    if (target === undefined) {
-        return pulumi.output({ "istio.io/use-waypoint": "waypoint" });
+    if (target === "none") {
+        return pulumi.output({ "istio.io/use-waypoint": "none" });
     }
     return pulumi.output(target).apply((t) => {
+        if (t === "none") {
+            return { "istio.io/use-waypoint": "none" };
+        }
+        
         if (t instanceof core.v1.Namespace) {
             return pulumi.interpolate`useWaypoint(${t.metadata.name})`.apply(urnName => {
                 return new core.v1.NamespacePatch(urnName, {
                     metadata: {
                         name: t.metadata.name,
                         labels: {
-                            "istio.io/waypoint-for": "service"
+                            "istio.io/use-waypoint": "waypoint"
                         },
                     },
                 });
@@ -318,8 +359,9 @@ export function useWaypoint(target?: pulumi.Input<any>): pulumi.Output<any> {
                 return new core.v1.ServicePatch(urnName, {
                     metadata: {
                         name: t.metadata.name,
+                        namespace: t.metadata.namespace,
                         labels: {
-                            "istio.io/waypoint-for": "service"
+                            "istio.io/use-waypoint": "waypoint"
                         },
                     },
                 });

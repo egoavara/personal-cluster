@@ -4,6 +4,7 @@ import { options } from "../utils/config.ts";
 import { certmanager } from "./certmanager.ts";
 import { must } from "../utils/must.ts";
 import { requireNamespace } from "../essentials/namespaces.ts";
+import { useWaypoint } from "./istio.ts";
 
 const [prometheus, setPrometheus] = pulumi.deferredOutput<helm.v3.Release | undefined>();
 
@@ -26,6 +27,7 @@ if (options["prometheus"].enabled) {
                 enabled: true,
                 service: {
                     type: "LoadBalancer",
+                    labels: useWaypoint(),
                 },
                 prometheusSpec: {
                     podMonitorSelectorNilUsesHelmValues: false,
@@ -58,6 +60,7 @@ if (options["prometheus"].enabled) {
                 enabled: options.grafana.enabled,
                 service: {
                     type: "LoadBalancer",
+                    labels: useWaypoint(),
                 },
                 sidecar: {
                     dashboards: {

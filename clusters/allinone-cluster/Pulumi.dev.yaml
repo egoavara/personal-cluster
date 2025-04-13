@@ -8,6 +8,7 @@ config:
   allinone-cluster:grafana.enabled: "true"
   allinone-cluster:postgres.enabled: "false"
   allinone-cluster:elasticsearch.enabled: "true"
+  allinone-cluster:openfga.enabled: "true"
   allinone-cluster:kibana.enabled: "true"
   allinone-cluster:redis.enabled: "true"
 
@@ -17,7 +18,6 @@ config:
   allinone-cluster:cert-manager.dns01.serviceAccountSecretRef.name: "gcloud-auth"
   allinone-cluster:cert-manager.dns01.serviceAccountSecretRef.key: "keys.json"
 
-  
   allinone-cluster:dex.enabled: "true"
   allinone-cluster:dex.issuer: "https://dex.egoavara.net"
   
