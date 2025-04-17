@@ -11,14 +11,13 @@ config:
   allinone-cluster:openfga.enabled: "true"
   allinone-cluster:kibana.enabled: "true"
   allinone-cluster:redis.enabled: "true"
-
   allinone-cluster:cert-manager.enabled: "true"
   allinone-cluster:cert-manager.email: "egoavara@gmail.com"
   allinone-cluster:cert-manager.dns01.projectId: "practice-make-perfect-379914"
   allinone-cluster:cert-manager.dns01.serviceAccountSecretRef.name: "gcloud-auth"
   allinone-cluster:cert-manager.dns01.serviceAccountSecretRef.key: "keys.json"
-
   allinone-cluster:dex.enabled: "true"
   allinone-cluster:dex.issuer: "https://dex.egoavara.net"
-  
   allinone-cluster:etcd.enabled: "true"
+  pulumi:tags:
+    pulumi:template: helm-kubernetes-typescript

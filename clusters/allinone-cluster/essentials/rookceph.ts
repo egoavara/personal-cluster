@@ -189,6 +189,30 @@ export const objectStore = new rookceph.ceph.v1.CephObjectStore("object-store", 
     },
 })
 
+export const cephrgwService = new core.v1.Service("s3-compatiable", {
+    metadata: {
+        name: "s3-compatiable",
+        namespace: objectStore.metadata.namespace,
+    },
+    spec: {
+        type: "LoadBalancer",
+        ports: [
+            {
+                name: "http",
+                protocol: "TCP",
+                port: 80,
+                targetPort: 80,
+            }
+        ],
+        selector: {
+            app: "rook-ceph-rgw",
+            rook_cluster: objectStore.metadata.namespace,
+            rook_object_store: objectStore.metadata.name,
+            rgw: objectStore.metadata.name,
+        },
+    },
+}, { dependsOn: [objectStore] });
+
 export const objectStoreUser = new rookceph.ceph.v1.CephObjectStoreUser("object-store-user", {
     metadata: {
         namespace: ns.metadata.name,
