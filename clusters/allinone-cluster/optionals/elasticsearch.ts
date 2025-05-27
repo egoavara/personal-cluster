@@ -97,6 +97,9 @@ bin/elasticsearch-plugin install --batch analysis-nori
                     service: {
                         metadata: {
                             labels: useWaypoint(),
+                        },
+                        spec: {
+                            type: "LoadBalancer",
                         }
                     },
                     tls: {

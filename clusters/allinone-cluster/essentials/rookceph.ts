@@ -201,7 +201,7 @@ export const cephrgwService = new core.v1.Service("s3-compatiable", {
                 name: "http",
                 protocol: "TCP",
                 port: 80,
-                targetPort: 80,
+                targetPort: 8080,
             }
         ],
         selector: {

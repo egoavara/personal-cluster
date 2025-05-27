@@ -8,6 +8,7 @@ import "./optionals/certmanager.ts";
 import "./optionals/dex.ts";
 import "./optionals/elasticsearch.ts";
 import "./optionals/etcd.ts";
+import "./optionals/influxdb.ts";
 import "./optionals/istio.ts";
 import "./optionals/jaeger.ts";
 import "./optionals/kibana.ts";

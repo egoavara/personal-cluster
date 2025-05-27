@@ -1,4 +1,3 @@
-encryptionsalt: v1:uWbXflxtKhw=:v1:XkNxpfu2+52dmz9m:oFkQeu9otemwjwddYFNJHUutLgBpYQ==
 config:
   kubernetes:context: admin@kubernetes-egoavara-net
   allinone-cluster:istio.enabled: "true"
@@ -19,5 +18,10 @@ config:
   allinone-cluster:dex.enabled: "true"
   allinone-cluster:dex.issuer: "https://dex.egoavara.net"
   allinone-cluster:etcd.enabled: "true"
+  allinone-cluster:influxdb.enabled: "true"
   pulumi:tags:
     pulumi:template: helm-kubernetes-typescript
+  allinone-cluster:github.api-key:
+    secure: v1:561R2k8z3rgcHo0i:eKlTnKIhTcdzJRdzCj6tdjpBDLKm8KYcbC+/uP747l8iYtqNojeY3+YR/Eu9QjN+P3Slj5TTJDA=
+secretsprovider: gcpkms://projects/practice-make-perfect-379914/locations/global/keyRings/pulumi-key/cryptoKeys/egoavara-net
+encryptedkey: CiQAtoJu50PjKLsf3Wjck488YFeYD5ttjfiNsldp/afy5E/eBmESSADHjEIpx1O2D6cbz/cynBNr6vZghYb9WsmTvw9qhI5rx4jiBxB0L4WWq+ix0m11jeEyoOvSOT/7jUubU97qnZRrU7p9uyjGxg==

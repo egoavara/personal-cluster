@@ -19,32 +19,6 @@ export const mcpDb = handle(options.mcp.postgres.enabled)
         const dex = must(rawDex, "mcp-db requires dex to be enabled");
         const { defaultGateway } = must(rawIstio, "istio is required for mcp-db");
 
-        const config = new core.v1.Secret("mcp-db-config", {
-            metadata: {
-                namespace: ns.metadata.name,
-                name: "mcp-postgres-config",
-            },
-            stringData: {
-                "config.yaml": all([
-                    interpolate`postgresql://${rdbms.username}:${rdbms.password}@${rdbms.hostname}:${rdbms.port}/${rdbms.defaultDatabase}`,
-                ]).apply(([
-                    connString,
-                ]) => (
-                    dump({
-                        "api": {
-                            "name": "Automatic API",
-                            "version": "1.0.0",
-                        },
-                        "database": {
-                            "type": "postgres",
-                            "connection": connString,
-                        },
-                        "plugins": {
-                        }
-                    })
-                ))
-            },
-        })
         const deployment = new apps.v1.Deployment("mcp-db", {
             metadata: {
                 namespace: ns.metadata.name,
@@ -56,6 +30,7 @@ export const mcpDb = handle(options.mcp.postgres.enabled)
                         app: "mcp-db",
                     }
                 },
+                replicas: 1,
                 template: {
                     metadata: {
                         labels: {
@@ -63,34 +38,17 @@ export const mcpDb = handle(options.mcp.postgres.enabled)
                         }
                     },
                     spec: {
-                        volumes: [
-                            {
-                                name: "mcp-db-config",
-                                secret: {
-                                    secretName: config.metadata.name,
-                                }
-                            }
-                        ],
                         containers: [
                             {
                                 name: "mcp-db",
-                                image: "ghcr.io/centralmind/gateway:v0.2.10",
+                                image: "bytebase/dbhub",
                                 args: [
-                                    "start",
-                                    "--config",
-                                    "/etc/gateway/config.yaml",
-                                    "--addr",
-                                    ":8080",
-                                    "--servers",
-                                    interpolate`https://mcp-db.egoavara.net,https://mcp-db.${ns.metadata.name}.svc.cluster.local`,
-                                ],
-                                volumeMounts: [
-                                    {
-                                        name: "mcp-db-config",
-                                        mountPath: "/etc/gateway",
-                                        readOnly: true,
-                                    }
-
+                                    "--transport",
+                                    "sse",
+                                    "--port",
+                                    "8080",
+                                    "--dsn",
+                                    interpolate`postgresql://${rdbms.username}:${rdbms.password}@${rdbms.hostname}:${rdbms.port}/${rdbms.defaultDatabase}?sslmode=disable`,
                                 ],
                                 ports: [
                                     { containerPort: 8080 },
@@ -120,6 +78,27 @@ export const mcpDb = handle(options.mcp.postgres.enabled)
                 }
             }
         })
+        const serviceHeadless = new core.v1.Service("mcp-db-headless", {
+            metadata: {
+                namespace: ns.metadata.name,
+                name: "mcp-db-headless",
+                labels: useWaypoint(),
+            },
+            spec: {
+                type: "ClusterIP",
+                clusterIP: "None",
+                ports: [
+                    {
+                        port: 80,
+                        targetPort: 8080,
+                    }
+                ],
+                selector: {
+                    app: "mcp-db",
+                }
+            }
+        })
+
 
         // const deploaymentProxy = new apps.v1.Deployment("mcp-db-proxy", {
         //     metadata: {
@@ -218,8 +197,8 @@ export const mcpDb = handle(options.mcp.postgres.enabled)
         // });
 
         return {
-            config,
             deployment,
             service,
+            headless: serviceHeadless,
         }
     })

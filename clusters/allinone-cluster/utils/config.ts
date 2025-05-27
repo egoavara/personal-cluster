@@ -5,6 +5,9 @@ const config = new pulumi.Config();
 export const options = {
     "rook-ceph": {
     },
+    influxdb:{
+        enabled: config.getBoolean("influxdb.enabled") ?? true,
+    },
 
     istio: {
         enabled: config.getBoolean("istio.enabled") ?? true,

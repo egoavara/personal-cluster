@@ -38,6 +38,7 @@ export const dex = handle(options.dex.enabled)
                     "https://mcp-db.egoavara.net/swagger/oauth2-redirect.html",
                     "https://mcp-db.egoavara.net/",
                     "http://127.0.0.1:6274/oauth/callback",
+                    "http://localhost:6274/oauth/callback",
                     "https://oidcdebugger.com/debug",
                 ],
                 name: "MCP DB",
