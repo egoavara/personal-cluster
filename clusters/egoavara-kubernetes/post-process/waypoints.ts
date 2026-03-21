@@ -18,9 +18,7 @@ import { istiod } from "../essentials/istio.ts";
 // waypoint를 배포할 네임스페이스 목록
 // ambient가 활성화되어 있고 istio 제외 대상이 아닌 NS
 const waypointNamespaces = [
-    "telemetry",
     "default",
-    "cert-manager",
 ];
 
 function createWaypoint(namespace: string) {

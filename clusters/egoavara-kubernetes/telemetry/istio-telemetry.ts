@@ -31,7 +31,7 @@ export const meshTelemetry = new apiextensions.CustomResource("istio-telemetry",
 });
 
 // waypoint별 Telemetry (targetRefs 방식 — 공식 권장)
-const waypointNamespaces = ["telemetry", "default", "cert-manager"];
+const waypointNamespaces = ["default"];
 
 export const waypointTelemetries = waypointNamespaces.map(ns =>
     new apiextensions.CustomResource(`istio-telemetry-waypoint-${ns}`, {
