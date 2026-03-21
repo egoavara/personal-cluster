@@ -36,6 +36,7 @@ import "./telemetry/otel-collector.ts";
 import "./telemetry/kube-state-metrics.ts";
 import "./telemetry/node-exporter.ts";
 import "./telemetry/scrapes.ts";
+import "./telemetry/istio-telemetry.ts";
 
 // Phase 5: Post-Process (모든 인프라 배포 후 후처리)
 // 각 리소스가 parent: postProcess로 등록됨

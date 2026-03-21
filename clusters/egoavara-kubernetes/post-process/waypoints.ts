@@ -8,8 +8,11 @@ import { istiod } from "../essentials/istio.ts";
  * Istio ambient mesh에 포함된 네임스페이스에 waypoint를 배포하여
  * L7 기능(tracing, HTTP 라우팅, AuthorizationPolicy 등)을 활성화한다.
  *
- * Opt-out: 네임스페이스에 istio.io/use-waypoint: none 라벨을 추가하면
- * waypoint를 사용하지 않는다 (Gateway 리소스는 생성하되, NS 라벨로 비활성화).
+ * 각 NS에 다음 라벨을 주입:
+ *   istio.io/dataplane-mode: ambient  — ztunnel L4 참여 (필수)
+ *   istio.io/use-waypoint: waypoint   — waypoint L7 라우팅 활성화
+ *
+ * Opt-out: NS에 istio.io/dataplane-mode: none 라벨을 추가하면 ambient 자체를 비활성화.
  */
 
 // waypoint를 배포할 네임스페이스 목록
@@ -17,9 +20,21 @@ import { istiod } from "../essentials/istio.ts";
 const waypointNamespaces = [
     "telemetry",
     "default",
+    "cert-manager",
 ];
 
 function createWaypoint(namespace: string) {
+    // NS에 ambient + waypoint 라벨 주입 (Gateway 보다 먼저)
+    const nsPatch = new k8s.core.v1.NamespacePatch(`waypoint-label-${namespace}`, {
+        metadata: {
+            name: namespace,
+            labels: {
+                "istio.io/dataplane-mode": "ambient",
+                "istio.io/use-waypoint": "waypoint",
+            },
+        },
+    }, { parent: postProcess, dependsOn: [istiod] });
+
     const gateway = new k8s.apiextensions.CustomResource(`waypoint-${namespace}`, {
         apiVersion: "gateway.networking.k8s.io/v1",
         kind: "Gateway",
@@ -38,19 +53,9 @@ function createWaypoint(namespace: string) {
                 protocol: "HBONE",
             }],
         },
-    }, { parent: postProcess, dependsOn: [istiod] });
+    }, { parent: postProcess, dependsOn: [nsPatch] });
 
-    // NS에 waypoint 사용 라벨 추가
-    const nsPatch = new k8s.core.v1.NamespacePatch(`waypoint-label-${namespace}`, {
-        metadata: {
-            name: namespace,
-            labels: {
-                "istio.io/use-waypoint": "waypoint",
-            },
-        },
-    }, { parent: postProcess, dependsOn: [gateway] });
-
-    return { gateway, nsPatch };
+    return { nsPatch, gateway };
 }
 
 export const waypoints = waypointNamespaces.map(createWaypoint);
