@@ -1,0 +1,4 @@
+/bin/
+/node_modules/
+/libs/*/node_modules/
+/libs/*/bin/

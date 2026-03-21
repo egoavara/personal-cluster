@@ -1,0 +1,38 @@
+config:
+  kubernetes:context: admin@kubernetes-egoavara-net
+  # SSH
+  egoavara-kubernetes:ssh.keyPath: "~/.ssh/egoavara-windows"
+  # Kubernetes
+  egoavara-kubernetes:kubernetes.version: "1.35"
+  egoavara-kubernetes:kubernetes.containerRuntime: "containerd"
+  egoavara-kubernetes:kubernetes.controlPlaneEndpoint: "private-kubernetes.egoavara.net:6443"
+  # MikroTik
+  egoavara-kubernetes:mikrotik.host: "10.0.0.1"
+  egoavara-kubernetes:mikrotik.user: "admin"
+  egoavara-kubernetes:mikrotik.routerId: "10.0.0.1"
+  # Cilium
+  egoavara-kubernetes:cilium.version: "1.17.4"
+  egoavara-kubernetes:cilium.bgp.localASN: "65001"
+  egoavara-kubernetes:cilium.bgp.peerASN: "65000"
+  egoavara-kubernetes:cilium.bgp.peerAddress: "10.0.0.1"
+  egoavara-kubernetes:cilium.lbPoolCidr: "10.200.0.0/16"
+  # Istio
+  egoavara-kubernetes:istio.version: "1.29.1"
+  # Rook Ceph
+  egoavara-kubernetes:rookCeph.operatorVersion: "1.19.2"
+  egoavara-kubernetes:rookCeph.cephImage: "quay.io/ceph/ceph:v19.2.2"
+  egoavara-kubernetes:rookCeph.deviceFilter: "^sd.+"
+  # Gateway API
+  egoavara-kubernetes:gatewayApi.version: "1.5.1"
+  # TopoLVM
+  egoavara-kubernetes:topoLvm.version: "15.5.2"
+  # Telemetry
+  egoavara-kubernetes:telemetry.vmOperator.version: "0.59.3"
+  egoavara-kubernetes:telemetry.grafana.version: "10.5.15"
+  egoavara-kubernetes:telemetry.metricsServer.version: "3.13.0"
+  egoavara-kubernetes:telemetry.prometheusAdapter.version: "5.3.0"
+  egoavara-kubernetes:telemetry.otelCollector.version: "0.147.1"
+  egoavara-kubernetes:telemetry.kubeStateMetrics.version: "7.2.1"
+  egoavara-kubernetes:telemetry.nodeExporter.version: "4.52.1"
+secretsprovider: gcpkms://projects/practice-make-perfect-379914/locations/global/keyRings/pulumi-key/cryptoKeys/egoavara-net
+encryptedkey: CiQAtoJu53PLO2kdwNjqH5eYW3IJ8FixJMUXhceQEHyNESV193YSSQC5OvDHcspziRFtRSXNcKEm3DZbe0uKiWIAQMDZctwESY76e6QRAyrdfDwzElYSWq8LhLAe7LuZI2VpXBIAG4UizYt9uWZAWYE=

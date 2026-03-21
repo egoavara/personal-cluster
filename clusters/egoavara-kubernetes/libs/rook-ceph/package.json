@@ -1,0 +1,25 @@
+{
+    "name": "@pulumi/rook-ceph",
+    "version": "0.0.0-dev",
+    "keywords": [
+        "pulumi",
+        "kubernetes",
+        "category/cloud",
+        "kind/native"
+    ],
+    "homepage": "https://pulumi.com",
+    "license": "Apache-2.0",
+    "main": "bin/index.js",
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@pulumi/kubernetes": "^4.21.0",
+        "@pulumi/pulumi": "^3.148.0"
+    },
+    "pulumi": {
+        "resource": false,
+        "name": "rook-ceph",
+        "version": "0.0.0-dev"
+    }
+}

@@ -1,0 +1,36 @@
+{
+  "version": 3,
+  "deployment": {
+    "manifest": {
+      "time": "2026-03-21T23:29:04.4148933+09:00",
+      "magic": "a2704acabdbe6ad918c0efb801f982cbadd3fc943c290cb75d9212237b60ce98",
+      "version": "v3.226.0"
+    },
+    "secrets_providers": {
+      "type": "cloud",
+      "state": {
+        "url": "gcpkms://projects/practice-make-perfect-379914/locations/global/keyRings/pulumi-key/cryptoKeys/egoavara-net",
+        "encryptedkey": "CiQAtoJu53PLO2kdwNjqH5eYW3IJ8FixJMUXhceQEHyNESV193YSSQC5OvDHcspziRFtRSXNcKEm3DZbe0uKiWIAQMDZctwESY76e6QRAyrdfDwzElYSWq8LhLAe7LuZI2VpXBIAG4UizYt9uWZAWYE="
+      }
+    },
+    "resources": [
+      {
+        "urn": "urn:pulumi:dev::egoavara-kubernetes::pulumi:pulumi:Stack::egoavara-kubernetes-dev",
+        "custom": false,
+        "type": "pulumi:pulumi:Stack",
+        "outputs": {
+          "bootstrap": {
+            "urn": "urn:pulumi:dev::egoavara-kubernetes::egoavara:cluster:Phase::bootstrap"
+          },
+          "essentials": {
+            "urn": "urn:pulumi:dev::egoavara-kubernetes::egoavara:cluster:Phase::essentials"
+          }
+        },
+        "created": "2026-03-21T10:57:36.4430317Z",
+        "modified": "2026-03-21T10:57:36.4430317Z"
+      }
+    ],
+    "metadata": {},
+    "pending_operations": []
+  }
+}
