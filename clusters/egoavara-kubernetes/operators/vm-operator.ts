@@ -1,13 +1,11 @@
-import { core, helm } from "@pulumi/kubernetes";
+import { helm } from "@pulumi/kubernetes";
 import { telemetry as telemetryConfig } from "../utils/config.ts";
+import { requireNamespace } from "../essentials/namespaces.ts";
 import { operators } from "../phases.ts";
 
-const ns = new core.v1.Namespace("operator-system", {
-    metadata: {
-        name: "operator-system",
-        labels: { "istio.io/dataplane-mode": "none" },
-    },
-}, { parent: operators });
+const ns = requireNamespace("operator-system", {
+    labels: { "istio.io/dataplane-mode": "none" },
+});
 
 export const vmOperator = new helm.v3.Release("vm-operator", {
     chart: "victoria-metrics-operator",

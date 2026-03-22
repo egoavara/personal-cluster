@@ -83,6 +83,14 @@ export const istio = {
     excludeNamespaces: config.get("istio.excludeNamespaces")?.split(",") ?? defaultExcludeNamespaces,
 };
 
+export const externalDns = {
+    version: config.get("externalDns.version") ?? "1.15.2",
+    gcpProject: config.requireSecret("externalDns.gcpProject"),
+    gcpServiceAccountKey: config.requireSecret("externalDns.gcpServiceAccountKey"),
+    defaultTargets: config.require("externalDns.defaultTargets"),
+    txtOwnerId: config.require("externalDns.txtOwnerId"),
+};
+
 export const telemetry = {
     vmOperator: { version: config.get("telemetry.vmOperator.version") ?? "0.59.3" },
     grafana: { version: config.get("telemetry.grafana.version") ?? "10.5.15" },

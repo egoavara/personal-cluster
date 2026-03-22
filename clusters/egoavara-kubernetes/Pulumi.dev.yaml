@@ -1,32 +1,41 @@
 config:
   kubernetes:context: admin@kubernetes-egoavara-net
   # SSH
+
   egoavara-kubernetes:ssh.keyPath: "~/.ssh/egoavara-windows"
   # Kubernetes
+
   egoavara-kubernetes:kubernetes.version: "1.35"
   egoavara-kubernetes:kubernetes.containerRuntime: "containerd"
   egoavara-kubernetes:kubernetes.controlPlaneEndpoint: "private-kubernetes.egoavara.net:6443"
   # MikroTik
+
   egoavara-kubernetes:mikrotik.host: "10.0.0.1"
   egoavara-kubernetes:mikrotik.user: "admin"
   egoavara-kubernetes:mikrotik.routerId: "10.0.0.1"
   # Cilium
+
   egoavara-kubernetes:cilium.version: "1.17.4"
   egoavara-kubernetes:cilium.bgp.localASN: "65001"
   egoavara-kubernetes:cilium.bgp.peerASN: "65000"
   egoavara-kubernetes:cilium.bgp.peerAddress: "10.0.0.1"
   egoavara-kubernetes:cilium.lbPoolCidr: "10.200.0.0/16"
   # Istio
+
   egoavara-kubernetes:istio.version: "1.29.1"
   # Rook Ceph
+
   egoavara-kubernetes:rookCeph.operatorVersion: "1.19.2"
   egoavara-kubernetes:rookCeph.cephImage: "quay.io/ceph/ceph:v19.2.2"
   egoavara-kubernetes:rookCeph.deviceFilter: "^sd.+"
   # Gateway API
+
   egoavara-kubernetes:gatewayApi.version: "1.5.1"
   # TopoLVM
+
   egoavara-kubernetes:topoLvm.version: "15.5.2"
   # Telemetry
+
   egoavara-kubernetes:telemetry.vmOperator.version: "0.59.3"
   egoavara-kubernetes:telemetry.grafana.version: "10.5.15"
   egoavara-kubernetes:telemetry.metricsServer.version: "3.13.0"
@@ -34,5 +43,12 @@ config:
   egoavara-kubernetes:telemetry.otelCollector.version: "0.147.1"
   egoavara-kubernetes:telemetry.kubeStateMetrics.version: "7.2.1"
   egoavara-kubernetes:telemetry.nodeExporter.version: "4.52.1"
+  egoavara-kubernetes:externalDns.gcpProject:
+    secure: v1:tBGOLLIADloiyVhw:wnCZl7fIiUhXUBM5ErjJ6GXuczAR9SZQPZDNamlMvjB3XtPSOz0DhfB54mc=
+  egoavara-kubernetes:externalDns.gcpServiceAccountKey:
+    secure: v1:Jge6hGsVAeHTu4rb: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
+  egoavara-kubernetes:externalDns.defaultTargets: hkd0aye642n.sn.mynetname.net
+  egoavara-kubernetes:externalDns.txtOwnerId: egoavara-kubernetes
+  egoavara-kubernetes:externalDns.version: 1.15.2
 secretsprovider: gcpkms://projects/practice-make-perfect-379914/locations/global/keyRings/pulumi-key/cryptoKeys/egoavara-net
 encryptedkey: CiQAtoJu53PLO2kdwNjqH5eYW3IJ8FixJMUXhceQEHyNESV193YSSQC5OvDHcspziRFtRSXNcKEm3DZbe0uKiWIAQMDZctwESY76e6QRAyrdfDwzElYSWq8LhLAe7LuZI2VpXBIAG4UizYt9uWZAWYE=

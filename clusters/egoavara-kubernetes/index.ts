@@ -17,6 +17,7 @@ import "./essentials/gateway-api.ts";
 import "./essentials/cert-manager.ts";
 import "./essentials/topolvm.ts";
 import "./essentials/rook-ceph.ts";
+import "./essentials/external-dns.ts";
 
 // Phase 3: Operators (CRD + Operator)
 // 각 리소스가 parent: operators로 등록됨
