@@ -87,7 +87,7 @@ const oidcEnv: k8s.types.input.core.v1.EnvVar[] = [
     { name: "OIDC_CLIENT_SECRET", valueFrom: { secretKeyRef: { name: "oidc-kube-authz", key: "client-secret" } } },
 ];
 
-const otelEndpoint = "http://otel-collector.telemetry.svc.cluster.local:4317";
+const otelEndpoint = "http://otel-collector-opentelemetry-collector.telemetry.svc.cluster.local:4317";
 
 function otelEnv(serviceName: string): k8s.types.input.core.v1.EnvVar[] {
     return [
