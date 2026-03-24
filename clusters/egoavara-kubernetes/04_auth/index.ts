@@ -5,6 +5,7 @@ import "./spicedb.ts";
 import "./zitadel.ts";
 import "./zitadel-clients.ts";
 import "./oauth2-proxy.ts";
+import "./valkey.ts";
 import "./guard.ts";
 import "./private-gateway.ts";
 import "./private-routes.ts";

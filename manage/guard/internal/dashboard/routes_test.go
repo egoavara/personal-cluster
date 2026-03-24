@@ -12,19 +12,19 @@ func TestLoadRoutes(t *testing.T) {
     path: /d/grafana
     upstream: http://grafana.telemetry.svc.cluster.local:80
     stripPrefix: true
-    spicedbResource: dashboard:grafana
+    spicedbResource: kube_service:telemetry/grafana
 
   - name: crdb-ui
     path: /d/crdb
     upstream: http://cockroachdb-public.auth.svc.cluster.local:8080
     stripPrefix: true
-    spicedbResource: dashboard:crdb-ui
+    spicedbResource: kube_service:auth/cockroachdb
 
   - name: kanidm
     path: /d/kanidm
     upstream: https://kanidm.auth.svc.cluster.local:8443
     stripPrefix: true
-    spicedbResource: dashboard:kanidm
+    spicedbResource: kube_service:auth/kanidm
     insecureSkipVerify: true
 `
 	tmpDir := t.TempDir()
@@ -56,7 +56,7 @@ func TestLoadRoutes(t *testing.T) {
 	if !g.StripPrefix {
 		t.Error("dashboard[0].StripPrefix should be true")
 	}
-	if g.SpiceDBResource != "dashboard:grafana" {
+	if g.SpiceDBResource != "kube_service:telemetry/grafana" {
 		t.Errorf("dashboard[0].SpiceDBResource = %q", g.SpiceDBResource)
 	}
 	if g.InsecureSkipVerify {

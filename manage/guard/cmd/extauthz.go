@@ -20,7 +20,7 @@ var extAuthzCmd = &cobra.Command{
 			zap.String("cookie_domain", cfg.ExtAuthz.Cookie.Domain),
 		)
 
-		return extauthz.Run(cmd.Context(), cfg.SpiceDB, cfg.ExtAuthz, logger)
+		return extauthz.Run(cmd.Context(), cfg.SpiceDB, cfg.ExtAuthz, cfg.Valkey, cfg.RateLimit, logger)
 	},
 }
 

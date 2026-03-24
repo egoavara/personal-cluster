@@ -6,48 +6,6 @@ import (
 	"testing"
 )
 
-func TestExtractDashboardClientIP_XForwardedFor(t *testing.T) {
-	r := httptest.NewRequest("GET", "/", nil)
-	r.Header.Set("X-Forwarded-For", "203.0.113.50, 70.41.3.18")
-	r.RemoteAddr = "127.0.0.1:1234"
-
-	ip := extractDashboardClientIP(r)
-	if ip != "203.0.113.50" {
-		t.Errorf("got %q, want %q", ip, "203.0.113.50")
-	}
-}
-
-func TestExtractDashboardClientIP_XRealIP(t *testing.T) {
-	r := httptest.NewRequest("GET", "/", nil)
-	r.Header.Set("X-Real-IP", "10.0.0.50")
-	r.RemoteAddr = "127.0.0.1:1234"
-
-	ip := extractDashboardClientIP(r)
-	if ip != "10.0.0.50" {
-		t.Errorf("got %q, want %q", ip, "10.0.0.50")
-	}
-}
-
-func TestExtractDashboardClientIP_RemoteAddr(t *testing.T) {
-	r := httptest.NewRequest("GET", "/", nil)
-	r.RemoteAddr = "192.168.1.100:54321"
-
-	ip := extractDashboardClientIP(r)
-	if ip != "192.168.1.100" {
-		t.Errorf("got %q, want %q", ip, "192.168.1.100")
-	}
-}
-
-func TestExtractDashboardClientIP_IPv6(t *testing.T) {
-	r := httptest.NewRequest("GET", "/", nil)
-	r.RemoteAddr = "[2001:db8::1]:54321"
-
-	ip := extractDashboardClientIP(r)
-	if ip != "2001:db8::1" {
-		t.Errorf("got %q, want %q", ip, "2001:db8::1")
-	}
-}
-
 func TestAuthMiddleware_RedirectsWhenNoSession(t *testing.T) {
 	h := newTestOIDCHandler(t)
 

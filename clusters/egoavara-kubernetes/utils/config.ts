@@ -54,6 +54,10 @@ export const auth = {
         version: config.get("auth.oauth2Proxy.version") ?? "10.1.5",
         repository: "https://oauth2-proxy.github.io/manifests",
     },
+    guardValkey: {
+        version: config.get("auth.guardValkey.version") ?? "2.1.0",
+        repository: "https://charts.bitnami.com/bitnami",
+    },
     guard: {
         image: config.get("auth.guard.image") ?? "ghcr.io/egoavara/guard:latest",
     },

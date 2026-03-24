@@ -28,17 +28,18 @@ type cacheEntry struct {
 // TTI: Get() auto-touches item TTL on hit (idle timeout).
 // TTL: absolute max lifetime checked manually on Get.
 type Authorizer struct {
-	spice     *spicedb.Client
-	cache     *ttlcache.Cache[string, cacheEntry]
-	ttl       time.Duration
-	logger    *zap.Logger
-	tracer    trace.Tracer
-	decisions metric.Int64Counter
+	spice           *spicedb.Client
+	cache           *ttlcache.Cache[string, cacheEntry]
+	ttl             time.Duration
+	logger          *zap.Logger
+	tracer          trace.Tracer
+	decisions       metric.Int64Counter
+	hostResourceMap map[string]string
 }
 
 // NewAuthorizer creates a new SpiceDB authorizer with TTL+TTI cache.
 // TTI = cache item TTL (auto-reset on access). TTL = absolute max lifetime.
-func NewAuthorizer(spice *spicedb.Client, cacheCfg config.CacheConfig, logger *zap.Logger) *Authorizer {
+func NewAuthorizer(spice *spicedb.Client, cacheCfg config.CacheConfig, hostResourceMap map[string]string, logger *zap.Logger) *Authorizer {
 	// ttlcache TTL acts as TTI: Get() resets the timer on each access.
 	cache := ttlcache.New[string, cacheEntry](
 		ttlcache.WithTTL[string, cacheEntry](cacheCfg.TTI),
@@ -58,12 +59,13 @@ func NewAuthorizer(spice *spicedb.Client, cacheCfg config.CacheConfig, logger *z
 	)
 
 	return &Authorizer{
-		spice:     spice,
-		cache:     cache,
-		ttl:       cacheCfg.TTL,
-		logger:    logger,
-		tracer:    otel.Tracer("guard"),
-		decisions: decisions,
+		spice:           spice,
+		cache:           cache,
+		ttl:             cacheCfg.TTL,
+		logger:          logger,
+		tracer:          otel.Tracer("guard"),
+		decisions:       decisions,
+		hostResourceMap: hostResourceMap,
 	}
 }
 
@@ -72,9 +74,9 @@ func (a *Authorizer) Stop() {
 	a.cache.Stop()
 }
 
-// CheckAccess verifies that the user has "view" permission on the app
+// CheckAccess verifies that the user has "view" permission on the kube_service
 // resource mapped from the request host. Results are cached with TTL+TTI.
-func (a *Authorizer) CheckAccess(ctx context.Context, host, username, clientIP string) (bool, error) {
+func (a *Authorizer) CheckAccess(ctx context.Context, host, username string) (bool, error) {
 	ctx, span := a.tracer.Start(ctx, "authz.CheckAccess",
 		trace.WithAttributes(
 			attribute.String("authz.user", username),
@@ -83,15 +85,15 @@ func (a *Authorizer) CheckAccess(ctx context.Context, host, username, clientIP s
 	)
 	defer span.End()
 
-	resourceID := hostToResourceID(host)
+	resourceID := a.hostToResourceID(host)
 	if resourceID == "" {
 		span.SetStatus(codes.Error, "cannot map host to resource")
 		return false, fmt.Errorf("cannot map host %q to resource", host)
 	}
-	span.SetAttributes(attribute.String("authz.resource", "app:"+resourceID))
+	span.SetAttributes(attribute.String("authz.resource", "kube_service:"+resourceID))
 
-	// Cache key: user + resource (clientIP excluded — caveat evaluated server-side)
-	cacheKey := username + ":app:" + resourceID
+	// Cache key: user + resource
+	cacheKey := username + ":kube_service:" + resourceID
 
 	// Check cache (Get auto-touches = TTI reset)
 	if item := a.cache.Get(cacheKey); item != nil {
@@ -108,17 +110,10 @@ func (a *Authorizer) CheckAccess(ctx context.Context, host, username, clientIP s
 	span.SetAttributes(attribute.Bool("authz.cache_hit", false))
 
 	// Cache miss — query SpiceDB
-	caveatCtx, err := spicedb.BuildCaveatContext(clientIP)
-	if err != nil {
-		span.SetStatus(codes.Error, "build caveat context")
-		return false, fmt.Errorf("build caveat context: %w", err)
-	}
-
 	result, err := a.spice.CheckPermission(ctx,
-		spicedb.ObjectRef("app", resourceID),
+		spicedb.ObjectRef("kube_service", resourceID),
 		"view",
 		spicedb.SubjectRef("user", username),
-		&v1.ContextualizedCaveat{Context: caveatCtx},
 	)
 	if err != nil {
 		span.SetStatus(codes.Error, "spicedb check")
@@ -126,7 +121,7 @@ func (a *Authorizer) CheckAccess(ctx context.Context, host, username, clientIP s
 		a.logger.Error("SpiceDB check failed",
 			zap.String("user", username),
 			zap.String("host", host),
-			zap.String("resource", "app:"+resourceID),
+			zap.String("resource", "kube_service:"+resourceID),
 			zap.Error(err),
 		)
 		return false, fmt.Errorf("spicedb check: %w", err)
@@ -144,8 +139,7 @@ func (a *Authorizer) CheckAccess(ctx context.Context, host, username, clientIP s
 		a.logger.Warn("access denied",
 			zap.String("user", username),
 			zap.String("host", host),
-			zap.String("resource", "app:"+resourceID),
-			zap.String("client_ip", clientIP),
+			zap.String("resource", "kube_service:"+resourceID),
 		)
 	}
 
@@ -165,17 +159,11 @@ func (a *Authorizer) recordDecision(ctx context.Context, allowed bool, resource 
 	)
 }
 
-// hostToResourceID extracts the resource ID from a hostname.
-// "ceph.private.egoavara.net" -> "ceph"
-// "grafana.private.egoavara.net" -> "grafana"
-func hostToResourceID(host string) string {
+// hostToResourceID looks up the resource ID from the host-to-resource map.
+func (a *Authorizer) hostToResourceID(host string) string {
 	// Strip port if present
 	if idx := strings.LastIndex(host, ":"); idx != -1 {
 		host = host[:idx]
 	}
-	parts := strings.SplitN(host, ".", 2)
-	if len(parts) == 0 || parts[0] == "" {
-		return ""
-	}
-	return parts[0]
+	return a.hostResourceMap[host]
 }

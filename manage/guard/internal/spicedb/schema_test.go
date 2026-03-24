@@ -5,17 +5,29 @@ import (
 	"testing"
 )
 
-func TestSchema_ContainsCaveat(t *testing.T) {
-	if !strings.Contains(Schema, "caveat full_policy(") {
-		t.Error("Schema missing caveat full_policy")
-	}
-}
-
 func TestSchema_ContainsDefinitions(t *testing.T) {
-	for _, d := range []string{"definition user", "definition group", "definition organization", "definition app"} {
+	for _, d := range []string{"definition user", "definition group", "definition kube_service"} {
 		if !strings.Contains(Schema, d) {
 			t.Errorf("Schema missing %q", d)
 		}
+	}
+}
+
+func TestSchema_NoCaveat(t *testing.T) {
+	if strings.Contains(Schema, "caveat") {
+		t.Error("Schema should not contain caveat")
+	}
+}
+
+func TestSchema_NoOrganization(t *testing.T) {
+	if strings.Contains(Schema, "definition organization") {
+		t.Error("Schema should not contain organization definition")
+	}
+}
+
+func TestSchema_NoApp(t *testing.T) {
+	if strings.Contains(Schema, "definition app") {
+		t.Error("Schema should not contain app definition")
 	}
 }
 
@@ -40,26 +52,14 @@ func TestSchema_GroupHierarchy(t *testing.T) {
 	}
 }
 
-func TestSchema_AppDefinition(t *testing.T) {
-	appSection := extractDefinition(Schema, "definition app")
-	if appSection == "" {
-		t.Fatal("could not extract app definition")
+func TestSchema_KubeServiceDefinition(t *testing.T) {
+	section := extractDefinition(Schema, "definition kube_service")
+	if section == "" {
+		t.Fatal("could not extract kube_service definition")
 	}
-	for _, s := range []string{"relation org:", "relation admin:", "relation viewer:", "relation blocked:", "permission is_blocked", "permission manage", "permission view"} {
-		if !strings.Contains(appSection, s) {
-			t.Errorf("app missing %q", s)
-		}
-	}
-}
-
-func TestSchema_OrganizationDefinition(t *testing.T) {
-	orgSection := extractDefinition(Schema, "definition organization")
-	if orgSection == "" {
-		t.Fatal("could not extract organization definition")
-	}
-	for _, s := range []string{"relation admin:", "relation member:", "permission manage", "permission is_member"} {
-		if !strings.Contains(orgSection, s) {
-			t.Errorf("organization missing %q", s)
+	for _, s := range []string{"relation admin:", "relation viewer:", "relation blocked:", "permission is_blocked", "permission manage", "permission view"} {
+		if !strings.Contains(section, s) {
+			t.Errorf("kube_service missing %q", s)
 		}
 	}
 }

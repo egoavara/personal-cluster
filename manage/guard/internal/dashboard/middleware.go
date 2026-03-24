@@ -25,7 +25,7 @@ func AuthMiddleware(oidc *OIDCHandler, next http.Handler) http.Handler {
 }
 
 // DashboardAuthzMiddleware checks SpiceDB permission for the dashboard itself.
-// Wraps AuthMiddleware: authenticate first, then check dashboard:guard access.
+// Wraps AuthMiddleware: authenticate first, then check kube_service:auth/guard-dashboard access.
 func DashboardAuthzMiddleware(oidc *OIDCHandler, spice *spicedb.Client, logger *zap.Logger, next http.Handler) http.Handler {
 	return AuthMiddleware(oidc, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session := sessionFromContext(r.Context())
@@ -35,10 +35,9 @@ func DashboardAuthzMiddleware(oidc *OIDCHandler, spice *spicedb.Client, logger *
 		}
 
 		result, err := spice.CheckPermission(r.Context(),
-			spicedb.ObjectRef("app", "guard"),
+			spicedb.ObjectRef("kube_service", "auth/guard-dashboard"),
 			"view",
 			spicedb.SubjectRef("user", session.Username),
-			nil,
 		)
 		if err != nil {
 			logger.Error("SpiceDB dashboard authz check failed",
@@ -77,19 +76,10 @@ func SpiceDBAuthzMiddleware(spice *spicedb.Client, spicedbResource, permission s
 			return
 		}
 
-		clientIP := extractDashboardClientIP(r)
-		caveatCtx, err := spicedb.BuildCaveatContext(clientIP)
-		if err != nil {
-			logger.Error("failed to build caveat context", zap.Error(err))
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
 		result, err := spice.CheckPermission(r.Context(),
 			spicedb.ObjectRef(resourceType, resourceID),
 			permission,
 			spicedb.SubjectRef("user", session.Username),
-			&v1.ContextualizedCaveat{Context: caveatCtx},
 		)
 		if err != nil {
 			logger.Error("SpiceDB check failed",
@@ -105,7 +95,6 @@ func SpiceDBAuthzMiddleware(spice *spicedb.Client, spicedbResource, permission s
 			logger.Warn("dashboard access denied",
 				zap.String("user", session.Username),
 				zap.String("resource", spicedbResource),
-				zap.String("client_ip", clientIP),
 			)
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
@@ -113,22 +102,4 @@ func SpiceDBAuthzMiddleware(spice *spicedb.Client, spicedbResource, permission s
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-func extractDashboardClientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		parts := strings.SplitN(xff, ",", 2)
-		return strings.TrimSpace(parts[0])
-	}
-	if xri := r.Header.Get("X-Real-IP"); xri != "" {
-		return xri
-	}
-	addr := r.RemoteAddr
-	if idx := strings.LastIndex(addr, ":"); idx != -1 {
-		if bracketIdx := strings.LastIndex(addr, "]"); bracketIdx != -1 && bracketIdx < idx {
-			return addr[1:bracketIdx]
-		}
-		return addr[:idx]
-	}
-	return addr
 }

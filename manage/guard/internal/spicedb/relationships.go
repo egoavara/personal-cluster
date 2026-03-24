@@ -3,10 +3,8 @@ package spicedb
 import (
 	"context"
 	"fmt"
-	"time"
 
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func (c *Client) WriteRelationships(ctx context.Context, updates []*v1.RelationshipUpdate) error {
@@ -64,13 +62,4 @@ func ResourceRelationFilter(resourceType, resourceID, relation string) *v1.Relat
 		OptionalResourceId: resourceID,
 		OptionalRelation:   relation,
 	}
-}
-
-// BuildCaveatContext creates the runtime context for CheckPermission calls.
-// The proxy/dashboard injects client_ip and current_time automatically.
-func BuildCaveatContext(clientIP string) (*structpb.Struct, error) {
-	return structpb.NewStruct(map[string]interface{}{
-		"client_ip":    clientIP,
-		"current_time": time.Now().UTC().Format(time.RFC3339),
-	})
 }

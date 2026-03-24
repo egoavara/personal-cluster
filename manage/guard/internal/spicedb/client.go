@@ -35,14 +35,11 @@ func (c *Client) Schema() v1.SchemaServiceClient {
 	return c.client.SchemaServiceClient
 }
 
-func (c *Client) CheckPermission(ctx context.Context, resource *v1.ObjectReference, permission string, subject *v1.SubjectReference, caveatCtx *v1.ContextualizedCaveat) (v1.CheckPermissionResponse_Permissionship, error) {
+func (c *Client) CheckPermission(ctx context.Context, resource *v1.ObjectReference, permission string, subject *v1.SubjectReference) (v1.CheckPermissionResponse_Permissionship, error) {
 	req := &v1.CheckPermissionRequest{
 		Resource:   resource,
 		Permission: permission,
 		Subject:    subject,
-	}
-	if caveatCtx != nil {
-		req.Context = caveatCtx.Context
 	}
 	resp, err := c.client.CheckPermission(ctx, req)
 	if err != nil {

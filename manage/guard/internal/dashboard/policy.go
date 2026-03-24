@@ -29,7 +29,7 @@ func NewPolicyHandler(spice *spicedb.Client, templates *template.Template, logge
 func (h *PolicyHandler) HandleList(w http.ResponseWriter, r *http.Request) {
 	resourceType := r.URL.Query().Get("type")
 	if resourceType == "" {
-		resourceType = "service"
+		resourceType = "kube_service"
 	}
 
 	// Read relationships from SpiceDB
@@ -170,17 +170,11 @@ func (h *PolicyHandler) HandleCheck(w http.ResponseWriter, r *http.Request) {
 		permission := r.FormValue("permission")
 		subjectType := r.FormValue("subject_type")
 		subjectID := r.FormValue("subject_id")
-		clientIP := r.FormValue("client_ip")
-		if clientIP == "" {
-			clientIP = extractDashboardClientIP(r)
-		}
 
-		caveatCtx, _ := spicedb.BuildCaveatContext(clientIP)
 		result, err := h.spice.CheckPermission(r.Context(),
 			spicedb.ObjectRef(resourceType, resourceID),
 			permission,
 			spicedb.SubjectRef(subjectType, subjectID),
-			&v1.ContextualizedCaveat{Context: caveatCtx},
 		)
 
 		resultStr := "ERROR"
@@ -204,7 +198,6 @@ func (h *PolicyHandler) HandleCheck(w http.ResponseWriter, r *http.Request) {
 			"permission":    permission,
 			"subject_type":  subjectType,
 			"subject_id":    subjectID,
-			"client_ip":     clientIP,
 		}
 	}
 

@@ -33,3 +33,8 @@ export const guardSessionSecret = new random.RandomPassword("kube-authz-session-
     length: 48,
     special: false,
 }, { parent: authPhase });
+
+export const guardValkeyPassword = new random.RandomPassword("guard-valkey-password", {
+    length: 32,
+    special: false,
+}, { parent: authPhase });

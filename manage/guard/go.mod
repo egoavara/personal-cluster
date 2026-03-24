@@ -5,8 +5,11 @@ go 1.25.5
 require (
 	github.com/authzed/authzed-go v1.8.0
 	github.com/authzed/grpcutil v0.0.0-20260105210157-e237581949c2
+	github.com/dgraph-io/ristretto/v2 v2.4.0
 	github.com/fsnotify/fsnotify v1.5.4
+	github.com/gobwas/glob v0.2.3
 	github.com/jellydator/ttlcache/v3 v3.4.0
+	github.com/redis/go-redis/v9 v9.18.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.12.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.67.0
@@ -20,7 +23,6 @@ require (
 	go.uber.org/zap v1.27.1
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.79.3
-	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -32,6 +34,8 @@ require (
 	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.3.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
@@ -57,6 +61,7 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.42.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
@@ -64,6 +69,7 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

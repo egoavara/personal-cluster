@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/egoavara/personal-cluster/manage/guard/internal/config"
 	oidcpkg "github.com/egoavara/personal-cluster/manage/guard/internal/oidc"
+	"github.com/egoavara/personal-cluster/manage/guard/internal/ratelimit"
 	"github.com/egoavara/personal-cluster/manage/guard/internal/spicedb"
+	valkeyPkg "github.com/egoavara/personal-cluster/manage/guard/internal/valkey"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 )
@@ -20,11 +23,12 @@ type Server struct {
 	sessions   *SessionManager
 	oidc       *OIDCProvider
 	authz      *Authorizer
+	limiter    *ratelimit.Limiter
 	httpServer *http.Server
 	logger     *zap.Logger
 }
 
-func Run(ctx context.Context, spiceDBCfg config.SpiceDBConfig, cfg config.ExtAuthzConfig, logger *zap.Logger) error {
+func Run(ctx context.Context, spiceDBCfg config.SpiceDBConfig, cfg config.ExtAuthzConfig, valkeyCfg config.ValkeyConfig, rateLimitCfg config.RateLimitConfig, logger *zap.Logger) error {
 	spiceClient, err := spicedb.NewClient(spiceDBCfg.Endpoint, spiceDBCfg.PresharedKey)
 	if err != nil {
 		return fmt.Errorf("create spicedb client: %w", err)
@@ -41,8 +45,37 @@ func Run(ctx context.Context, spiceDBCfg config.SpiceDBConfig, cfg config.ExtAut
 		cfg:      cfg,
 		sessions: NewSessionManager(cfg.Session.Secret, cfg.Cookie.Name, cfg.Cookie.Domain, cfg.IsSecure()),
 		oidc:     oidc,
-		authz:    NewAuthorizer(spiceClient, spiceDBCfg.Cache, logger),
+		authz:    NewAuthorizer(spiceClient, spiceDBCfg.Cache, cfg.HostResourceMap, logger),
 		logger:   logger,
+	}
+
+	// Initialize rate limiter if enabled
+	if rateLimitCfg.Enabled {
+		valkeyClient, err := valkeyPkg.NewClient(valkeyPkg.Config{
+			SentinelAddrs: valkeyCfg.SentinelAddrs,
+			MasterName:    valkeyCfg.MasterName,
+			Password:      valkeyCfg.Password,
+		}, logger)
+		if err != nil {
+			return fmt.Errorf("create valkey client: %w", err)
+		}
+		defer valkeyClient.Close()
+
+		limiter, err := ratelimit.NewLimiter(valkeyClient, spiceClient, ratelimit.LimiterConfig{
+			SlowStartDuration: rateLimitCfg.SlowStartDuration,
+			L1MaxItems:        rateLimitCfg.L1MaxItems,
+			L1TTL:             rateLimitCfg.L1TTL,
+			L2TTL:             rateLimitCfg.L2TTL,
+		}, logger)
+		if err != nil {
+			return fmt.Errorf("create rate limiter: %w", err)
+		}
+		defer limiter.Close()
+
+		srv.limiter = limiter
+		logger.Info("rate limiter enabled",
+			zap.Duration("slowStart", rateLimitCfg.SlowStartDuration),
+		)
 	}
 
 	mux := http.NewServeMux()
@@ -110,9 +143,8 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 		host = r.Host
 	}
 
-	clientIP := extractClientIP(r)
 
-	allowed, err := s.authz.CheckAccess(r.Context(), host, session.Username, clientIP)
+	allowed, err := s.authz.CheckAccess(r.Context(), host, session.Username)
 	if err != nil {
 		s.logger.Error("authorization check error",
 			zap.String("user", session.Username),
@@ -125,8 +157,26 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 
 	if !allowed {
 		signOutURL := fmt.Sprintf("%s/sign_out?rd=%s", s.cfg.ExternalURL, url.QueryEscape(buildOriginalURL(r)))
-		renderForbidden(w, host, session.Username, "app:"+hostToResourceID(host), signOutURL, buildOriginalURL(r))
+		renderForbidden(w, host, session.Username, "kube_service:"+s.authz.hostToResourceID(host), signOutURL, buildOriginalURL(r))
 		return
+	}
+
+	// Rate limit check (after authz, fail-open)
+	if s.limiter != nil {
+		decision, err := s.limiter.Check(r.Context(), session.Username, host, "view")
+		if err != nil {
+			s.logger.Error("rate limit check error", zap.Error(err))
+			// Fail open — allow the request
+		} else if !decision.Allowed {
+			w.Header().Set("X-RateLimit-Limit", strconv.FormatInt(decision.RPM, 10))
+			w.Header().Set("X-RateLimit-Remaining", "0")
+			w.Header().Set("Retry-After", strconv.FormatInt(int64(time.Until(decision.ResetAt).Seconds())+1, 10))
+			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+			return
+		} else if decision.Remaining >= 0 {
+			w.Header().Set("X-RateLimit-Limit", strconv.FormatInt(decision.RPM, 10))
+			w.Header().Set("X-RateLimit-Remaining", strconv.FormatInt(decision.Remaining, 10))
+		}
 	}
 
 	w.Header().Set("X-Auth-Request-User", session.Username)
@@ -371,20 +421,3 @@ func buildOriginalURL(r *http.Request) string {
 	return fmt.Sprintf("%s://%s%s", proto, host, uri)
 }
 
-func extractClientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		parts := strings.SplitN(xff, ",", 2)
-		return strings.TrimSpace(parts[0])
-	}
-	if xri := r.Header.Get("X-Real-IP"); xri != "" {
-		return xri
-	}
-	addr := r.RemoteAddr
-	if idx := strings.LastIndex(addr, ":"); idx != -1 {
-		if bracketIdx := strings.LastIndex(addr, "]"); bracketIdx != -1 && bracketIdx < idx {
-			return addr[1:bracketIdx]
-		}
-		return addr[:idx]
-	}
-	return addr
-}

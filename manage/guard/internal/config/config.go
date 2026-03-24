@@ -10,10 +10,26 @@ import (
 )
 
 // Config is the top-level configuration for guard.
+type ValkeyConfig struct {
+	SentinelAddrs []string      `mapstructure:"sentinelAddrs"`
+	MasterName    string        `mapstructure:"masterName"`
+	Password      string        `mapstructure:"password"`
+}
+
+type RateLimitConfig struct {
+	Enabled           bool          `mapstructure:"enabled"`
+	SlowStartDuration time.Duration `mapstructure:"slowStartDuration"`
+	L1MaxItems        int64         `mapstructure:"l1MaxItems"`
+	L1TTL             time.Duration `mapstructure:"l1TTL"`
+	L2TTL             time.Duration `mapstructure:"l2TTL"`
+}
+
 type Config struct {
 	SpiceDB   SpiceDBConfig   `mapstructure:"spicedb"`
 	ExtAuthz  ExtAuthzConfig  `mapstructure:"extAuthz"`
 	Dashboard DashboardConfig `mapstructure:"dashboard"`
+	Valkey    ValkeyConfig    `mapstructure:"valkey"`
+	RateLimit RateLimitConfig `mapstructure:"rateLimit"`
 }
 
 type SpiceDBConfig struct {
@@ -34,6 +50,7 @@ type ExtAuthzConfig struct {
 	OIDC        OIDCConfig    `mapstructure:"oidc"`
 	Session     SessionConfig `mapstructure:"session"`
 	Cookie      CookieConfig  `mapstructure:"cookie"`
+	HostResourceMap map[string]string `mapstructure:"hostResourceMap"`
 }
 
 type DashboardConfig struct {
@@ -85,6 +102,13 @@ func setDefaults() {
 	viper.SetDefault("dashboard.oidc.issuerURL", "https://auth.egoavara.net")
 	viper.SetDefault("dashboard.oidc.clientID", "guard")
 	viper.SetDefault("dashboard.routesFile", "/config/routes.yaml")
+
+	viper.SetDefault("rateLimit.enabled", false)
+	viper.SetDefault("rateLimit.slowStartDuration", "60s")
+	viper.SetDefault("rateLimit.l1MaxItems", 10000)
+	viper.SetDefault("rateLimit.l1TTL", "30s")
+	viper.SetDefault("rateLimit.l2TTL", "60s")
+	viper.SetDefault("valkey.masterName", "mymaster")
 }
 
 func bindLegacyEnvVars() {
@@ -103,6 +127,9 @@ func bindLegacyEnvVars() {
 	viper.BindEnv("dashboard.oidc.clientID", "OIDC_CLIENT_ID")
 	viper.BindEnv("dashboard.oidc.clientSecret", "OIDC_CLIENT_SECRET")
 	viper.BindEnv("dashboard.routesFile", "DASHBOARD_ROUTES_FILE")
+
+	viper.BindEnv("valkey.password", "VALKEY_PASSWORD")
+	viper.BindEnv("rateLimit.enabled", "RATE_LIMIT_ENABLED")
 }
 
 func Init(configFiles []string) error {
@@ -161,6 +188,19 @@ func (c *Config) ValidateDashboard() error {
 	}
 	if c.Dashboard.Session.Secret == "" {
 		return fmt.Errorf("dashboard.session.secret is required")
+	}
+	return nil
+}
+
+func (c *Config) ValidateValkey() error {
+	if !c.RateLimit.Enabled {
+		return nil
+	}
+	if len(c.Valkey.SentinelAddrs) == 0 {
+		return fmt.Errorf("valkey.sentinelAddrs is required when rate limiting is enabled")
+	}
+	if c.Valkey.MasterName == "" {
+		return fmt.Errorf("valkey.masterName is required when rate limiting is enabled")
 	}
 	return nil
 }

@@ -3,8 +3,9 @@ import * as k8s from "@pulumi/kubernetes";
 import { authPhase } from "./phase.ts";
 import { auth as authConfig } from "../utils/config.ts";
 import { ns } from "./namespace.ts";
-import { spicedbPresharedKey, guardSessionSecret } from "./secrets.ts";
+import { spicedbPresharedKey, guardSessionSecret, guardValkeyPassword } from "./secrets.ts";
 import { zitadelClients } from "./zitadel-clients.ts";
+import { guardValkey } from "./valkey.ts";
 
 const namespace = ns.metadata.name;
 const image = authConfig.guard.image;
@@ -19,6 +20,20 @@ const baseConfig = new k8s.core.v1.ConfigMap("guard-config", {
 spicedb:
   endpoint: "spicedb.auth.svc.cluster.local:50051"
 
+valkey:
+  sentinelAddrs:
+    - "guard-valkey-node-0.guard-valkey-headless.auth.svc.cluster.local:26379"
+    - "guard-valkey-node-1.guard-valkey-headless.auth.svc.cluster.local:26379"
+    - "guard-valkey-node-2.guard-valkey-headless.auth.svc.cluster.local:26379"
+  masterName: "mymaster"
+
+rateLimit:
+  enabled: true
+  slowStartDuration: "60s"
+  l1MaxItems: 10000
+  l1TTL: "30s"
+  l2TTL: "60s"
+
 extAuthz:
   listenAddr: ":4180"
   externalURL: "https://guard.private.egoavara.net"
@@ -27,6 +42,11 @@ extAuthz:
   cookie:
     domain: ".egoavara.net"
     name: "guard-session"
+  hostResourceMap:
+    grafana.private.egoavara.net: "telemetry/grafana"
+    ceph.private.egoavara.net: "rook-ceph/ceph-dashboard"
+    hubble.private.egoavara.net: "kube-system/hubble-ui"
+    guard.private.egoavara.net: "auth/guard-dashboard"
 
 dashboard:
   listenAddr: ":8080"
@@ -57,6 +77,8 @@ const secretOverlay = new k8s.core.v1.Secret("guard-secrets", {
         "overlay.yaml": pulumi.interpolate`
 spicedb:
   presharedKey: "${spicedbPresharedKey.result}"
+valkey:
+  password: "${guardValkeyPassword.result}"
 extAuthz:
   session:
     secret: "${guardSessionSecret.result}"
@@ -106,7 +128,7 @@ function topologySpread(component: string): k8s.types.input.core.v1.TopologySpre
     }];
 }
 
-const deps = [baseConfig, secretOverlay, zitadelClients];
+const deps = [baseConfig, secretOverlay, zitadelClients, guardValkey];
 
 // --- ext-authz (2 replicas) ---
 
