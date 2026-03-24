@@ -1,0 +1,11 @@
+name: ek-post-process
+description: "Phase 6: Post-processing (default NS waypoint, etc.)"
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm
+    nodeargs: "--loader ts-node/esm --no-warnings"
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: helm-kubernetes-typescript

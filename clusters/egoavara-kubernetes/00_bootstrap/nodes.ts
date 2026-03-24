@@ -2,7 +2,7 @@ import * as command from "@pulumi/command";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { masterNodes, workerNodes, ssh, type NodeConfig } from "../utils/config.ts";
+import { masterNodes, workerNodes, ssh, type NodeConfig } from "./config.ts";
 
 const resolvedKeyPath = ssh.keyPath.startsWith("~")
     ? path.join(os.homedir(), ssh.keyPath.slice(1))

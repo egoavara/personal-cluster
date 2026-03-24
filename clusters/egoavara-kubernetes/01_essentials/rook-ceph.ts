@@ -1,11 +1,14 @@
 import { requireNamespace } from "./namespaces.ts";
 import { core, helm, storage } from "@pulumi/kubernetes";
 import * as rookceph from "@pulumi/rook-ceph";
-import { rookCeph as rookCephConfig } from "../utils/config.ts";
-import { essentials } from "../phases.ts";
+import { rookCeph as rookCephConfig } from "./config.ts";
+import { essentials } from "./phase.ts";
 
 const ns = requireNamespace("rook-ceph", {
-    labels: { "istio.io/dataplane-mode": "none" },
+    labels: {
+        "istio.io/dataplane-mode": "none",
+        "istio.io/gateway-route-target": "true",
+    },
 });
 
 // ── Rook Ceph Operator ──────────────────────────────────────────────
@@ -48,6 +51,7 @@ export const cephCluster = new rookceph.ceph.v1.CephCluster("ceph-cluster", {
         cleanupPolicy: {
             sanitizeDisks: { method: "quick", dataSource: "zero", iteration: 1 },
             allowUninstallWithVolumes: true,
+            wipeDevicesFromOtherClusters: true,
         },
         priorityClassNames: {
             mon: "system-node-critical",
@@ -143,11 +147,11 @@ export const cephfsSC = new storage.v1.StorageClass("rook-ceph-cephfs", {
     reclaimPolicy: "Delete",
 }, { parent: essentials, dependsOn: [cephFilesystem] });
 
-// ── Dashboard Service (LoadBalancer) ────────────────────────────────
+// ── Dashboard Service (ClusterIP — auth/ceph-proxy.ts에서 oauth2-proxy로 보호) ──
 export const cephDashboard = new core.v1.Service("ceph-dashboard", {
     metadata: { name: "ceph-dashboard", namespace: ns.metadata.name },
     spec: {
-        type: "LoadBalancer",
+        type: "ClusterIP",
         ports: [{
             name: "http-dashboard",
             protocol: "TCP",

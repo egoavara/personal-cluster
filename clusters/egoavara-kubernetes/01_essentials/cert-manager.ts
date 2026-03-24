@@ -1,6 +1,6 @@
 import { helm } from "@pulumi/kubernetes";
 import { requireNamespace } from "./namespaces.ts";
-import { essentials } from "../phases.ts";
+import { essentials } from "./phase.ts";
 
 const ns = requireNamespace("cert-manager");
 

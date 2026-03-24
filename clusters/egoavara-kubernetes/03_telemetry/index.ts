@@ -1,0 +1,14 @@
+import "./namespace.ts";
+import "./vm-cluster.ts";
+import "./vl-cluster.ts";
+import "./vt-cluster.ts";
+import "./vmagent.ts";
+import "./vmalert.ts";
+import "./grafana.ts";
+import "./metrics-server.ts";
+import "./prometheus-adapter.ts";
+import "./otel-collector.ts";
+import "./kube-state-metrics.ts";
+import "./node-exporter.ts";
+import "./scrapes.ts";
+import "./istio-telemetry.ts";

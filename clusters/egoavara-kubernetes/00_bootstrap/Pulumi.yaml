@@ -1,0 +1,11 @@
+name: ek-bootstrap
+description: "Phase 0: Cluster bootstrap (SSH-based)"
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm
+    nodeargs: "--loader ts-node/esm --no-warnings"
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: helm-kubernetes-typescript

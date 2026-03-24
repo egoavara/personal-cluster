@@ -1,6 +1,5 @@
 import { apiextensions, core } from "@pulumi/kubernetes";
-import { telemetryPhase } from "../phases.ts";
-import { vmOperator } from "../operators/vm-operator.ts";
+import { telemetryPhase } from "./phase.ts";
 import { ns } from "./namespace.ts";
 
 export const vmCluster = new apiextensions.CustomResource("vm-cluster", {
@@ -56,5 +55,4 @@ export const vmCluster = new apiextensions.CustomResource("vm-cluster", {
     },
 }, {
     parent: telemetryPhase,
-    dependsOn: [vmOperator],
 });

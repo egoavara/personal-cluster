@@ -2,7 +2,8 @@ import * as command from "@pulumi/command";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { mikrotik, cilium, masterNodes, workerNodes, ssh } from "../utils/config.ts";
+import { mikrotik, masterNodes, workerNodes, ssh } from "./config.ts";
+import { cilium } from "../utils/config.ts";
 import { ciliumInstall } from "./cilium-install.ts";
 import { bootstrap } from "./phase.ts";
 

@@ -1,6 +1,5 @@
 import { apiextensions, core } from "@pulumi/kubernetes";
-import { telemetryPhase } from "../phases.ts";
-import { vmOperator } from "../operators/vm-operator.ts";
+import { telemetryPhase } from "./phase.ts";
 import { ns } from "./namespace.ts";
 
 export const vtCluster = new apiextensions.CustomResource("vt-cluster", {
@@ -49,7 +48,6 @@ export const vtCluster = new apiextensions.CustomResource("vt-cluster", {
     },
 }, {
     parent: telemetryPhase,
-    dependsOn: [vmOperator],
 });
 
 // vtinsert OTLP gRPC Service (Operator가 자동 생성하지 않는 4317 포트)

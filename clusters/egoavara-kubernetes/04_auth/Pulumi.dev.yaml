@@ -1,0 +1,13 @@
+secretsprovider: gcpkms://projects/practice-make-perfect-379914/locations/global/keyRings/pulumi-key/cryptoKeys/egoavara-net
+encryptedkey: CiQAtoJu51HYZowA+JrLbuHLF9Gsv0DAuBPgnF7c0LVlsDztT6ESSQC5OvDH4ufmyI5uQMpNNk2+qe5GCZIcz6pqJoR3DVh8+tVxG7NW0oLIJL7+bJr5PgQ33QcicP8OarMtEt5eYUBhQU/Kfz4PzdI=
+config:
+  cluster:auth.spicedb.image: authzed/spicedb:v1.50.0
+  cluster:auth.zitadel.version: 9.27.1
+  cluster:auth.zitadel.domain: auth.egoavara.net
+  cluster:auth.oauth2Proxy.version: 10.1.5
+  cluster:ingress.domain: egoavara.net
+  cluster:externalDns.defaultTargets: hkd0aye642n.sn.mynetname.net
+  cluster:auth.google.clientId:
+    secure: v1:BVuNmFOYxXDggtMX:zBsgqhQJbnuGKf/4MtP4QKN0+J3X9EYrk85qw+PC1j15hIzQCGM4/4May7umrmCfPCPWbk8j55MwXcK7mhj2WOaWiOKhol8IiDNb+iMJTCi5Dldm7X+AGA==
+  cluster:auth.google.clientSecret:
+    secure: v1:fWMx9ahHSmo6Ewwn:T+kKSOpqCyUbgbLtp044zeHr4FGkphfNdebfyCeW1eWtxae5iSvmFgQCr7sAg6Uwg2lJ

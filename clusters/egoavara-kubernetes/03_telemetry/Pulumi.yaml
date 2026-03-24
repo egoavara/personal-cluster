@@ -1,0 +1,11 @@
+name: ek-telemetry
+description: "Phase 3: Observability stack (VictoriaMetrics, Grafana, OTel, etc.)"
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm
+    nodeargs: "--loader ts-node/esm --no-warnings"
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: helm-kubernetes-typescript

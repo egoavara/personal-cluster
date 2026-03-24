@@ -6,10 +6,11 @@
 
 | 라벨 | 값 | 대상 | 설명 |
 |------|-----|------|------|
-| `istio.io/dataplane-mode` | `none` | Namespace | 해당 namespace를 Istio 메시에서 **제외** |
+| `istio.io/dataplane-mode` | `none` | Namespace | 해당 namespace를 Istio 메시에서 **제외** (HTTPRoute 사용 시 `istio.io/gateway-route-target: "true"` 필요) |
 | `istio.io/dataplane-mode` | `ambient` | Namespace | 해당 namespace를 Istio ambient 메시에 **명시적 포함** (현재는 blacklist 방식이라 기본 포함됨) |
 | `istio.io/use-waypoint` | `waypoint` | Namespace, Service | waypoint proxy 사용 활성화 |
 | `istio.io/use-waypoint` | `none` | Namespace, Service | waypoint proxy 사용 비활성화 |
+| `istio.io/gateway-route-target` | `true` | Namespace | mesh 제외 NS에서 Gateway HTTPRoute를 사용할 때 필요 (discoverySelectors에 포함시킴) |
 
 ### Istio 기본 제외 Namespace
 
@@ -21,11 +22,13 @@ discoverySelectors blacklist로 다음 namespace는 Istio 메시에서 자동 �
 
 설정: `Pulumi.dev.yaml`의 `istio.excludeNamespaces`로 변경 가능.
 
-## Cilium BGP
+## Cilium BGP / LB IPAM
 
 | 라벨 | 값 | 대상 | 설명 |
 |------|-----|------|------|
 | `advertise` | `bgp` | CiliumBGPAdvertisement | BGP advertisement 그룹 식별 (PeerConfig의 family에서 matchLabels로 참조) |
+| `egoavara.net/lb-pool` | `static` | Service | 고정 IP 대역(`10.240.0.0/16`) 사용. `io.cilium/lb-ipam-ips`와 함께 사용 |
+| (없음) | — | Service | `egoavara.net/lb-pool` 라벨 미지정 시 동적 IP 대역(`10.241.0.0/16`)에서 자동 할당 |
 
 ## Rook Ceph
 

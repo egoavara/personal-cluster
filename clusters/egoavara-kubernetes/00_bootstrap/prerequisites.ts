@@ -1,6 +1,6 @@
 import * as command from "@pulumi/command";
 import { allNodes, connectionFor } from "./nodes.ts";
-import { kubernetes, type NodeConfig } from "../utils/config.ts";
+import { kubernetes, type NodeConfig } from "./config.ts";
 import { bootstrap } from "./phase.ts";
 
 const k8sVersion = kubernetes.version;
@@ -11,19 +11,6 @@ const cleanupScript = `
 set -euo pipefail
 sudo kubeadm reset -f 2>/dev/null || true
 sudo rm -rf /etc/cni/net.d /opt/cni/bin /var/lib/etcd /etc/kubernetes /var/lib/rook
-# Ceph OSD 디스크 시그니처 정리 (deviceFilter: ^sd.+)
-for dev in /dev/sd[a-z]; do
-    [ -b "\$dev" ] || continue
-    # BlueStore 시그니처 완전 제거 (ceph-bluestore-tool이 있으면 사용, 없으면 mkfs로 대체)
-    if command -v ceph-bluestore-tool &>/dev/null; then
-        sudo ceph-bluestore-tool zap-device --dev "\$dev" --yes-i-really-really-mean-it 2>/dev/null
-    else
-        sudo mkfs.ext4 -F "\$dev" 2>/dev/null
-    fi
-    sudo wipefs -af "\$dev" 2>/dev/null
-    sudo sgdisk --zap-all "\$dev" 2>/dev/null
-    sudo dd if=/dev/zero of="\$dev" bs=1M count=10 2>/dev/null
-done
 sudo iptables -F 2>/dev/null || true
 sudo iptables -t nat -F 2>/dev/null || true
 sudo iptables -t mangle -F 2>/dev/null || true

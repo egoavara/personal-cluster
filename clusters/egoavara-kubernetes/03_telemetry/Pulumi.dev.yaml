@@ -1,0 +1,10 @@
+secretsprovider: gcpkms://projects/practice-make-perfect-379914/locations/global/keyRings/pulumi-key/cryptoKeys/egoavara-net
+encryptedkey: CiQAtoJu5z/Dfur4VZvfPTHr7vMkL5WYCyGPuSQmX/ovRfm+dgQSSQC5OvDHdUmOtb3d04B6JVtDrPjYwAqg8xTcmgLsyaNN7ggaR47PPszmdg+yakAha7ZAt211ZxApPRmNKlW1gTMtLzKcnSyKNmg=
+config:
+  cluster:telemetry.grafana.version: 10.5.15
+  cluster:telemetry.metricsServer.version: 3.13.0
+  cluster:telemetry.prometheusAdapter.version: 5.3.0
+  cluster:telemetry.otelCollector.version: 0.147.1
+  cluster:telemetry.kubeStateMetrics.version: 7.2.1
+  cluster:telemetry.nodeExporter.version: 4.52.1
+  cluster:auth.zitadel.domain: auth.egoavara.net

@@ -1,5 +1,5 @@
-name: egoavara-kubernetes
-description: Kubernetes cluster with Cilium BGP flat networking
+name: ek-persistence
+description: "Phase 5: Data infrastructure (PostgreSQL, Qdrant, Valkey, NATS, etcd)"
 runtime:
   name: nodejs
   options:

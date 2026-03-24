@@ -1,6 +1,5 @@
 import { apiextensions } from "@pulumi/kubernetes";
-import { telemetryPhase } from "../phases.ts";
-import { vmOperator } from "../operators/vm-operator.ts";
+import { telemetryPhase } from "./phase.ts";
 import { vmagent } from "./vmagent.ts";
 import { ns } from "./namespace.ts";
 
@@ -20,7 +19,7 @@ export const kubeletScrape = new apiextensions.CustomResource("scrape-kubelet", 
             { action: "labelmap", regex: "__meta_kubernetes_node_label_(.+)" },
         ],
     },
-}, { parent: telemetryPhase, dependsOn: [vmOperator, vmagent] });
+}, { parent: telemetryPhase, dependsOn: [vmagent] });
 
 // cAdvisor metrics (kubelet /metrics/cadvisor)
 export const cadvisorScrape = new apiextensions.CustomResource("scrape-cadvisor", {
@@ -39,7 +38,7 @@ export const cadvisorScrape = new apiextensions.CustomResource("scrape-cadvisor"
             { action: "labelmap", regex: "__meta_kubernetes_node_label_(.+)" },
         ],
     },
-}, { parent: telemetryPhase, dependsOn: [vmOperator, vmagent] });
+}, { parent: telemetryPhase, dependsOn: [vmagent] });
 
 // Rook Ceph MGR Prometheus exporter (port 9283)
 export const cephMgrScrape = new apiextensions.CustomResource("scrape-ceph-mgr", {
@@ -61,7 +60,7 @@ export const cephMgrScrape = new apiextensions.CustomResource("scrape-ceph-mgr",
             },
         ],
     },
-}, { parent: telemetryPhase, dependsOn: [vmOperator, vmagent] });
+}, { parent: telemetryPhase, dependsOn: [vmagent] });
 
 // Rook Ceph Exporter (per-node ceph exporter, port 9926)
 export const cephExporterScrape = new apiextensions.CustomResource("scrape-ceph-exporter", {
@@ -83,7 +82,7 @@ export const cephExporterScrape = new apiextensions.CustomResource("scrape-ceph-
             },
         ],
     },
-}, { parent: telemetryPhase, dependsOn: [vmOperator, vmagent] });
+}, { parent: telemetryPhase, dependsOn: [vmagent] });
 
 // kube-state-metrics
 export const ksmScrape = new apiextensions.CustomResource("scrape-ksm", {
@@ -97,7 +96,7 @@ export const ksmScrape = new apiextensions.CustomResource("scrape-ksm", {
         },
         endpoints: [{ port: "http" }],
     },
-}, { parent: telemetryPhase, dependsOn: [vmOperator, vmagent] });
+}, { parent: telemetryPhase, dependsOn: [vmagent] });
 
 // node-exporter
 export const nodeExporterScrape = new apiextensions.CustomResource("scrape-node-exporter", {
@@ -111,7 +110,7 @@ export const nodeExporterScrape = new apiextensions.CustomResource("scrape-node-
         },
         endpoints: [{ port: "metrics" }],
     },
-}, { parent: telemetryPhase, dependsOn: [vmOperator, vmagent] });
+}, { parent: telemetryPhase, dependsOn: [vmagent] });
 
 // CoreDNS (kube-system, port 9153)
 export const corednsScrape = new apiextensions.CustomResource("scrape-coredns", {
@@ -125,7 +124,7 @@ export const corednsScrape = new apiextensions.CustomResource("scrape-coredns", 
         },
         endpoints: [{ port: "metrics" }],
     },
-}, { parent: telemetryPhase, dependsOn: [vmOperator, vmagent] });
+}, { parent: telemetryPhase, dependsOn: [vmagent] });
 
 // kube-apiserver (kubernetes default service)
 export const apiserverScrape = new apiextensions.CustomResource("scrape-apiserver", {
@@ -147,7 +146,7 @@ export const apiserverScrape = new apiextensions.CustomResource("scrape-apiserve
             bearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token",
         }],
     },
-}, { parent: telemetryPhase, dependsOn: [vmOperator, vmagent] });
+}, { parent: telemetryPhase, dependsOn: [vmagent] });
 
 // Hubble metrics (Cilium Hubble, kube-system)
 export const hubbleScrape = new apiextensions.CustomResource("scrape-hubble", {
@@ -161,4 +160,4 @@ export const hubbleScrape = new apiextensions.CustomResource("scrape-hubble", {
         },
         endpoints: [{ port: "hubble-metrics" }],
     },
-}, { parent: telemetryPhase, dependsOn: [vmOperator, vmagent] });
+}, { parent: telemetryPhase, dependsOn: [vmagent] });

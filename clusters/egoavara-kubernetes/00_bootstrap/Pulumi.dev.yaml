@@ -1,0 +1,17 @@
+secretsprovider: gcpkms://projects/practice-make-perfect-379914/locations/global/keyRings/pulumi-key/cryptoKeys/egoavara-net
+encryptedkey: CiQAtoJu56/Lh5og3uMBLmKZ512DqkpUU/59Xe1oJVHOqtIw4zUSSQC5OvDHHWcqBIhlk6SZeobAgZaQbYra/SXqjnn2ZaO3ZqSKYHYkmChvj0hQIry9KsuwviUW37cfW+AhF9y62EYio9K50WAbF90=
+config:
+  cluster:ssh.keyPath: ~/.ssh/egoavara-windows
+  cluster:kubernetes.version: "1.35"
+  cluster:kubernetes.containerRuntime: containerd
+  cluster:kubernetes.controlPlaneEndpoint: private-kubernetes.egoavara.net:6443
+  cluster:mikrotik.host: 10.0.0.1
+  cluster:mikrotik.user: admin
+  cluster:mikrotik.routerId: 10.0.0.1
+  cluster:cilium.version: 1.17.4
+  cluster:cilium.bgp.localASN: "65001"
+  cluster:cilium.bgp.peerASN: "65000"
+  cluster:cilium.bgp.peerAddress: 10.0.0.1
+  cluster:cilium.lbPoolCidr: 10.240.0.0/16
+  cluster:ingress.gatewayIp: 10.240.1.1
+  cluster:ingress.domain: egoavara.net

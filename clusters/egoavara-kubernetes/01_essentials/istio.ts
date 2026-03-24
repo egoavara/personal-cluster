@@ -1,7 +1,7 @@
 import { helm } from "@pulumi/kubernetes";
-import { istio as istioConfig } from "../utils/config.ts";
-import { requireNamespace } from "../essentials/namespaces.ts";
-import { essentials } from "../phases.ts";
+import { istio as istioConfig } from "./config.ts";
+import { requireNamespace } from "./namespaces.ts";
+import { essentials } from "./phase.ts";
 
 const ns = requireNamespace("istio-system", {
     labels: { "istio.io/dataplane-mode": "ambient" },
@@ -47,6 +47,12 @@ export const istiod = new helm.v3.Release("istiod", {
                         },
                     ],
                 },
+                // Gateway API routing 대상 NS (mesh 미포함, discovery만)
+                {
+                    matchLabels: {
+                        "istio.io/gateway-route-target": "true",
+                    },
+                },
             ],
             extensionProviders: [
                 {
@@ -69,12 +75,36 @@ export const istiod = new helm.v3.Release("istiod", {
                         ],
                         headersToDownstreamOnDeny: [
                             "set-cookie",
+                            "location",
+                            "content-type",
                         ],
                         includeRequestHeadersInCheck: [
                             "authorization",
                             "cookie",
                         ],
                         pathPrefix: "/oauth2",
+                    },
+                },
+                {
+                    name: "guard",
+                    envoyExtAuthzHttp: {
+                        service: "guard-ext-authz.auth.svc.cluster.local",
+                        port: 4180,
+                        headersToUpstreamOnAllow: [
+                            "x-auth-request-user",
+                            "x-auth-request-email",
+                        ],
+                        headersToDownstreamOnDeny: [
+                            "set-cookie",
+                            "location",
+                            "content-type",
+                        ],
+                        includeRequestHeadersInCheck: [
+                            "cookie",
+                            "x-forwarded-host",
+                            "x-forwarded-proto",
+                            "x-forwarded-uri",
+                        ],
                     },
                 },
             ],
@@ -109,7 +139,7 @@ export const istioCni = new helm.v3.Release("istio-cni", {
             cniBinDir: "/opt/cni/bin",
             cniConfDir: "/etc/cni/net.d",
             ambient: {
-                dnsCapture: false,
+                dnsCapture: true,
                 ipv6: false,
             },
         },

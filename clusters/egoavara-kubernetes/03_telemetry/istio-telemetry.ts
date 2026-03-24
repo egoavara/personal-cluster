@@ -1,6 +1,5 @@
 import { apiextensions } from "@pulumi/kubernetes";
-import { telemetryPhase } from "../phases.ts";
-import { istiod } from "../essentials/istio.ts";
+import { telemetryPhase } from "./phase.ts";
 import { otelCollector } from "./otel-collector.ts";
 
 // Istio Telemetry API — mesh 전체 tracing 활성화
@@ -27,7 +26,7 @@ export const meshTelemetry = new apiextensions.CustomResource("istio-telemetry",
     },
 }, {
     parent: telemetryPhase,
-    dependsOn: [istiod, otelCollector],
+    dependsOn: [otelCollector],
 });
 
 // waypoint별 Telemetry (targetRefs 방식 — 공식 권장)
@@ -56,6 +55,6 @@ export const waypointTelemetries = waypointNamespaces.map(ns =>
         },
     }, {
         parent: telemetryPhase,
-        dependsOn: [istiod, otelCollector],
+        dependsOn: [otelCollector],
     })
 );

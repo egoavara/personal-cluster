@@ -1,0 +1,2 @@
+secretsprovider: gcpkms://projects/practice-make-perfect-379914/locations/global/keyRings/pulumi-key/cryptoKeys/egoavara-net
+encryptedkey: CiQAtoJu51WfrEB7UFxEjsbEpyNI9sa0bMFGINWopSP0l1j7G/kSSQC5OvDHkuJSHOvx08CDH/TqmRBFiKu7gvsv6vSv8j/oSG1ULsLVASkL5HXWUhgs06m5mfiI+KDaATKeafD2R623Dv/izeyAKXg=

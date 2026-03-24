@@ -1,6 +1,5 @@
 import * as k8s from "@pulumi/kubernetes";
-import { postProcess } from "../phases.ts";
-import { istiod } from "../essentials/istio.ts";
+import { postProcess } from "./phase.ts";
 
 /**
  * Waypoint Proxy 자동 배포.
@@ -31,7 +30,7 @@ function createWaypoint(namespace: string) {
                 "istio.io/use-waypoint": "waypoint",
             },
         },
-    }, { parent: postProcess, dependsOn: [istiod] });
+    }, { parent: postProcess });
 
     const gateway = new k8s.apiextensions.CustomResource(`waypoint-${namespace}`, {
         apiVersion: "gateway.networking.k8s.io/v1",
@@ -57,3 +56,13 @@ function createWaypoint(namespace: string) {
 }
 
 export const waypoints = waypointNamespaces.map(createWaypoint);
+
+// kube-system: mesh 제외이지만 Gateway HTTPRoute가 있으므로 discovery에 포함
+export const kubeSystemRouteLabel = new k8s.core.v1.NamespacePatch("kube-system-route-label", {
+    metadata: {
+        name: "kube-system",
+        labels: {
+            "istio.io/gateway-route-target": "true",
+        },
+    },
+}, { parent: postProcess });

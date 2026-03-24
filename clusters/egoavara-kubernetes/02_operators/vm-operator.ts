@@ -1,17 +1,12 @@
 import { helm } from "@pulumi/kubernetes";
 import { telemetry as telemetryConfig } from "../utils/config.ts";
-import { requireNamespace } from "../essentials/namespaces.ts";
-import { operators } from "../phases.ts";
-
-const ns = requireNamespace("operator-system", {
-    labels: { "istio.io/dataplane-mode": "none" },
-});
+import { operators } from "./phase.ts";
 
 export const vmOperator = new helm.v3.Release("vm-operator", {
     chart: "victoria-metrics-operator",
     name: "vm-operator",
     version: telemetryConfig.vmOperator.version,
-    namespace: ns.metadata.name,
+    namespace: "operator-system",
     repositoryOpts: { repo: "https://victoriametrics.github.io/helm-charts" },
     createNamespace: false,
     skipCrds: false,
@@ -21,4 +16,4 @@ export const vmOperator = new helm.v3.Release("vm-operator", {
             enable_converter_ownership: true,
         },
     },
-}, { parent: operators, dependsOn: [ns] });
+}, { parent: operators });

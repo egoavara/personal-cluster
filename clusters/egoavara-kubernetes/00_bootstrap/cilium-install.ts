@@ -1,7 +1,8 @@
 import * as command from "@pulumi/command";
 import * as pulumi from "@pulumi/pulumi";
 import { initNode, connectionFor } from "./nodes.ts";
-import { kubernetes, cilium } from "../utils/config.ts";
+import { kubernetes } from "./config.ts";
+import { cilium } from "../utils/config.ts";
 import { kubeadmInit } from "./cluster-init.ts";
 import { bootstrap } from "./phase.ts";
 
@@ -28,7 +29,7 @@ sudo -E helm install cilium cilium/cilium \
     --version ${cilium.version} \
     --namespace kube-system \
     --set routingMode=native \
-    --set ipv4NativeRoutingCIDR=10.0.0.0/8 \
+    --set ipv4NativeRoutingCIDR=10.240.0.0/12 \
     --set autoDirectNodeRoutes=true \
     --set kubeProxyReplacement=true \
     --set k8sServiceHost=${kubernetes.controlPlaneEndpoint.split(":")[0]} \

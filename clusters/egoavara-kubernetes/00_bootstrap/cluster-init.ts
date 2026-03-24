@@ -1,7 +1,7 @@
 import * as command from "@pulumi/command";
 import * as pulumi from "@pulumi/pulumi";
 import { initNode, joinMasterNodes, connectionFor } from "./nodes.ts";
-import { kubernetes, workerNodes } from "../utils/config.ts";
+import { kubernetes, workerNodes } from "./config.ts";
 import { prerequisites } from "./prerequisites.ts";
 import { bootstrap } from "./phase.ts";
 

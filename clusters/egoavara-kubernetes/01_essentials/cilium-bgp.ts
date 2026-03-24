@@ -1,6 +1,6 @@
 import { cilium as ciliumConfig } from "../utils/config.ts";
 import { cilium } from "@pulumi/cilium";
-import { essentials } from "../phases.ts";
+import { essentials } from "./phase.ts";
 
 const { bgp, lbPoolCidr } = ciliumConfig;
 
@@ -82,7 +82,7 @@ export const bgpPodCidrAdvertisement = new cilium.v2alpha1.CiliumBGPAdvertisemen
     },
 }, { parent: essentials });
 
-// BGP 광고 — LoadBalancer Service IP 광고
+// BGP 광고 — Service IP 광고 (LoadBalancer + ClusterIP)
 export const bgpServiceAdvertisement = new cilium.v2alpha1.CiliumBGPAdvertisement("lb-service", {
     metadata: {
         name: "lb-service",
@@ -95,7 +95,7 @@ export const bgpServiceAdvertisement = new cilium.v2alpha1.CiliumBGPAdvertisemen
             {
                 advertisementType: "Service",
                 service: {
-                    addresses: ["LoadBalancerIP"],
+                    addresses: ["LoadBalancerIP", "ClusterIP"],
                 },
                 selector: {
                     matchLabels: {},
@@ -105,14 +105,37 @@ export const bgpServiceAdvertisement = new cilium.v2alpha1.CiliumBGPAdvertisemen
     },
 }, { parent: essentials });
 
-// LoadBalancer IP Pool — BGP로 광고될 외부 IP 범위
-export const lbIPPool = new cilium.v2alpha1.CiliumLoadBalancerIPPool("lb-pool", {
+// LoadBalancer IP Pool — 고정 IP 대역 (lb-ipam-ips로 수동 지정하는 서비스)
+export const staticIPPool = new cilium.v2alpha1.CiliumLoadBalancerIPPool("static-pool", {
     metadata: {
-        name: "lb-pool",
+        name: "static-pool",
     },
     spec: {
         blocks: [
-            { cidr: lbPoolCidr },
+            { cidr: "10.240.0.0/16" },
         ],
+        serviceSelector: {
+            matchLabels: {
+                "egoavara.net/lb-pool": "static",
+            },
+        },
+    },
+}, { parent: essentials });
+
+// LoadBalancer IP Pool — 동적 IP 대역 (자동 할당)
+export const dynamicIPPool = new cilium.v2alpha1.CiliumLoadBalancerIPPool("dynamic-pool", {
+    metadata: {
+        name: "dynamic-pool",
+    },
+    spec: {
+        blocks: [
+            { cidr: "10.241.0.0/16" },
+        ],
+        serviceSelector: {
+            matchExpressions: [{
+                key: "egoavara.net/lb-pool",
+                operator: "DoesNotExist",
+            }],
+        },
     },
 }, { parent: essentials });

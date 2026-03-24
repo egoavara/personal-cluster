@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import { core } from "@pulumi/kubernetes";
-import { essentials } from "../phases.ts";
+import { essentials } from "./phase.ts";
 
 const namespaceCache = new Map<string, core.v1.Namespace>();
 

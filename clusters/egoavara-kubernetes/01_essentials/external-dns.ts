@@ -2,7 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import { core, helm } from "@pulumi/kubernetes";
 import { externalDns as externalDnsConfig } from "../utils/config.ts";
 import { requireNamespace } from "./namespaces.ts";
-import { essentials } from "../phases.ts";
+import { essentials } from "./phase.ts";
 import { gatewayCrds } from "./gateway-api.ts";
 
 const ns = requireNamespace("operator-system", {
@@ -15,7 +15,7 @@ const gcpSaSecret = new core.v1.Secret("external-dns-gcp-sa", {
         namespace: ns.metadata.name,
     },
     stringData: {
-        "credentials.json": externalDnsConfig.gcpServiceAccountKey,
+        "credentials.json": externalDnsConfig.gcpServiceAccountKey!,
     },
 }, { parent: essentials });
 
@@ -32,12 +32,11 @@ export const externalDns = new helm.v3.Release("external-dns", {
         },
         extraArgs: [
             pulumi.interpolate`--google-project=${externalDnsConfig.gcpProject}`,
-            pulumi.interpolate`--default-targets=${externalDnsConfig.defaultTargets}`,
             pulumi.interpolate`--txt-owner-id=${externalDnsConfig.txtOwnerId}`,
             "--txt-prefix=edns-",
         ],
         policy: "sync",
-        sources: ["gateway-httproute", "gateway-grpcroute"],
+        sources: ["gateway-httproute", "gateway-grpcroute", "service"],
         env: [
             {
                 name: "GOOGLE_APPLICATION_CREDENTIALS",

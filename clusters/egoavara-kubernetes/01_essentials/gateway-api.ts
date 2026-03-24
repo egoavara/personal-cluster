@@ -1,7 +1,7 @@
 import * as k8s from "@pulumi/kubernetes";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { essentials } from "../phases.ts";
+import { essentials } from "./phase.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

@@ -1,6 +1,6 @@
 import { helm } from "@pulumi/kubernetes";
 import { telemetry as telemetryConfig } from "../utils/config.ts";
-import { telemetryPhase } from "../phases.ts";
+import { telemetryPhase } from "./phase.ts";
 import { vmCluster } from "./vm-cluster.ts";
 import { vlCluster } from "./vl-cluster.ts";
 import { vtCluster } from "./vt-cluster.ts";

@@ -1,6 +1,6 @@
 import { helm } from "@pulumi/kubernetes";
 import { telemetry as telemetryConfig } from "../utils/config.ts";
-import { telemetryPhase } from "../phases.ts";
+import { telemetryPhase } from "./phase.ts";
 import { ns } from "./namespace.ts";
 
 export const nodeExporter = new helm.v3.Release("node-exporter", {

@@ -1,6 +1,5 @@
 import { apiextensions } from "@pulumi/kubernetes";
-import { telemetryPhase } from "../phases.ts";
-import { vmOperator } from "../operators/vm-operator.ts";
+import { telemetryPhase } from "./phase.ts";
 import { vmCluster } from "./vm-cluster.ts";
 import { ns } from "./namespace.ts";
 
@@ -31,5 +30,5 @@ export const vmalert = new apiextensions.CustomResource("vmalert", {
     },
 }, {
     parent: telemetryPhase,
-    dependsOn: [vmOperator, vmCluster],
+    dependsOn: [vmCluster],
 });

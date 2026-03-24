@@ -1,7 +1,7 @@
 import { helm } from "@pulumi/kubernetes";
-import { topoLvm as topoLvmConfig } from "../utils/config.ts";
+import { topoLvm as topoLvmConfig } from "./config.ts";
 import { requireNamespace } from "./namespaces.ts";
-import { essentials } from "../phases.ts";
+import { essentials } from "./phase.ts";
 import { certManager } from "./cert-manager.ts";
 
 const ns = requireNamespace("topolvm-system", {
