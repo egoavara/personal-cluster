@@ -1,0 +1,51 @@
+{{define "policy_create"}}{{template "layout" .}}{{end}}
+{{define "content"}}
+<h1>Create Policy</h1>
+<div class="card">
+<form method="POST" action="/policy/create">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div class="form-group">
+<label>Resource Type</label>
+<select name="resource_type">
+<option value="service">service</option>
+<option value="pod">pod</option>
+<option value="deployment">deployment</option>
+<option value="namespace">namespace</option>
+<option value="configmap">configmap</option>
+<option value="secret">secret</option>
+<option value="dashboard">dashboard</option>
+</select>
+</div>
+<div class="form-group">
+<label>Resource ID</label>
+<input name="resource_id" placeholder="default/nginx" required>
+</div>
+<div class="form-group">
+<label>Relation</label>
+<select name="relation">
+<option value="allow">allow</option>
+<option value="viewer">viewer</option>
+<option value="editor">editor</option>
+<option value="admin">admin</option>
+</select>
+</div>
+<div class="form-group">
+<label>Subject Type</label>
+<select name="subject_type">
+<option value="user">user</option>
+<option value="serviceaccount">serviceaccount</option>
+<option value="group">group</option>
+</select>
+</div>
+<div class="form-group" style="grid-column:span 2">
+<label>Subject ID</label>
+<input name="subject_id" placeholder="alice" required>
+</div>
+</div>
+<div style="margin-top:16px;display:flex;gap:12px">
+<button type="submit" class="btn">Create</button>
+<a href="/policy/" class="btn" style="background:#6c757d">Cancel</a>
+</div>
+</form>
+</div>
+{{end}}

@@ -1,0 +1,50 @@
+{{define "policy_list"}}{{template "layout" .}}{{end}}
+{{define "content"}}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h1>Policies</h1>
+<a href="/policy/create" class="btn">Create Policy</a>
+</div>
+<div class="card" style="margin-bottom:16px">
+<form method="GET" action="/policy/" style="display:flex;gap:12px;align-items:end">
+<div class="form-group" style="margin:0">
+<label>Resource Type</label>
+<select name="type" onchange="this.form.submit()">
+<option value="service" {{if eq .ResourceType "service"}}selected{{end}}>service</option>
+<option value="pod" {{if eq .ResourceType "pod"}}selected{{end}}>pod</option>
+<option value="deployment" {{if eq .ResourceType "deployment"}}selected{{end}}>deployment</option>
+<option value="namespace" {{if eq .ResourceType "namespace"}}selected{{end}}>namespace</option>
+<option value="configmap" {{if eq .ResourceType "configmap"}}selected{{end}}>configmap</option>
+<option value="secret" {{if eq .ResourceType "secret"}}selected{{end}}>secret</option>
+<option value="dashboard" {{if eq .ResourceType "dashboard"}}selected{{end}}>dashboard</option>
+</select>
+</div>
+</form>
+</div>
+<table>
+<thead>
+<tr><th>Resource</th><th>Relation</th><th>Subject</th><th>Caveat</th><th>Actions</th></tr>
+</thead>
+<tbody>
+{{range .Items}}
+<tr>
+<td><span class="tag">{{.ResourceType}}</span> {{.ResourceID}}</td>
+<td>{{.Relation}}</td>
+<td><span class="tag">{{.SubjectType}}</span> {{.SubjectID}}</td>
+<td>{{if .HasCaveat}}<span class="tag" style="background:#fff3cd">{{.CaveatName}}</span>{{else}}-{{end}}</td>
+<td>
+<form method="POST" action="/policy/delete" style="display:inline" onsubmit="return confirm('Delete this policy?')">
+<input type="hidden" name="resource_type" value="{{.ResourceType}}">
+<input type="hidden" name="resource_id" value="{{.ResourceID}}">
+<input type="hidden" name="relation" value="{{.Relation}}">
+<input type="hidden" name="subject_type" value="{{.SubjectType}}">
+<input type="hidden" name="subject_id" value="{{.SubjectID}}">
+<button type="submit" class="btn btn-danger" style="padding:4px 12px;font-size:12px">Delete</button>
+</form>
+</td>
+</tr>
+{{else}}
+<tr><td colspan="5" style="text-align:center;color:#999">No policies found</td></tr>
+{{end}}
+</tbody>
+</table>
+{{end}}

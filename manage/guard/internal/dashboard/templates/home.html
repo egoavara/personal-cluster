@@ -1,0 +1,20 @@
+{{define "home"}}{{template "layout" .}}{{end}}
+{{define "content"}}
+<h1>Dashboards</h1>
+<div class="dashboard-grid">
+{{range .Dashboards}}
+<div class="dashboard-card">
+<h3>{{.Name}}</h3>
+<p style="font-size:13px;color:#666;margin-bottom:8px">{{.Upstream}}</p>
+<a href="{{.Path}}/">Open</a>
+</div>
+{{end}}
+</div>
+<div style="margin-top:32px">
+<h2 style="font-size:18px;margin-bottom:12px">Quick Links</h2>
+<div style="display:flex;gap:12px">
+<a href="/policy/" class="btn">Manage Policies</a>
+<a href="/check" class="btn" style="background:#28a745">Permission Check</a>
+</div>
+</div>
+{{end}}

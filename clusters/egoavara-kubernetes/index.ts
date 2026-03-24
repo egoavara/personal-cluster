@@ -1,5 +1,5 @@
 // Phase 정의 (phases.ts에서 Phase 간 dependsOn 관리)
-export { bootstrap, essentials, operators, telemetryPhase, postProcess } from "./phases.ts";
+export { bootstrap, essentials, operators, telemetryPhase, authPhase, postProcess } from "./phases.ts";
 
 // Phase 1: 클러스터 부트스트랩 (SSH 기반)
 // 각 리소스가 parent: bootstrap으로 등록됨
@@ -39,6 +39,16 @@ import "./telemetry/node-exporter.ts";
 import "./telemetry/scrapes.ts";
 import "./telemetry/istio-telemetry.ts";
 
-// Phase 5: Post-Process (모든 인프라 배포 후 후처리)
+// Phase 5: Auth (인증 + 인가 레이어)
+// 각 리소스가 parent: authPhase로 등록됨
+import "./auth/namespace.ts";
+import "./auth/cockroachdb.ts";
+import "./auth/spicedb.ts";
+import "./auth/kanidm.ts";
+import "./auth/dex.ts";
+import "./auth/oauth2-proxy.ts";
+import "./auth/waypoint.ts";
+
+// Phase 6: Post-Process (모든 인프라 배포 후 후처리)
 // 각 리소스가 parent: postProcess로 등록됨
 import "./post-process/waypoints.ts";

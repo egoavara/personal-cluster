@@ -1,0 +1,52 @@
+name: Build manage tools
+
+on:
+  push:
+    branches: [guard]
+    paths:
+      - 'manage/**'
+  pull_request:
+    paths:
+      - 'manage/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tool: [guard]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: manage/${{ matrix.tool }}/go.mod
+
+      - name: Build
+        working-directory: manage/${{ matrix.tool }}
+        run: go build -o /dev/null .
+
+      - name: Test
+        working-directory: manage/${{ matrix.tool }}
+        run: go test ./...
+
+      - name: Login to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: manage/${{ matrix.tool }}
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ghcr.io/egoavara/${{ matrix.tool }}:${{ github.sha }}
+            ghcr.io/egoavara/${{ matrix.tool }}:latest
+          platforms: linux/amd64

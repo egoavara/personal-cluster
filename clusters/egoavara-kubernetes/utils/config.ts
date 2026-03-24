@@ -100,3 +100,25 @@ export const telemetry = {
     kubeStateMetrics: { version: config.get("telemetry.kubeStateMetrics.version") ?? "7.2.1" },
     nodeExporter: { version: config.get("telemetry.nodeExporter.version") ?? "4.52.1" },
 };
+
+export const auth = {
+    cockroachdb: {
+        version: config.get("auth.cockroachdb.version") ?? "20.0.1",
+        repository: "https://charts.cockroachdb.com/",
+    },
+    spicedb: {
+        image: config.get("auth.spicedb.image") ?? "authzed/spicedb:v1.50.0",
+    },
+    kanidm: {
+        image: config.get("auth.kanidm.image") ?? "kanidm/server:1.9.2",
+        domain: config.get("auth.kanidm.domain") ?? "idm.egoavara.net",
+    },
+    dex: {
+        version: config.get("auth.dex.version") ?? "0.24.0",
+        repository: "https://charts.dexidp.io",
+    },
+    oauth2Proxy: {
+        version: config.get("auth.oauth2Proxy.version") ?? "10.1.5",
+        repository: "https://oauth2-proxy.github.io/manifests",
+    },
+};

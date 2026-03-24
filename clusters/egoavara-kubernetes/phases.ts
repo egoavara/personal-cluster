@@ -28,8 +28,14 @@ export const telemetryPhase = new Phase("telemetry", {
     providers: [k8sProvider],
 });
 
-// Phase 5: Post-Process (모든 인프라 배포 후 후처리)
-export const postProcess = new Phase("post-process", {
+// Phase 5: Auth (인증 레이어)
+export const authPhase = new Phase("auth", {
     dependsOn: [telemetryPhase],
+    providers: [k8sProvider],
+});
+
+// Phase 6: Post-Process (모든 인프라 배포 후 후처리)
+export const postProcess = new Phase("post-process", {
+    dependsOn: [authPhase],
     providers: [k8sProvider],
 });

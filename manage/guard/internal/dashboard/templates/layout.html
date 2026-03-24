@@ -1,0 +1,50 @@
+{{define "layout"}}<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kube-authz Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f5;color:#333}
+nav{background:#1a1a2e;color:#fff;padding:12px 24px;display:flex;align-items:center;gap:24px}
+nav a{color:#e0e0e0;text-decoration:none;font-size:14px}
+nav a:hover{color:#fff}
+nav .brand{font-weight:bold;font-size:18px;margin-right:auto}
+nav .user{font-size:13px;color:#aaa}
+.container{max-width:1200px;margin:24px auto;padding:0 24px}
+h1{font-size:24px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #eee;font-size:14px}
+th{background:#f8f9fa;font-weight:600}
+.btn{display:inline-block;padding:8px 16px;background:#2d6cdf;color:#fff;border:none;border-radius:4px;cursor:pointer;text-decoration:none;font-size:14px}
+.btn:hover{background:#1d5cc4}
+.btn-danger{background:#dc3545}
+.btn-danger:hover{background:#b02a37}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+.form-group input,.form-group select{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px}
+.card{background:#fff;border-radius:8px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:16px}
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.dashboard-card{background:#fff;border-radius:8px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);transition:transform 0.1s}
+.dashboard-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.dashboard-card h3{margin-bottom:8px}
+.dashboard-card a{color:#2d6cdf;text-decoration:none}
+.result{padding:12px;border-radius:4px;margin:12px 0;font-weight:bold}
+.result-allowed{background:#d4edda;color:#155724}
+.result-denied{background:#f8d7da;color:#721c24}
+.result-error{background:#fff3cd;color:#856404}
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:12px;background:#e9ecef}
+</style>
+</head>
+<body>
+<nav>
+<span class="brand">kube-authz</span>
+<a href="/">Home</a>
+<a href="/policy/">Policies</a>
+<a href="/check">Check</a>
+{{if .Session}}<span class="user">{{.Session.Username}}</span><a href="/logout">Logout</a>{{end}}
+</nav>
+<div class="container">{{template "content" .}}</div>
+</body>
+</html>{{end}}

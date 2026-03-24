@@ -1,0 +1,21 @@
+{{define "login"}}<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>kube-authz - Login</title>
+<style>
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:system-ui;background:#1a1a2e;color:#fff}
+.login-box{text-align:center;padding:40px}
+h1{margin-bottom:24px;font-size:28px}
+a{display:inline-block;padding:12px 32px;background:#2d6cdf;color:#fff;text-decoration:none;border-radius:6px;font-size:16px}
+a:hover{background:#1d5cc4}
+</style>
+</head>
+<body>
+<div class="login-box">
+<h1>kube-authz Dashboard</h1>
+<p style="margin-bottom:24px;color:#aaa">Login with your organization account</p>
+<a href="/login">Login with Dex</a>
+</div>
+</body>
+</html>{{end}}
