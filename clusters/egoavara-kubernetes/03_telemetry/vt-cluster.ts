@@ -31,6 +31,9 @@ export const vtCluster = new apiextensions.CustomResource("vt-cluster", {
         },
         storage: {
             replicaCount: 2,
+            extraArgs: {
+                "storage.minFreeDiskSpaceBytes": "1.5GB",
+            },
             storage: {
                 volumeClaimTemplate: {
                     spec: {

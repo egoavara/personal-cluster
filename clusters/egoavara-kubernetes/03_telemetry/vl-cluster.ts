@@ -27,6 +27,9 @@ export const vlCluster = new apiextensions.CustomResource("vl-cluster", {
         },
         vlstorage: {
             replicaCount: 3,
+            extraArgs: {
+                "storage.minFreeDiskSpaceBytes": "2GB",
+            },
             storage: {
                 volumeClaimTemplate: {
                     spec: {

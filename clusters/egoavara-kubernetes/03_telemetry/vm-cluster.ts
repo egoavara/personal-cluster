@@ -38,6 +38,9 @@ export const vmCluster = new apiextensions.CustomResource("vm-cluster", {
         },
         vmstorage: {
             replicaCount: 3,
+            extraArgs: {
+                "storage.minFreeDiskSpaceBytes": "3GB",
+            },
             storage: {
                 volumeClaimTemplate: {
                     spec: {
