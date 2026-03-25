@@ -32,6 +32,22 @@ const roleBinding = new k8s.rbac.v1.RoleBinding("zitadel-clients-rb", {
     subjects: [{ kind: "ServiceAccount", name: "zitadel-clients", namespace }],
 }, { parent: authPhase });
 
+// flux-system NS — Weave GitOps OIDC Secret 생성
+const fluxRole = new k8s.rbac.v1.Role("zitadel-clients-flux-role", {
+    metadata: { name: "zitadel-clients", namespace: "flux-system" },
+    rules: [{
+        apiGroups: [""],
+        resources: ["secrets"],
+        verbs: ["get", "create", "update", "patch"],
+    }],
+}, { parent: authPhase });
+
+const fluxRoleBinding = new k8s.rbac.v1.RoleBinding("zitadel-clients-flux-rb", {
+    metadata: { name: "zitadel-clients", namespace: "flux-system" },
+    roleRef: { apiGroup: "rbac.authorization.k8s.io", kind: "Role", name: "zitadel-clients" },
+    subjects: [{ kind: "ServiceAccount", name: "zitadel-clients", namespace: "auth" }],
+}, { parent: authPhase });
+
 // telemetry NS — Grafana OIDC Secret 생성 + Deployment restart 권한
 const telemetryRole = new k8s.rbac.v1.Role("zitadel-clients-telemetry-role", {
     metadata: { name: "zitadel-clients", namespace: "telemetry" },
@@ -188,6 +204,10 @@ GUARD_URIS='"https://guard.private.egoavara.net/callback","http://localhost:4180
 GUARD_LOGOUT_URIS='"https://guard.private.egoavara.net/signed_out"'
 ensure_app "kube-authz" "$GUARD_URIS" "$GUARD_LOGOUT_URIS" "oidc-kube-authz"
 
+WEAVE_URIS='"https://gitops.private.egoavara.net/oauth2/callback"'
+WEAVE_LOGOUT_URIS='"https://gitops.private.egoavara.net"'
+ensure_app "weave-gitops" "$WEAVE_URIS" "$WEAVE_LOGOUT_URIS" "oidc-weave-gitops" "flux-system"
+
 # --- Google IdP ---
 echo "=== Ensuring Google IdP ==="
 
@@ -303,6 +323,6 @@ export const zitadelClients = new k8s.batch.v1.Job("zitadel-clients", {
     },
 }, {
     parent: authPhase,
-    dependsOn: [zitadel, script, sa, role, roleBinding, telemetryRole, telemetryRoleBinding, googleOAuthSecret],
+    dependsOn: [zitadel, script, sa, role, roleBinding, telemetryRole, telemetryRoleBinding, fluxRole, fluxRoleBinding, googleOAuthSecret],
     replaceOnChanges: ["metadata.annotations"],
 });

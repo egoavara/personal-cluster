@@ -8,9 +8,7 @@ import { flux } from "./flux.ts";
 
 const namespace = ns.metadata.name;
 
-// bcrypt 해시를 Pulumi에서 직접 생성할 수 없으므로,
-// admin 비밀번호를 Secret으로 저장하고 Weave GitOps가 참조하게 함.
-// Weave GitOps는 OIDC 인증도 지원 — 추후 Zitadel 연동 시 OIDC로 전환.
+// Fallback admin Secret — OIDC가 설정되기 전 또는 OIDC 장애 시 사용
 const adminSecret = new core.v1.Secret("cluster-user-auth", {
     metadata: {
         name: "cluster-user-auth",
@@ -21,6 +19,10 @@ const adminSecret = new core.v1.Secret("cluster-user-auth", {
         password: weaveAdminPassword.result,
     },
 }, { parent: cicdPhase });
+
+// OIDC client-id/secret은 zitadel-clients Job이 flux-system/oidc-weave-gitops Secret으로 생성
+// 최초 배포 시에는 Secret이 아직 없으므로, OIDC 없이 admin 비밀번호로 접속
+// zitadel-clients Job 실행 후 pod restart하면 OIDC 활성화됨
 
 export const weaveGitops = new helm.v3.Release("weave-gitops", {
     chart: weaveConfig.repository + "/weave-gitops",
@@ -37,18 +39,43 @@ export const weaveGitops = new helm.v3.Release("weave-gitops", {
         adminUser: {
             create: true,
             createClusterRole: true,
-            createSecret: false,       // 직접 생성한 Secret 사용
+            createSecret: false,
             username: "admin",
         },
-        // Metrics: VMServiceScrape로 별도 구성
         metrics: {
             enabled: true,
         },
-        // OIDC 설정 (추후 Zitadel 연동 시 활성화)
-        // oidcConfig:
-        //   issuerURL: "https://auth.egoavara.net"
-        //   clientID: "weave-gitops"
-        //   clientSecret: ...
-        //   redirectURL: "https://gitops.private.egoavara.net/oauth2/callback"
+        // Zitadel OIDC 연동
+        additionalArgs: [
+            "--oidc-issuer-url=https://auth.egoavara.net",
+            "--oidc-redirect-url=https://gitops.private.egoavara.net/oauth2/callback",
+            "--oidc-username-claim=preferred_username",
+        ],
+        extraEnv: [
+            {
+                name: "WEAVE_GITOPS_FEATURE_OIDC_AUTH",
+                value: "true",
+            },
+            {
+                name: "OIDC_CLIENT_ID",
+                valueFrom: {
+                    secretKeyRef: {
+                        name: "oidc-weave-gitops",
+                        key: "client-id",
+                        optional: true,  // Secret이 아직 없어도 기동 가능
+                    },
+                },
+            },
+            {
+                name: "OIDC_CLIENT_SECRET",
+                valueFrom: {
+                    secretKeyRef: {
+                        name: "oidc-weave-gitops",
+                        key: "client-secret",
+                        optional: true,
+                    },
+                },
+            },
+        ],
     },
 }, { parent: cicdPhase, dependsOn: [flux, adminSecret] });
