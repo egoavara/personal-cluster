@@ -44,13 +44,27 @@ type CacheConfig struct {
 	MaxItems int           `mapstructure:"maxItems"`
 }
 
+type HostResourceEntry struct {
+	Host     string `mapstructure:"host"`
+	Resource string `mapstructure:"resource"`
+}
+
 type ExtAuthzConfig struct {
-	ListenAddr  string        `mapstructure:"listenAddr"`
-	ExternalURL string        `mapstructure:"externalURL"`
-	OIDC        OIDCConfig    `mapstructure:"oidc"`
-	Session     SessionConfig `mapstructure:"session"`
-	Cookie      CookieConfig  `mapstructure:"cookie"`
-	HostResourceMap map[string]string `mapstructure:"hostResourceMap"`
+	ListenAddr      string              `mapstructure:"listenAddr"`
+	ExternalURL     string              `mapstructure:"externalURL"`
+	OIDC            OIDCConfig          `mapstructure:"oidc"`
+	Session         SessionConfig       `mapstructure:"session"`
+	Cookie          CookieConfig        `mapstructure:"cookie"`
+	HostResources   []HostResourceEntry `mapstructure:"hostResources"`
+}
+
+// HostResourceMap returns a map[host]resource built from the HostResources slice.
+func (c *ExtAuthzConfig) HostResourceMap() map[string]string {
+	m := make(map[string]string, len(c.HostResources))
+	for _, e := range c.HostResources {
+		m[e.Host] = e.Resource
+	}
+	return m
 }
 
 type DashboardConfig struct {
@@ -108,7 +122,7 @@ func setDefaults() {
 	viper.SetDefault("rateLimit.l1MaxItems", 10000)
 	viper.SetDefault("rateLimit.l1TTL", "30s")
 	viper.SetDefault("rateLimit.l2TTL", "60s")
-	viper.SetDefault("valkey.masterName", "mymaster")
+	viper.SetDefault("valkey.masterName", "myprimary")
 }
 
 func bindLegacyEnvVars() {

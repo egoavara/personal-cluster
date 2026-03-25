@@ -20,6 +20,7 @@ func NewCounter(client *valkey.Client) *Counter {
 }
 
 // Check performs a sliding window counter check.
+// Get-first: reads current count, only increments if within the limit.
 // Returns (allowed, remaining, resetAt, error).
 func (c *Counter) Check(ctx context.Context, userID string, rpm int64, multiplier float64) (bool, int64, time.Time, error) {
 	if rpm < 0 {
@@ -35,6 +36,7 @@ func (c *Counter) Check(ctx context.Context, userID string, rpm int64, multiplie
 	now := time.Now()
 	currWindowStart := now.Truncate(c.window).Unix()
 	prevWindowStart := now.Truncate(c.window).Add(-c.window).Unix()
+	resetAt := now.Truncate(c.window).Add(c.window)
 
 	// Get previous window count
 	prev, err := c.client.GetCounter(ctx, userID, prevWindowStart)
@@ -42,22 +44,34 @@ func (c *Counter) Check(ctx context.Context, userID string, rpm int64, multiplie
 		return false, 0, time.Time{}, err
 	}
 
-	// Increment current window
-	curr, err := c.client.IncrCounter(ctx, userID, currWindowStart, c.window)
+	// Get current window count (read-only)
+	curr, err := c.client.GetCounter(ctx, userID, currWindowStart)
 	if err != nil {
 		return false, 0, time.Time{}, err
 	}
 
-	// Sliding window calculation
+	// Sliding window estimation
 	elapsed := float64(now.Sub(now.Truncate(c.window))) / float64(c.window)
 	estimated := float64(prev)*(1-elapsed) + float64(curr)
 
+	// Check if adding this request would exceed the limit
+	if estimated+1 > float64(effectiveRPM) {
+		// Over limit — do NOT increment
+		return false, 0, resetAt, nil
+	}
+
+	// Within limit — increment counter
+	newCurr, err := c.client.IncrCounter(ctx, userID, currWindowStart, c.window)
+	if err != nil {
+		return false, 0, time.Time{}, err
+	}
+
+	// Recalculate with actual incremented value
+	estimated = float64(prev)*(1-elapsed) + float64(newCurr)
 	remaining := int64(float64(effectiveRPM) - estimated)
 	if remaining < 0 {
 		remaining = 0
 	}
 
-	resetAt := now.Truncate(c.window).Add(c.window)
-
-	return estimated <= float64(effectiveRPM), remaining, resetAt, nil
+	return true, remaining, resetAt, nil
 }

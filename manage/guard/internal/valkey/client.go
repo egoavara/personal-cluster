@@ -23,10 +23,11 @@ type Client struct {
 
 func NewClient(cfg Config, logger *zap.Logger) (*Client, error) {
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
-		SentinelAddrs: cfg.SentinelAddrs,
-		MasterName:    cfg.MasterName,
-		Password:      cfg.Password,
-		DB:            0,
+		SentinelAddrs:    cfg.SentinelAddrs,
+		MasterName:       cfg.MasterName,
+		Password:         cfg.Password,
+		SentinelPassword: cfg.Password, // Bitnami chart uses same password for sentinel
+		DB:               0,
 	})
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -73,66 +74,6 @@ func (c *Client) DeleteTier(ctx context.Context, name string) error {
 	return c.rdb.Del(ctx, "tier:"+name).Err()
 }
 
-// --- Role-Tier mapping ---
-
-func (c *Client) GetRoleTier(ctx context.Context, permission string) (string, error) {
-	return c.rdb.Get(ctx, "role-tier:"+permission).Result()
-}
-
-func (c *Client) SetRoleTier(ctx context.Context, permission, tierName string) error {
-	return c.rdb.Set(ctx, "role-tier:"+permission, tierName, 0).Err()
-}
-
-func (c *Client) ListRoleTiers(ctx context.Context) (map[string]string, error) {
-	keys, err := scanKeys(ctx, c.rdb, "role-tier:*")
-	if err != nil {
-		return nil, err
-	}
-	result := make(map[string]string, len(keys))
-	for _, key := range keys {
-		val, err := c.rdb.Get(ctx, key).Result()
-		if err != nil {
-			continue
-		}
-		result[key[len("role-tier:"):]] = val
-	}
-	return result, nil
-}
-
-func (c *Client) DeleteRoleTier(ctx context.Context, permission string) error {
-	return c.rdb.Del(ctx, "role-tier:"+permission).Err()
-}
-
-// --- User override ---
-
-func (c *Client) GetUserOverride(ctx context.Context, userID string) (string, error) {
-	return c.rdb.Get(ctx, "override:user:"+userID).Result()
-}
-
-func (c *Client) SetUserOverride(ctx context.Context, userID, tierName string) error {
-	return c.rdb.Set(ctx, "override:user:"+userID, tierName, 0).Err()
-}
-
-func (c *Client) ListUserOverrides(ctx context.Context) (map[string]string, error) {
-	keys, err := scanKeys(ctx, c.rdb, "override:user:*")
-	if err != nil {
-		return nil, err
-	}
-	result := make(map[string]string, len(keys))
-	for _, key := range keys {
-		val, err := c.rdb.Get(ctx, key).Result()
-		if err != nil {
-			continue
-		}
-		result[key[len("override:user:"):]] = val
-	}
-	return result, nil
-}
-
-func (c *Client) DeleteUserOverride(ctx context.Context, userID string) error {
-	return c.rdb.Del(ctx, "override:user:"+userID).Err()
-}
-
 // --- Table ---
 
 func (c *Client) GetTable(ctx context.Context, name string) (*Table, error) {
@@ -165,34 +106,34 @@ func (c *Client) DeleteTable(ctx context.Context, name string) error {
 	return c.rdb.Del(ctx, "table:"+name).Err()
 }
 
-// --- Resolved tier cache ---
+// --- UserRPM cache (L2) ---
 
-func (c *Client) GetResolved(ctx context.Context, userID, domain string) (*ResolvedTier, error) {
-	val, err := c.rdb.Get(ctx, "resolved:"+userID+":"+domain).Result()
+func (c *Client) GetUserRPM(ctx context.Context, userID, domain string) (*CachedUserRPM, error) {
+	val, err := c.rdb.Get(ctx, "userrpm:"+userID+":"+domain).Result()
 	if err != nil {
 		return nil, err
 	}
-	var r ResolvedTier
+	var r CachedUserRPM
 	if err := json.Unmarshal([]byte(val), &r); err != nil {
 		return nil, err
 	}
 	return &r, nil
 }
 
-func (c *Client) SetResolved(ctx context.Context, userID, domain string, r *ResolvedTier, ttl time.Duration) error {
+func (c *Client) SetUserRPM(ctx context.Context, userID, domain string, r *CachedUserRPM, ttl time.Duration) error {
 	data, err := json.Marshal(r)
 	if err != nil {
 		return err
 	}
-	return c.rdb.Set(ctx, "resolved:"+userID+":"+domain, data, ttl).Err()
+	return c.rdb.Set(ctx, "userrpm:"+userID+":"+domain, data, ttl).Err()
 }
 
-func (c *Client) DeleteResolvedByUser(ctx context.Context, userID string) error {
-	return deleteByPattern(ctx, c.rdb, "resolved:"+userID+":*")
+func (c *Client) DeleteUserRPMByUser(ctx context.Context, userID string) error {
+	return deleteByPattern(ctx, c.rdb, "userrpm:"+userID+":*")
 }
 
-func (c *Client) DeleteAllResolved(ctx context.Context) error {
-	return deleteByPattern(ctx, c.rdb, "resolved:*")
+func (c *Client) DeleteAllUserRPM(ctx context.Context) error {
+	return deleteByPattern(ctx, c.rdb, "userrpm:*")
 }
 
 // --- Counter ---

@@ -53,7 +53,7 @@ export const otelCollector = new helm.v3.Release("otel-collector", {
                     tls: { insecure: true },
                 },
                 "otlphttp/logs": {
-                    endpoint: "http://vlinsert-vl-cluster.telemetry.svc.cluster.local:9480/insert/opentelemetry",
+                    endpoint: "http://vlinsert-vl-cluster.telemetry.svc.cluster.local:9481/insert/opentelemetry",
                     tls: { insecure: true },
                 },
                 "otlp/traces": {

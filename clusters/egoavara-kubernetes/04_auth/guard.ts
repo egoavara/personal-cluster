@@ -25,7 +25,7 @@ valkey:
     - "guard-valkey-node-0.guard-valkey-headless.auth.svc.cluster.local:26379"
     - "guard-valkey-node-1.guard-valkey-headless.auth.svc.cluster.local:26379"
     - "guard-valkey-node-2.guard-valkey-headless.auth.svc.cluster.local:26379"
-  masterName: "mymaster"
+  masterName: "myprimary"
 
 rateLimit:
   enabled: true
@@ -42,11 +42,15 @@ extAuthz:
   cookie:
     domain: ".egoavara.net"
     name: "guard-session"
-  hostResourceMap:
-    grafana.private.egoavara.net: "telemetry/grafana"
-    ceph.private.egoavara.net: "rook-ceph/ceph-dashboard"
-    hubble.private.egoavara.net: "kube-system/hubble-ui"
-    guard.private.egoavara.net: "auth/guard-dashboard"
+  hostResources:
+    - host: "grafana.private.egoavara.net"
+      resource: "telemetry/grafana"
+    - host: "ceph.private.egoavara.net"
+      resource: "rook-ceph/ceph-dashboard"
+    - host: "hubble.private.egoavara.net"
+      resource: "kube-system/hubble-ui"
+    - host: "guard.private.egoavara.net"
+      resource: "auth/guard-dashboard"
 
 dashboard:
   listenAddr: ":8080"

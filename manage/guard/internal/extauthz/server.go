@@ -45,7 +45,7 @@ func Run(ctx context.Context, spiceDBCfg config.SpiceDBConfig, cfg config.ExtAut
 		cfg:      cfg,
 		sessions: NewSessionManager(cfg.Session.Secret, cfg.Cookie.Name, cfg.Cookie.Domain, cfg.IsSecure()),
 		oidc:     oidc,
-		authz:    NewAuthorizer(spiceClient, spiceDBCfg.Cache, cfg.HostResourceMap, logger),
+		authz:    NewAuthorizer(spiceClient, spiceDBCfg.Cache, cfg.HostResourceMap(), logger),
 		logger:   logger,
 	}
 
@@ -163,7 +163,7 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 
 	// Rate limit check (after authz, fail-open)
 	if s.limiter != nil {
-		decision, err := s.limiter.Check(r.Context(), session.Username, host, "view")
+		decision, err := s.limiter.Check(r.Context(), session.Username, host)
 		if err != nil {
 			s.logger.Error("rate limit check error", zap.Error(err))
 			// Fail open — allow the request

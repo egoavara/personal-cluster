@@ -55,7 +55,7 @@ export const auth = {
         repository: "https://oauth2-proxy.github.io/manifests",
     },
     guardValkey: {
-        version: config.get("auth.guardValkey.version") ?? "2.1.0",
+        version: config.get("auth.guardValkey.version") ?? "5.4.9",
         repository: "https://charts.bitnami.com/bitnami",
     },
     guard: {

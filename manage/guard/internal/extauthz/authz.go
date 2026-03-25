@@ -93,7 +93,7 @@ func (a *Authorizer) CheckAccess(ctx context.Context, host, username string) (bo
 	span.SetAttributes(attribute.String("authz.resource", "kube_service:"+resourceID))
 
 	// Cache key: user + resource
-	cacheKey := username + ":kube_service:" + resourceID
+	cacheKey := username + ":app:" + resourceID
 
 	// Check cache (Get auto-touches = TTI reset)
 	if item := a.cache.Get(cacheKey); item != nil {

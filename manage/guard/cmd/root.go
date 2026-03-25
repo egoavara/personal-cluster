@@ -39,11 +39,12 @@ var rootCmd = &cobra.Command{
 		// Initialize OTel — uses OTEL_EXPORTER_OTLP_ENDPOINT and OTEL_SERVICE_NAME env vars.
 		// If OTEL_EXPORTER_OTLP_ENDPOINT is not set, the SDK defaults to localhost:4317
 		// and exports will silently fail, which is fine for local development.
-		shutdown, err := guardotel.Setup(cmd.Context(), cmd.Use)
+		otelLogger, shutdown, err := guardotel.Setup(cmd.Context(), cmd.Use)
 		if err != nil {
 			logger.Warn("otel setup failed, continuing without telemetry", zap.Error(err))
 		} else {
 			otelShutdown = shutdown
+			logger = otelLogger // Replace logger with OTel-bridged logger
 		}
 
 		return nil

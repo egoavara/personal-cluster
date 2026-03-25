@@ -15,6 +15,12 @@ export const guardValkey = new helm.v3.Release("guard-valkey", {
     createNamespace: false,
     values: {
         architecture: "replication",
+        // Istio ambient ztunnel이 RESP 프로토콜 pod 간 통신에서 "Connection reset by peer" 유발
+        // localhost는 정상, pod 간(Pod IP 직접)만 실패 — HBONE 터널링이 RESP와 충돌 추정
+        // use-waypoint: none만으로는 부족, mesh 자체를 제외해야 함
+        commonLabels: {
+            "istio.io/dataplane-mode": "none",
+        },
         auth: {
             enabled: true,
             password: guardValkeyPassword.result,
@@ -22,26 +28,16 @@ export const guardValkey = new helm.v3.Release("guard-valkey", {
         commonConfiguration: "appendonly yes\nappendfsync everysec",
         sentinel: {
             enabled: true,
-            masterSet: "mymaster",
+            masterSet: "myprimary",
             quorum: 2,
             resources: {
                 requests: { cpu: "25m", memory: "32Mi" },
                 limits: { cpu: "100m", memory: "128Mi" },
             },
         },
-        master: {
-            persistence: {
-                enabled: true,
-                size: "1Gi",
-                storageClass: "topolvm-provisioner",
-            },
-            resources: {
-                requests: { cpu: "50m", memory: "64Mi" },
-                limits: { cpu: "200m", memory: "256Mi" },
-            },
-        },
+        // Sentinel 모드에서는 단일 StatefulSet으로 3 pod (master 1 + replica 2)
         replica: {
-            replicaCount: 2,
+            replicaCount: 3,
             persistence: {
                 enabled: true,
                 size: "1Gi",
@@ -51,16 +47,11 @@ export const guardValkey = new helm.v3.Release("guard-valkey", {
                 requests: { cpu: "50m", memory: "64Mi" },
                 limits: { cpu: "200m", memory: "256Mi" },
             },
-        },
-        // Istio ambient mesh: RESP protocol doesn't work with L7 waypoint
-        // Use pod label to bypass waypoint while staying in ambient mesh for mTLS
-        commonLabels: {
-            "istio.io/use-waypoint": "none",
         },
         tls: { enabled: false }, // Istio mTLS
         metrics: {
             enabled: true,
-            serviceMonitor: { enabled: true },
+            serviceMonitor: { enabled: false }, // Prometheus Operator CRD 미설치 — VMServiceScrape로 대체
         },
     },
 }, { parent: authPhase });
