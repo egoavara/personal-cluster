@@ -124,7 +124,7 @@ kubectl create secret generic oidc-auth -n "$NS" \\
     --from-literal=redirectURL="https://gitops.private.egoavara.net/oauth2/callback" \\
     --from-literal=clientID="$CLIENT_ID" \\
     --from-literal=clientSecret="$CLIENT_SECRET" \\
-    --from-literal=claimUsername="preferred_username" \\
+    --from-literal=claimUsername="email" \\
     --from-literal=customScopes="openid,offline_access,email,groups" \\
     --dry-run=client -o yaml | kubectl apply -f -
 
