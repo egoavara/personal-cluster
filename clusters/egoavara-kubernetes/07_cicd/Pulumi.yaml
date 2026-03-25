@@ -1,0 +1,11 @@
+name: ek-cicd
+description: "Phase 7: CI/CD (Flux GitOps, SOPS secret management, Weave GitOps dashboard)"
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm
+    nodeargs: "--loader ts-node/esm --no-warnings"
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: helm-kubernetes-typescript

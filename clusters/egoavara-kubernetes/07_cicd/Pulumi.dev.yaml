@@ -1,0 +1,5 @@
+secretsprovider: gcpkms://projects/practice-make-perfect-379914/locations/global/keyRings/pulumi-key/cryptoKeys/egoavara-net
+encryptedkey: CiQAtoJu58QH7PvzQkychGD30WKRz7RPwlcct367I1fi7n2YZucSSQC5OvDHVZCvpVLThOg17NLCXldVZcHAhWD4K6XmQxlbkqUeCvpS61BN9c/YFkNFRYi4U/7Ldl5F0CV/xh9mpR6u/pgqoBtg59c=
+config:
+  cluster:sops.ageKey:
+    secure: v1:9Hh1BssHuriigCSq:kdum/otVsaVktVEPh/TOnpW7Avt9GqjdX7nliFzzmT6fiajH9ohidf6UEGlunG2gkZpIK3Fx9FrwKIg0EHDda9FwUvcDO8AYOdBgU1xa2y6RHxVqOnrWWP/e
