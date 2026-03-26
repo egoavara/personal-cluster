@@ -18,6 +18,7 @@ type Endpoints struct {
 	TokenEndpoint         string `json:"token_endpoint"`
 	UserinfoEndpoint      string `json:"userinfo_endpoint"`
 	EndSessionEndpoint    string `json:"end_session_endpoint"`
+	JWKSURI               string `json:"jwks_uri"`
 }
 
 // InsecureHTTPClient returns an HTTP client that skips TLS verification.

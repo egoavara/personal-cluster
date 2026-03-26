@@ -22,6 +22,7 @@ type Server struct {
 	cfg        config.ExtAuthzConfig
 	sessions   *SessionManager
 	oidc       *OIDCProvider
+	jwks       *oidcpkg.JWKSValidator
 	authz      *Authorizer
 	limiter    *ratelimit.Limiter
 	httpServer *http.Server
@@ -41,10 +42,17 @@ func Run(ctx context.Context, spiceDBCfg config.SpiceDBConfig, cfg config.ExtAut
 		return fmt.Errorf("create OIDC provider: %w", err)
 	}
 
+	// JWKS validator for Bearer token auth (optional, fail-open if JWKS endpoint unavailable)
+	jwks, err := newJWKSValidator(ctx, cfg.OIDC.IssuerURL, logger)
+	if err != nil {
+		logger.Warn("JWKS validator initialization failed, Bearer auth disabled", zap.Error(err))
+	}
+
 	srv := &Server{
 		cfg:      cfg,
 		sessions: NewSessionManager(cfg.Session.Secret, cfg.Cookie.Name, cfg.Cookie.Domain, cfg.IsSecure()),
 		oidc:     oidc,
+		jwks:     jwks,
 		authz:    NewAuthorizer(spiceClient, spiceDBCfg.Cache, cfg.HostResourceMap(), logger),
 		logger:   logger,
 	}
@@ -131,10 +139,23 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Authenticate: try session cookie first, then Bearer token
+	var username, email string
+
 	session, err := s.sessions.GetSession(r)
-	if err != nil {
-		s.logger.Debug("no valid session, redirecting to login", zap.Error(err))
-		s.redirectToLogin(w, r)
+	if err == nil {
+		username = session.Username
+		email = session.Email
+	} else if bearerUser, bearerEmail, ok := s.tryBearerAuth(r); ok {
+		username = bearerUser
+		email = bearerEmail
+	} else {
+		// Neither session nor bearer — redirect browsers to login, reject API clients with 401
+		if isBearerRequest(r) {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		} else {
+			s.redirectToLogin(w, r)
+		}
 		return
 	}
 
@@ -143,11 +164,10 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 		host = r.Host
 	}
 
-
-	allowed, err := s.authz.CheckAccess(r.Context(), host, session.Username)
+	allowed, err := s.authz.CheckAccess(r.Context(), host, username)
 	if err != nil {
 		s.logger.Error("authorization check error",
-			zap.String("user", session.Username),
+			zap.String("user", username),
 			zap.String("host", host),
 			zap.Error(err),
 		)
@@ -157,13 +177,13 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 
 	if !allowed {
 		signOutURL := fmt.Sprintf("%s/sign_out?rd=%s", s.cfg.ExternalURL, url.QueryEscape(buildOriginalURL(r)))
-		renderForbidden(w, host, session.Username, "kube_service:"+s.authz.hostToResourceID(host), signOutURL, buildOriginalURL(r))
+		renderForbidden(w, host, username, "kube_service:"+s.authz.hostToResourceID(host), signOutURL, buildOriginalURL(r))
 		return
 	}
 
 	// Rate limit check (after authz, fail-open)
 	if s.limiter != nil {
-		decision, err := s.limiter.Check(r.Context(), session.Username, host)
+		decision, err := s.limiter.Check(r.Context(), username, host)
 		if err != nil {
 			s.logger.Error("rate limit check error", zap.Error(err))
 			// Fail open — allow the request
@@ -179,8 +199,8 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Header().Set("X-Auth-Request-User", session.Username)
-	w.Header().Set("X-Auth-Request-Email", session.Email)
+	w.Header().Set("X-Auth-Request-User", username)
+	w.Header().Set("X-Auth-Request-Email", email)
 	w.WriteHeader(http.StatusOK)
 }
 
