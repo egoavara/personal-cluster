@@ -162,7 +162,7 @@ stringData:
             - "urn:zitadel:iam:org:projects:roles"
           impersonation:
             username: "claims.sub"
-            groups: "claims.groups"
+            groups: "has(claims.groups) ? claims.groups : []"
 CONFIGEOF
 
 echo "Restarting flux-operator web server..."
