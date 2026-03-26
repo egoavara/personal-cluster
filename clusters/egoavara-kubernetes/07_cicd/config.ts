@@ -3,7 +3,7 @@ import * as pulumi from "@pulumi/pulumi";
 const config = new pulumi.Config("cluster");
 
 export const flux = {
-    version: config.get("flux.version") ?? "2.4.0",
+    version: config.get("flux.version") ?? "2.18.2",
     repository: "https://fluxcd-community.github.io/helm-charts",
 };
 
