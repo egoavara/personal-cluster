@@ -96,7 +96,7 @@ else
         -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
         -d '{
             "name": "flux-web-ui",
-            "redirectUris": ["https://gitops.private.egoavara.net/auth/callback"],
+            "redirectUris": ["https://gitops.private.egoavara.net/oauth2/callback"],
             "postLogoutRedirectUris": ["https://gitops.private.egoavara.net"],
             "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
             "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"],
