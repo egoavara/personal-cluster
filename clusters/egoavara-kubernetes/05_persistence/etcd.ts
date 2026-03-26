@@ -14,6 +14,9 @@ export const etcd = new helm.v3.Release("etcd", {
     repositoryOpts: { repo: persistenceConfig.etcd.repository },
     createNamespace: false,
     values: {
+        networkPolicy: {
+            enabled: false, // ambient mesh HBONE(15008)과 충돌, NS-level allow-hbone으로 대체
+        },
         replicaCount: 3,
         auth: {
             rbac: {
@@ -34,7 +37,7 @@ export const etcd = new helm.v3.Release("etcd", {
         },
         metrics: {
             enabled: true,
-            podMonitor: { enabled: true },
+            podMonitor: { enabled: false },
         },
         topologySpreadConstraints: [{
             maxSkew: 1,

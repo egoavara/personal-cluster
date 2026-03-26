@@ -19,28 +19,19 @@ export const valkey = new helm.v3.Release("valkey", {
             enabled: true,
             password: valkeyPassword.result,
         },
+        commonLabels: {
+            "istio.io/dataplane-mode": "none",
+        },
         sentinel: {
             enabled: true,
-            masterSet: "mymaster",
             quorum: 2,
             resources: {
                 requests: { cpu: "50m", memory: "64Mi" },
                 limits: { cpu: "200m", memory: "128Mi" },
             },
         },
-        master: {
-            persistence: {
-                enabled: true,
-                size: "5Gi",
-                storageClass: "topolvm-provisioner",
-            },
-            resources: {
-                requests: { cpu: "100m", memory: "128Mi" },
-                limits: { cpu: "500m", memory: "512Mi" },
-            },
-        },
         replica: {
-            replicaCount: 2,
+            replicaCount: 3,
             persistence: {
                 enabled: true,
                 size: "5Gi",
@@ -54,7 +45,7 @@ export const valkey = new helm.v3.Release("valkey", {
         tls: { enabled: false }, // Istio mTLS
         metrics: {
             enabled: true,
-            serviceMonitor: { enabled: true },
+            serviceMonitor: { enabled: false },
         },
     },
 }, { parent: persistencePhase });

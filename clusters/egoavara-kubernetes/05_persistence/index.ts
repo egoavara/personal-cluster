@@ -6,4 +6,5 @@ import "./qdrant.ts";
 import "./valkey.ts";
 import "./nats.ts";
 import "./etcd.ts";
+import "./manticoresearch.ts";
 import "./ceph-object-store.ts";

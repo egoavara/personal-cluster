@@ -147,6 +147,17 @@ export const cephfsSC = new storage.v1.StorageClass("rook-ceph-cephfs", {
     reclaimPolicy: "Delete",
 }, { parent: essentials, dependsOn: [cephFilesystem] });
 
+// ── Bucket StorageClass (OBC용 — S3 버킷 프로비저닝) ────────────────
+export const cephBucketSC = new storage.v1.StorageClass("rook-ceph-bucket", {
+    metadata: { name: "rook-ceph-bucket" },
+    provisioner: "ceph.rook.io/bucket",
+    reclaimPolicy: "Delete",
+    parameters: {
+        objectStoreName: "object-store",
+        objectStoreNamespace: ns.metadata.name,
+    },
+}, { parent: essentials, dependsOn: [cephCluster] });
+
 // ── Dashboard Service (ClusterIP — auth/ceph-proxy.ts에서 oauth2-proxy로 보호) ──
 export const cephDashboard = new core.v1.Service("ceph-dashboard", {
     metadata: { name: "ceph-dashboard", namespace: ns.metadata.name },

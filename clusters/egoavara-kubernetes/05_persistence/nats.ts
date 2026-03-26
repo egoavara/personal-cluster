@@ -29,6 +29,14 @@ export const nats = new helm.v3.Release("nats", {
                 },
             },
         },
+        container: {
+            merge: {
+                resources: {
+                    requests: { cpu: "100m", memory: "128Mi" },
+                    limits: { cpu: "500m", memory: "512Mi" },
+                },
+            },
+        },
         podTemplate: {
             topologySpreadConstraints: {
                 "kubernetes.io/hostname": {
@@ -36,17 +44,9 @@ export const nats = new helm.v3.Release("nats", {
                     whenUnsatisfiable: "DoNotSchedule",
                 },
             },
-            merge: {
-                spec: {
-                    containers: [{
-                        name: "nats",
-                        resources: {
-                            requests: { cpu: "100m", memory: "128Mi" },
-                            limits: { cpu: "500m", memory: "512Mi" },
-                        },
-                    }],
-                },
-            },
+        },
+        reloader: {
+            enabled: false,
         },
     },
 }, { parent: persistencePhase });
