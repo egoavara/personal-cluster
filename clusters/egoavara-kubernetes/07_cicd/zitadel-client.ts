@@ -88,38 +88,6 @@ ensure_role() {
 ensure_role "flux-admin" "Flux Admin"
 ensure_role "flux-viewer" "Flux Viewer"
 
-# --- Zitadel Action: flatten project roles → groups claim ---
-echo "=== Ensuring groups claim Action ==="
-
-ACTION_SCRIPT='function flattenRolesToGroups(ctx, api) { if (!ctx.v1.grants || !ctx.v1.grants.userGrants) return; var groups = []; ctx.v1.grants.userGrants.forEach(function(grant) { grant.roles.forEach(function(role) { if (groups.indexOf(role) === -1) groups.push(role); }); }); if (groups.length > 0) { api.v1.claims.setClaim("groups", groups); } }'
-
-ACTIONS=$(curl -sf -X POST "$API/management/v1/actions/_search" \\
-    -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
-    -d '{"queries":[{"actionNameQuery":{"name":"flattenRolesToGroups","method":"TEXT_QUERY_METHOD_EQUALS"}}]}')
-ACTION_ID=$(echo "$ACTIONS" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4 || true)
-
-if [ -n "$ACTION_ID" ]; then
-    echo "Action flattenRolesToGroups exists (id=$ACTION_ID), updating..."
-    curl -sf -X PUT "$API/management/v1/actions/$ACTION_ID" \\
-        -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
-        -d "{\\"name\\":\\"flattenRolesToGroups\\",\\"script\\":\\"$ACTION_SCRIPT\\",\\"timeout\\":\\"10s\\",\\"allowedToFail\\":false}" > /dev/null
-else
-    echo "Creating Action flattenRolesToGroups..."
-    RESULT=$(curl -sf -X POST "$API/management/v1/actions" \\
-        -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
-        -d "{\\"name\\":\\"flattenRolesToGroups\\",\\"script\\":\\"$ACTION_SCRIPT\\",\\"timeout\\":\\"10s\\",\\"allowedToFail\\":false}")
-    ACTION_ID=$(echo "$RESULT" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "Action created (id=$ACTION_ID)"
-fi
-
-if [ -n "$ACTION_ID" ]; then
-    echo "Attaching Action to Complement Token flow..."
-    curl -sf -X POST "$API/management/v1/flows/2/trigger/4" \\
-        -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
-        -d "{\\"actionId\\":\\"$ACTION_ID\\"}" > /dev/null 2>&1 || true
-    echo "Action attached to Complement Token flow"
-fi
-
 # Check existing Secret
 EXISTING=$(kubectl get secret "flux-web-config" -n "$NS" -o jsonpath='{.data.config\\.yaml}' 2>/dev/null | base64 -d 2>/dev/null | grep clientID || true)
 if [ -n "$EXISTING" ]; then
