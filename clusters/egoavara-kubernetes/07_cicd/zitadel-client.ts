@@ -1,18 +1,17 @@
 import * as k8s from "@pulumi/kubernetes";
 import { cicdPhase } from "./phase.ts";
 import { ns } from "./namespace.ts";
-import { weaveGitops } from "./weave-gitops.ts";
+import { fluxWebUI } from "./flux-web-ui.ts";
 
 const namespace = ns.metadata.name;
 
-// --- RBAC: flux-system NS에서 Secret 관리 ---
-const sa = new k8s.core.v1.ServiceAccount("weave-oidc-sa", {
-    metadata: { name: "weave-oidc-register", namespace },
+// --- RBAC ---
+const sa = new k8s.core.v1.ServiceAccount("flux-web-oidc-sa", {
+    metadata: { name: "flux-web-oidc-register", namespace },
 }, { parent: cicdPhase });
 
-// flux-system NS — Secret 생성 + Deployment restart 권한
-const role = new k8s.rbac.v1.Role("weave-oidc-role", {
-    metadata: { name: "weave-oidc-register", namespace },
+const role = new k8s.rbac.v1.Role("flux-web-oidc-role", {
+    metadata: { name: "flux-web-oidc-register", namespace },
     rules: [{
         apiGroups: [""],
         resources: ["secrets"],
@@ -24,15 +23,14 @@ const role = new k8s.rbac.v1.Role("weave-oidc-role", {
     }],
 }, { parent: cicdPhase });
 
-const roleBinding = new k8s.rbac.v1.RoleBinding("weave-oidc-rb", {
-    metadata: { name: "weave-oidc-register", namespace },
-    roleRef: { apiGroup: "rbac.authorization.k8s.io", kind: "Role", name: "weave-oidc-register" },
-    subjects: [{ kind: "ServiceAccount", name: "weave-oidc-register", namespace }],
+const roleBinding = new k8s.rbac.v1.RoleBinding("flux-web-oidc-rb", {
+    metadata: { name: "flux-web-oidc-register", namespace },
+    roleRef: { apiGroup: "rbac.authorization.k8s.io", kind: "Role", name: "flux-web-oidc-register" },
+    subjects: [{ kind: "ServiceAccount", name: "flux-web-oidc-register", namespace }],
 }, { parent: cicdPhase });
 
-// auth NS — iam-admin-pat Secret 읽기 권한
-const authRole = new k8s.rbac.v1.Role("weave-oidc-auth-role", {
-    metadata: { name: "weave-oidc-register", namespace: "auth" },
+const authRole = new k8s.rbac.v1.Role("flux-web-oidc-auth-role", {
+    metadata: { name: "flux-web-oidc-register", namespace: "auth" },
     rules: [{
         apiGroups: [""],
         resources: ["secrets"],
@@ -41,15 +39,15 @@ const authRole = new k8s.rbac.v1.Role("weave-oidc-auth-role", {
     }],
 }, { parent: cicdPhase });
 
-const authRoleBinding = new k8s.rbac.v1.RoleBinding("weave-oidc-auth-rb", {
-    metadata: { name: "weave-oidc-register", namespace: "auth" },
-    roleRef: { apiGroup: "rbac.authorization.k8s.io", kind: "Role", name: "weave-oidc-register" },
-    subjects: [{ kind: "ServiceAccount", name: "weave-oidc-register", namespace }],
+const authRoleBinding = new k8s.rbac.v1.RoleBinding("flux-web-oidc-auth-rb", {
+    metadata: { name: "flux-web-oidc-register", namespace: "auth" },
+    roleRef: { apiGroup: "rbac.authorization.k8s.io", kind: "Role", name: "flux-web-oidc-register" },
+    subjects: [{ kind: "ServiceAccount", name: "flux-web-oidc-register", namespace }],
 }, { parent: cicdPhase });
 
 // --- Script ---
-const script = new k8s.core.v1.ConfigMap("weave-oidc-script", {
-    metadata: { name: "weave-oidc-script", namespace },
+const script = new k8s.core.v1.ConfigMap("flux-web-oidc-script", {
+    metadata: { name: "flux-web-oidc-script", namespace },
     data: {
         "register.sh": `#!/bin/sh
 set -e
@@ -70,19 +68,16 @@ if [ -z "$PROJECT_ID" ]; then
     echo "ERROR: Infrastructure project not found. Run 04_auth first."
     exit 1
 fi
-echo "Project ID: $PROJECT_ID"
 
 # Check existing Secret
-EXISTING_CID=$(kubectl get secret "oidc-auth" -n "$NS" -o jsonpath='{.data.clientID}' 2>/dev/null | base64 -d 2>/dev/null || true)
-EXISTING_CS=$(kubectl get secret "oidc-auth" -n "$NS" -o jsonpath='{.data.clientSecret}' 2>/dev/null | base64 -d 2>/dev/null || true)
-
-if [ -n "$EXISTING_CID" ] && [ -n "$EXISTING_CS" ]; then
-    echo "oidc-auth Secret already exists (clientId=$EXISTING_CID), skipping"
+EXISTING=$(kubectl get secret "flux-web-config" -n "$NS" -o jsonpath='{.data.config\\.yaml}' 2>/dev/null | base64 -d 2>/dev/null | grep clientID || true)
+if [ -n "$EXISTING" ]; then
+    echo "flux-web-config Secret already exists, skipping"
     exit 0
 fi
 
-# Check if app exists in Zitadel
-APP_NAME="weave-gitops"
+# Register or find OIDC client
+APP_NAME="flux-web-ui"
 SEARCH_BODY='{"queries":[{"nameQuery":{"name":"'"$APP_NAME"'","method":"TEXT_QUERY_METHOD_EQUALS"}}]}'
 APPS=$(curl -sf -X POST "$API/management/v1/projects/$PROJECT_ID/apps/_search" \\
     -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
@@ -100,8 +95,8 @@ else
     RESULT=$(curl -sf -X POST "$API/management/v1/projects/$PROJECT_ID/apps/oidc" \\
         -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
         -d '{
-            "name": "weave-gitops",
-            "redirectUris": ["https://gitops.private.egoavara.net/oauth2/callback"],
+            "name": "flux-web-ui",
+            "redirectUris": ["https://gitops.private.egoavara.net/auth/callback"],
             "postLogoutRedirectUris": ["https://gitops.private.egoavara.net"],
             "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
             "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"],
@@ -118,18 +113,39 @@ if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ]; then
     exit 1
 fi
 
-echo "Creating oidc-auth Secret (clientId=$CLIENT_ID)..."
-kubectl create secret generic oidc-auth -n "$NS" \\
-    --from-literal=issuerURL="https://auth.egoavara.net" \\
-    --from-literal=redirectURL="https://gitops.private.egoavara.net/oauth2/callback" \\
-    --from-literal=clientID="$CLIENT_ID" \\
-    --from-literal=clientSecret="$CLIENT_SECRET" \\
-    --from-literal=claimUsername="sub" \\
-    --from-literal=customScopes="openid,offline_access,email,profile,groups" \\
-    --dry-run=client -o yaml | kubectl apply -f -
+echo "Creating flux-web-config Secret (clientId=$CLIENT_ID)..."
+cat <<CONFIGEOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: flux-web-config
+  namespace: $NS
+type: Opaque
+stringData:
+  config.yaml: |
+    apiVersion: web.fluxcd.controlplane.io/v1
+    kind: Config
+    spec:
+      baseURL: https://gitops.private.egoavara.net
+      authentication:
+        type: OAuth2
+        sessionDuration: 24h
+        oauth2:
+          provider: OIDC
+          clientID: "$CLIENT_ID"
+          clientSecret: "$CLIENT_SECRET"
+          issuerURL: "https://auth.egoavara.net"
+          scopes:
+            - openid
+            - offline_access
+            - profile
+            - email
+          impersonation:
+            username: "claims.sub"
+CONFIGEOF
 
-echo "Restarting weave-gitops to pick up OIDC..."
-kubectl rollout restart deployment/weave-gitops -n "$NS"
+echo "Restarting flux-operator web server..."
+kubectl rollout restart deployment -n "$NS" -l app.kubernetes.io/name=flux-operator 2>/dev/null || true
 
 echo "=== DONE ==="
 `,
@@ -137,9 +153,9 @@ echo "=== DONE ==="
 }, { parent: cicdPhase });
 
 // --- Job ---
-export const zitadelClient = new k8s.batch.v1.Job("weave-oidc-register", {
+export const zitadelClient = new k8s.batch.v1.Job("flux-web-oidc-register", {
     metadata: {
-        name: "weave-oidc-register",
+        name: "flux-web-oidc-register",
         namespace,
         annotations: {
             "cicd/script-version": script.metadata.resourceVersion,
@@ -149,10 +165,10 @@ export const zitadelClient = new k8s.batch.v1.Job("weave-oidc-register", {
         backoffLimit: 10,
         template: {
             spec: {
-                serviceAccountName: "weave-oidc-register",
+                serviceAccountName: "flux-web-oidc-register",
                 restartPolicy: "OnFailure",
                 volumes: [
-                    { name: "script", configMap: { name: "weave-oidc-script", defaultMode: 0o755 } },
+                    { name: "script", configMap: { name: "flux-web-oidc-script", defaultMode: 0o755 } },
                 ],
                 initContainers: [{
                     name: "wait-zitadel",
@@ -175,6 +191,6 @@ export const zitadelClient = new k8s.batch.v1.Job("weave-oidc-register", {
     },
 }, {
     parent: cicdPhase,
-    dependsOn: [weaveGitops, script, sa, role, roleBinding, authRole, authRoleBinding],
+    dependsOn: [fluxWebUI, script, sa, role, roleBinding, authRole, authRoleBinding],
     replaceOnChanges: ["metadata.annotations"],
 });

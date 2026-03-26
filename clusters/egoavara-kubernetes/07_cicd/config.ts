@@ -7,7 +7,7 @@ export const flux = {
     repository: "https://fluxcd-community.github.io/helm-charts",
 };
 
-export const weaveGitops = {
-    version: config.get("weaveGitops.version") ?? "4.0.36",
-    repository: "oci://ghcr.io/weaveworks/charts",
+export const fluxOperator = {
+    version: config.get("fluxOperator.version") ?? "0.45.1",
+    repository: "oci://ghcr.io/controlplaneio-fluxcd/charts",
 };
