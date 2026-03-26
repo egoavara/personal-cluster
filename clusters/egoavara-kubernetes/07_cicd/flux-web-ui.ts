@@ -1,5 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
-import { helm, core } from "@pulumi/kubernetes";
+import { helm, core, rbac } from "@pulumi/kubernetes";
 import { fluxOperator as fluxOperatorConfig } from "./config.ts";
 import { cicdPhase } from "./phase.ts";
 import { ns } from "./namespace.ts";
@@ -51,3 +51,37 @@ export const fluxWebUI = new helm.v3.Release("flux-operator", {
         },
     },
 }, { parent: cicdPhase, dependsOn: [flux] });
+
+// --- OIDC groups → K8s RBAC (정적 ClusterRoleBinding) ---
+// Zitadel Action이 project roles를 flat "groups" claim으로 주입하고,
+// Flux Web UI가 impersonation.groups로 K8s에 전달.
+// 여기서는 Group → ClusterRole 바인딩만 정적으로 생성.
+
+// TODO: kubectl get clusterroles | grep flux 로 실제 ClusterRole 이름 확인 후 교체
+new rbac.v1.ClusterRoleBinding("flux-web-admin", {
+    metadata: { name: "flux-web-admin" },
+    roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "flux-operator-admin",  // TODO: 클러스터에서 확인 후 교체
+    },
+    subjects: [{
+        kind: "Group",
+        name: "flux-admin",
+        apiGroup: "rbac.authorization.k8s.io",
+    }],
+}, { parent: cicdPhase, dependsOn: [fluxWebUI] });
+
+new rbac.v1.ClusterRoleBinding("flux-web-viewer", {
+    metadata: { name: "flux-web-viewer" },
+    roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "flux-operator-viewer",  // TODO: 클러스터에서 확인 후 교체
+    },
+    subjects: [{
+        kind: "Group",
+        name: "flux-viewer",
+        apiGroup: "rbac.authorization.k8s.io",
+    }],
+}, { parent: cicdPhase, dependsOn: [fluxWebUI] });
