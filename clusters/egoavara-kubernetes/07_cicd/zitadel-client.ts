@@ -159,10 +159,10 @@ stringData:
             - offline_access
             - profile
             - email
-            - "urn:zitadel:iam:org:projects:roles"
+            - "urn:zitadel:iam:org:project:roles"
           impersonation:
             username: "claims.sub"
-            groups: "has(claims.groups) ? claims.groups : []"
+            groups: "has(claims['urn:zitadel:iam:org:project:roles']) ? claims['urn:zitadel:iam:org:project:roles'].map(e, e.key) : []"
 CONFIGEOF
 
 echo "Restarting flux-operator web server..."
