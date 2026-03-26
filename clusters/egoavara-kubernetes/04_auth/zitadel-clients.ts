@@ -248,33 +248,63 @@ fi
 # 모든 OIDC 클라이언트의 토큰에 project roles를 flat groups claim으로 주입
 echo "=== Ensuring groups claim Action ==="
 
-ACTION_SCRIPT='function flattenRolesToGroups(ctx, api) { if (!ctx.v1.grants || !ctx.v1.grants.userGrants) return; var groups = []; ctx.v1.grants.userGrants.forEach(function(grant) { grant.roles.forEach(function(role) { if (groups.indexOf(role) === -1) groups.push(role); }); }); if (groups.length > 0) { api.v1.claims.setClaim("groups", groups); } }'
+ACTION_SCRIPT_FILE=$(mktemp)
+cat > "$ACTION_SCRIPT_FILE" <<'ACTIONEOF'
+function flattenRolesToGroups(ctx, api) {
+  if (!ctx.v1.grants || !ctx.v1.grants.userGrants) return;
+  var groups = [];
+  ctx.v1.grants.userGrants.forEach(function(grant) {
+    grant.roles.forEach(function(role) {
+      if (groups.indexOf(role) === -1) groups.push(role);
+    });
+  });
+  if (groups.length > 0) {
+    api.v1.claims.setClaim("groups", groups);
+  }
+}
+ACTIONEOF
+ACTION_SCRIPT=$(cat "$ACTION_SCRIPT_FILE")
+rm -f "$ACTION_SCRIPT_FILE"
 
-ACTIONS=$(curl -sf -X POST "$API/management/v1/actions/_search" \\
+# jq가 없으면 json 조립이 어려우므로 heredoc + cat 사용
+make_action_json() {
+    cat <<ACTJSONEOF
+{"name":"flattenRolesToGroups","script":"$(echo "$ACTION_SCRIPT" | sed 's/"/\\\\"/g' | tr '\\n' ' ')","timeout":"10s","allowedToFail":false}
+ACTJSONEOF
+}
+
+ACTIONS=$(curl -s -X POST "$API/management/v1/actions/_search" \\
     -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
     -d '{"queries":[{"actionNameQuery":{"name":"flattenRolesToGroups","method":"TEXT_QUERY_METHOD_EQUALS"}}]}')
+echo "Actions search response: $ACTIONS"
 ACTION_ID=$(echo "$ACTIONS" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4 || true)
+
+ACTION_JSON=$(make_action_json)
+echo "Action JSON: $ACTION_JSON"
 
 if [ -n "$ACTION_ID" ]; then
     echo "Action flattenRolesToGroups exists (id=$ACTION_ID), updating..."
-    curl -sf -X PUT "$API/management/v1/actions/$ACTION_ID" \\
+    curl -s -X PUT "$API/management/v1/actions/$ACTION_ID" \\
         -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
-        -d "{\\"name\\":\\"flattenRolesToGroups\\",\\"script\\":\\"$ACTION_SCRIPT\\",\\"timeout\\":\\"10s\\",\\"allowedToFail\\":false}" > /dev/null
+        -d "$ACTION_JSON"
 else
     echo "Creating Action flattenRolesToGroups..."
-    RESULT=$(curl -sf -X POST "$API/management/v1/actions" \\
+    RESULT=$(curl -s -X POST "$API/management/v1/actions" \\
         -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
-        -d "{\\"name\\":\\"flattenRolesToGroups\\",\\"script\\":\\"$ACTION_SCRIPT\\",\\"timeout\\":\\"10s\\",\\"allowedToFail\\":false}")
+        -d "$ACTION_JSON")
+    echo "Create action response: $RESULT"
     ACTION_ID=$(echo "$RESULT" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
     echo "Action created (id=$ACTION_ID)"
 fi
 
 if [ -n "$ACTION_ID" ]; then
-    echo "Attaching Action to Complement Token flow..."
-    curl -sf -X POST "$API/management/v1/flows/2/trigger/4" \\
-        -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
-        -d "{\\"actionId\\":\\"$ACTION_ID\\"}" > /dev/null 2>&1 || true
-    echo "Action attached to Complement Token flow"
+    # Complement Token flow (type=2): trigger 4 = Pre Access Token, trigger 5 = Pre Userinfo
+    for TRIGGER in 4 5; do
+        FLOW_RESULT=$(curl -s -X POST "$API/management/v1/flows/2/trigger/$TRIGGER" \\
+            -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+            -d "{\\"actionId\\":\\"$ACTION_ID\\"}")
+        echo "Trigger $TRIGGER response: $FLOW_RESULT"
+    done
 fi
 
 echo "=== ALL CLIENTS, IdPs & ACTIONS ENSURED ==="
