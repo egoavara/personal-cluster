@@ -255,39 +255,15 @@ fi
 # 모든 OIDC 클라이언트의 토큰에 project roles를 flat groups claim으로 주입
 echo "=== Ensuring groups claim Action ==="
 
-ACTION_SCRIPT_FILE=$(mktemp)
-cat > "$ACTION_SCRIPT_FILE" <<'ACTIONEOF'
-function flattenRolesToGroups(ctx, api) {
-  if (!ctx.v1.grants || !ctx.v1.grants.userGrants) return;
-  var groups = [];
-  ctx.v1.grants.userGrants.forEach(function(grant) {
-    grant.roles.forEach(function(role) {
-      if (groups.indexOf(role) === -1) groups.push(role);
-    });
-  });
-  if (groups.length > 0) {
-    api.v1.claims.setClaim("groups", groups);
-  }
-}
-ACTIONEOF
-ACTION_SCRIPT=$(cat "$ACTION_SCRIPT_FILE")
-rm -f "$ACTION_SCRIPT_FILE"
-
-# jq가 없으면 json 조립이 어려우므로 heredoc + cat 사용
-make_action_json() {
-    cat <<ACTJSONEOF
-{"name":"flattenRolesToGroups","script":"$(echo "$ACTION_SCRIPT" | sed 's/"/\\\\"/g' | tr '\\n' ' ')","timeout":"10s","allowedToFail":false}
-ACTJSONEOF
-}
+# JS에서 작은따옴표 사용 → JSON 이스케이핑 불필요
+ACTION_SCRIPT="function flattenRolesToGroups(ctx, api) { if (!ctx.v1.grants || !ctx.v1.grants.userGrants) return; var groups = []; ctx.v1.grants.userGrants.forEach(function(grant) { grant.roles.forEach(function(role) { if (groups.indexOf(role) === -1) groups.push(role); }); }); if (groups.length > 0) { api.v1.claims.setClaim('groups', groups); } }"
+ACTION_JSON="{\\"name\\":\\"flattenRolesToGroups\\",\\"script\\":\\"$ACTION_SCRIPT\\",\\"timeout\\":\\"10s\\",\\"allowedToFail\\":false}"
 
 ACTIONS=$(curl -s -X POST "$API/management/v1/actions/_search" \\
     -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
     -d '{"queries":[{"actionNameQuery":{"name":"flattenRolesToGroups","method":"TEXT_QUERY_METHOD_EQUALS"}}]}')
 echo "Actions search response: $ACTIONS"
 ACTION_ID=$(echo "$ACTIONS" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4 || true)
-
-ACTION_JSON=$(make_action_json)
-echo "Action JSON: $ACTION_JSON"
 
 if [ -n "$ACTION_ID" ]; then
     echo "Action flattenRolesToGroups exists (id=$ACTION_ID), updating..."
