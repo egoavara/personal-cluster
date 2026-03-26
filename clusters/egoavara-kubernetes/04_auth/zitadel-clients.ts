@@ -92,6 +92,13 @@ if [ -z "$PROJECT_ID" ]; then
 fi
 echo "Project ID: $PROJECT_ID"
 
+# Enable projectRoleAssertion — Action의 ctx.v1.grants에 role 정보 제공에 필요
+echo "=== Enabling project role assertion ==="
+curl -s -X PUT "$API/management/v1/projects/$PROJECT_ID" \\
+    -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+    -d "{\\"name\\":\\"Infrastructure\\",\\"projectRoleAssertion\\":true,\\"projectRoleCheck\\":true}" > /dev/null
+echo "Project role assertion enabled"
+
 # ensure_app: idempotent client registration
 # - If K8s Secret exists with client-id/client-secret → skip (already registered)
 # - If Zitadel app exists but no Secret → regenerate secret, create Secret
