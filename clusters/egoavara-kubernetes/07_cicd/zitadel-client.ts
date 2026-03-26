@@ -124,8 +124,8 @@ kubectl create secret generic oidc-auth -n "$NS" \\
     --from-literal=redirectURL="https://gitops.private.egoavara.net/oauth2/callback" \\
     --from-literal=clientID="$CLIENT_ID" \\
     --from-literal=clientSecret="$CLIENT_SECRET" \\
-    --from-literal=claimUsername="email" \\
-    --from-literal=customScopes="openid,offline_access,email,groups" \\
+    --from-literal=claimUsername="sub" \\
+    --from-literal=customScopes="openid,offline_access,email,profile,groups" \\
     --dry-run=client -o yaml | kubectl apply -f -
 
 echo "Restarting weave-gitops to pick up OIDC..."

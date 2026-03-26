@@ -6,6 +6,10 @@ import { sopsAgeSecret } from "./sops-age.ts";
 
 const namespace = ns.metadata.name;
 
+// Flux 컨트롤러는 ztunnel과 호환되지 않음 (liveness probe 실패)
+// pod 레벨에서 mesh를 opt-out하여 Weave GitOps만 mesh에 참여하게 함
+const fluxMeshOptOut = { "istio.io/dataplane-mode": "none" };
+
 export const flux = new helm.v3.Release("flux", {
     chart: "flux2",
     name: "flux",
@@ -14,20 +18,19 @@ export const flux = new helm.v3.Release("flux", {
     repositoryOpts: { repo: fluxConfig.repository },
     createNamespace: false,
     values: {
-        // Source controller: git repo 폴링
         sourceController: {
+            labels: fluxMeshOptOut,
             resources: {
                 requests: { cpu: "50m", memory: "64Mi" },
                 limits: { cpu: "500m", memory: "256Mi" },
             },
         },
-        // Kustomize controller: manifest 적용 + SOPS 복호화
         kustomizeController: {
+            labels: fluxMeshOptOut,
             resources: {
                 requests: { cpu: "50m", memory: "64Mi" },
                 limits: { cpu: "500m", memory: "256Mi" },
             },
-            // SOPS age 복호화 활성화
             extraEnv: [
                 {
                     name: "SOPS_AGE_KEY_FILE",
@@ -50,21 +53,20 @@ export const flux = new helm.v3.Release("flux", {
                 },
             ],
         },
-        // Helm controller: Helm release 관리
         helmController: {
+            labels: fluxMeshOptOut,
             resources: {
                 requests: { cpu: "50m", memory: "64Mi" },
                 limits: { cpu: "500m", memory: "256Mi" },
             },
         },
-        // Notification controller: 알림 (optional)
         notificationController: {
+            labels: fluxMeshOptOut,
             resources: {
                 requests: { cpu: "25m", memory: "32Mi" },
                 limits: { cpu: "200m", memory: "128Mi" },
             },
         },
-        // Image automation controllers: 비활성화 (불필요)
         imageAutomationController: { create: false },
         imageReflectionController: { create: false },
     },

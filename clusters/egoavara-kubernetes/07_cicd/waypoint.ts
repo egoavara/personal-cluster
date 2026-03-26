@@ -45,3 +45,27 @@ export const telemetry = new k8s.apiextensions.CustomResource("telemetry-waypoin
         }],
     },
 }, { parent: cicdPhase, dependsOn: [waypoint] });
+
+// Weave GitOps sticky session — cookie 기반 consistent hash
+// OIDC 세션이 in-memory이므로 같은 유저의 요청이 같은 pod으로 가야 함
+export const weaveStickySesion = new k8s.apiextensions.CustomResource("weave-gitops-sticky", {
+    apiVersion: "networking.istio.io/v1",
+    kind: "DestinationRule",
+    metadata: {
+        name: "weave-gitops-sticky",
+        namespace,
+    },
+    spec: {
+        host: "weave-gitops.flux-system.svc.cluster.local",
+        trafficPolicy: {
+            loadBalancer: {
+                consistentHash: {
+                    httpCookie: {
+                        name: "weave-session-affinity",
+                        ttl: "3600s",
+                    },
+                },
+            },
+        },
+    },
+}, { parent: cicdPhase, dependsOn: [waypoint] });
