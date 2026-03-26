@@ -306,10 +306,11 @@ fi
 
 if [ -n "$ACTION_ID" ]; then
     # Complement Token flow (type=2): trigger 4 = Pre Access Token, trigger 5 = Pre Userinfo
+    # trigger 4 = Pre Userinfo, trigger 5 = Pre Access Token
     for TRIGGER in 4 5; do
         FLOW_RESULT=$(curl -s -X POST "$API/management/v1/flows/2/trigger/$TRIGGER" \\
             -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
-            -d "{\\"actionId\\":\\"$ACTION_ID\\"}")
+            -d "{\\"actionIds\\":[\\"$ACTION_ID\\"]}")
         echo "Trigger $TRIGGER response: $FLOW_RESULT"
     done
 fi
