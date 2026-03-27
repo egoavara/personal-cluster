@@ -2,6 +2,7 @@ import * as k8s from "@pulumi/kubernetes";
 import { persistencePhase } from "./phase.ts";
 import { ns } from "./namespace.ts";
 import { pgVenderPassword } from "./secrets.ts";
+import { cluster } from "./config.ts";
 
 const namespace = ns.metadata.name;
 
@@ -34,11 +35,11 @@ const walBucket = new k8s.apiextensions.CustomResource("pg-wal-archive", {
     metadata: { name: "pg-wal-archive", namespace },
     spec: {
         bucketName: walBucketName,
-        storageClassName: "rook-ceph-bucket",
+        storageClassName: cluster.rookBucketStorageClass,
     },
 }, { parent: persistencePhase });
 
-const s3Endpoint = "http://rook-ceph-rgw-object-store.rook-ceph.svc:80";
+const s3Endpoint = `http://${cluster.rookRgwService}.${cluster.rookNamespace}.svc:80`;
 
 // CloudNativePG PostgreSQL Cluster — 범용 공유 DB
 // 3 instances: 1 primary + 2 replica, 자동 failover

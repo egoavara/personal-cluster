@@ -2,6 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import { core, apps } from "@pulumi/kubernetes";
 import { persistencePhase } from "./phase.ts";
 import { ns } from "./namespace.ts";
+import { cluster } from "./config.ts";
 
 const namespace = ns.metadata.name;
 
@@ -93,27 +94,31 @@ import { etcd } from "./etcd.ts";
 const venderSecrets = new core.v1.Secret("vender-secrets", {
     metadata: { name: "vender-secrets", namespace },
     stringData: {
-        "secrets.yaml": pgVenderPassword.result.apply(pgPass => `
+        "secrets.yaml": pgVenderPassword.result.apply(pgPass => {
+            const authNs = cluster.authNamespace;
+            const ns = "persistence";
+            return `
 spicedb:
-  endpoint: "spicedb.auth.svc.cluster.local:50051"
+  endpoint: "spicedb.${authNs}.svc.cluster.local:50051"
   presharedKey: ""
 zitadel:
-  apiEndpoint: "http://zitadel.auth.svc.cluster.local:8080"
+  apiEndpoint: "http://zitadel.${authNs}.svc.cluster.local:8080"
   pat: ""
   projectID: ""
 services:
   postgres:
-    dsn: "postgresql://vender:${pgPass}@pg-persistence-rw.persistence.svc.cluster.local:5432/app?sslmode=disable"
+    dsn: "postgresql://vender:${pgPass}@pg-persistence-rw.${ns}.svc.cluster.local:5432/app?sslmode=disable"
   valkey:
-    addr: "valkey-node-0.valkey-headless.persistence.svc.cluster.local:6379"
+    addr: "valkey-node-0.valkey-headless.${ns}.svc.cluster.local:6379"
     password: ""
   etcd:
     endpoints:
-      - "etcd-0.etcd-headless.persistence.svc.cluster.local:2379"
-      - "etcd-1.etcd-headless.persistence.svc.cluster.local:2379"
-      - "etcd-2.etcd-headless.persistence.svc.cluster.local:2379"
+      - "etcd-0.etcd-headless.${ns}.svc.cluster.local:2379"
+      - "etcd-1.etcd-headless.${ns}.svc.cluster.local:2379"
+      - "etcd-2.etcd-headless.${ns}.svc.cluster.local:2379"
     rootPassword: ""
-`),
+`;
+        }),
     },
 }, { parent: persistencePhase });
 
@@ -236,5 +241,5 @@ const venderCephClusterRole = new rbac.v1.ClusterRole("vender-ceph-objstore", {
 const venderCephRoleBinding = new rbac.v1.ClusterRoleBinding("vender-ceph-objstore", {
     metadata: { name: "vender-ceph-objstore" },
     roleRef: { apiGroup: "rbac.authorization.k8s.io", kind: "ClusterRole", name: "vender-ceph-objstore" },
-    subjects: [{ kind: "ServiceAccount", name: "vender", namespace: "persistence" }],
+    subjects: [{ kind: "ServiceAccount", name: "vender", namespace }],
 }, { parent: persistencePhase, dependsOn: [venderSA, venderCephClusterRole] });

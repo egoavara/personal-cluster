@@ -2,6 +2,16 @@ import * as pulumi from "@pulumi/pulumi";
 
 const config = new pulumi.Config("cluster");
 
+// Cross-phase references
+export const cluster = {
+    domain: config.get("ingress.domain") ?? "egoavara.net",
+    authNamespace: config.get("auth.namespace") ?? "auth",
+    authDomain: config.get("auth.zitadel.domain") ?? "auth.egoavara.net",
+    rookNamespace: config.get("rook.namespace") ?? "rook-ceph",
+    rookRgwService: config.get("rook.rgw.service") ?? "rook-ceph-rgw-object-store",
+    rookBucketStorageClass: config.get("rook.bucketStorageClass") ?? "rook-ceph-bucket",
+};
+
 export const persistence = {
     qdrant: {
         version: config.get("persistence.qdrant.version") ?? "1.17.0",

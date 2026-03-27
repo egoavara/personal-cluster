@@ -6,6 +6,8 @@ import { zitadel } from "./zitadel.ts";
 
 const namespace = ns.metadata.name;
 const config = new pulumi.Config("cluster");
+const persistenceNs = config.get("persistence.namespace") ?? "persistence";
+const authDomain = config.get("auth.zitadel.domain") ?? "auth.egoavara.net";
 const googleOAuth = {
     clientId: config.requireSecret("auth.google.clientId"),
     clientSecret: config.requireSecret("auth.google.clientSecret"),
@@ -34,7 +36,7 @@ const roleBinding = new k8s.rbac.v1.RoleBinding("zitadel-clients-rb", {
 
 // persistence NS — vender-auth-secrets (SpiceDB key, Zitadel PAT, project ID) 생성 권한
 const persistenceRole = new k8s.rbac.v1.Role("zitadel-clients-persistence-role", {
-    metadata: { name: "zitadel-clients", namespace: "persistence" },
+    metadata: { name: "zitadel-clients", namespace: persistenceNs },
     rules: [{
         apiGroups: [""],
         resources: ["secrets"],
@@ -43,7 +45,7 @@ const persistenceRole = new k8s.rbac.v1.Role("zitadel-clients-persistence-role",
 }, { parent: authPhase });
 
 const persistenceRoleBinding = new k8s.rbac.v1.RoleBinding("zitadel-clients-persistence-rb", {
-    metadata: { name: "zitadel-clients", namespace: "persistence" },
+    metadata: { name: "zitadel-clients", namespace: persistenceNs },
     roleRef: { apiGroup: "rbac.authorization.k8s.io", kind: "Role", name: "zitadel-clients" },
     subjects: [{ kind: "ServiceAccount", name: "zitadel-clients", namespace: "auth" }],
 }, { parent: authPhase });
@@ -90,9 +92,10 @@ set -e
 PAT=$(echo "$PAT" | tr -d '\\n\\r ')
 API="http://zitadel.auth.svc.cluster.local:8080"
 H_AUTH="Authorization: Bearer $PAT"
-H_HOST="Host: auth.egoavara.net"
+H_HOST="Host: ${authDomain}"
 H_CT="Content-Type: application/json"
 NS="auth"
+PERSISTENCE_NS="${persistenceNs}"
 
 echo "=== Ensuring project ==="
 PROJECT=$(curl -sf -X POST "$API/management/v1/projects/_search" \\
@@ -311,7 +314,7 @@ fi
 # persistence NS에 SpiceDB key, Zitadel PAT, project ID를 복제
 echo "=== Creating vender-auth-secrets in persistence NS ==="
 SPICEDB_KEY=$(kubectl get secret spicedb-preshared-key -n auth -o jsonpath='{.data.SPICEDB_GRPC_PRESHARED_KEY}' | base64 -d)
-kubectl create secret generic vender-auth-secrets -n persistence \\
+kubectl create secret generic vender-auth-secrets -n "$PERSISTENCE_NS" \\
     --from-literal=spicedb-preshared-key="$SPICEDB_KEY" \\
     --from-literal=zitadel-pat="$PAT" \\
     --from-literal=zitadel-project-id="$PROJECT_ID" \\
@@ -346,7 +349,7 @@ export const zitadelClients = new k8s.batch.v1.Job("zitadel-clients", {
                     name: "wait-zitadel",
                     image: "curlimages/curl:latest",
                     command: ["sh", "-c",
-                        "until curl -sf http://zitadel.auth.svc.cluster.local:8080/debug/ready -H 'Host: auth.egoavara.net'; do sleep 3; done",
+                        `until curl -sf http://zitadel.auth.svc.cluster.local:8080/debug/ready -H 'Host: ${authDomain}'; do sleep 3; done`,
                     ],
                 }],
                 containers: [{
