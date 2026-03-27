@@ -72,13 +72,8 @@ const fluxAdminRole = new rbac.v1.ClusterRole("flux-web-admin", {
             verbs: ["*"],
         },
         {
-            apiGroups: [""],
-            resources: ["namespaces", "events"],
-            verbs: ["get", "list", "watch"],
-        },
-        {
-            apiGroups: [""],
-            resources: ["secrets", "configmaps", "serviceaccounts"],
+            apiGroups: ["*"],
+            resources: ["*"],
             verbs: ["get", "list", "watch"],
         },
     ],
@@ -88,13 +83,8 @@ const fluxViewerRole = new rbac.v1.ClusterRole("flux-web-viewer", {
     metadata: { name: "flux-web-viewer" },
     rules: [
         {
-            apiGroups: fluxApiGroups,
+            apiGroups: ["*"],
             resources: ["*"],
-            verbs: ["get", "list", "watch"],
-        },
-        {
-            apiGroups: [""],
-            resources: ["namespaces", "events"],
             verbs: ["get", "list", "watch"],
         },
     ],
