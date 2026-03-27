@@ -54,9 +54,12 @@ extAuthz:
 
 dashboard:
   listenAddr: ":8080"
-  externalURL: "https://guard.private.egoavara.net:8443"
+  externalURL: "https://guard.private.egoavara.net"
   oidc:
     issuerURL: "https://auth.egoavara.net"
+  cookie:
+    domain: ".egoavara.net"
+    name: "guard-session"
   routesFile: "/config/routes.yaml"
 `,
         "routes.yaml": `

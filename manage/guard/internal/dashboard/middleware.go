@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
@@ -15,7 +16,8 @@ func AuthMiddleware(oidc *OIDCHandler, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := oidc.GetSession(r)
 		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusFound)
+			loginURL := "/login?rd=" + url.QueryEscape(r.URL.RequestURI())
+			http.Redirect(w, r, loginURL, http.StatusFound)
 			return
 		}
 		// Store session in request context

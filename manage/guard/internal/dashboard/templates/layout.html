@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>kube-authz Dashboard</title>
+<title>Guard Dashboard</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f5;color:#333}
@@ -39,10 +39,11 @@ th{background:#f8f9fa;font-weight:600}
 </head>
 <body>
 <nav>
-<span class="brand">kube-authz</span>
+<span class="brand">Guard</span>
 <a href="/">Home</a>
 <a href="/policy/">Policies</a>
 <a href="/check">Check</a>
+<a href="/schema">Schema</a>
 {{if .Session}}<span class="user">{{.Session.Username}}</span><a href="/logout">Logout</a>{{end}}
 </nav>
 <div class="container">{{template "content" .}}</div>

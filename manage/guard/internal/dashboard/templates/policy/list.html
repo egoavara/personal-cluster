@@ -9,13 +9,8 @@
 <div class="form-group" style="margin:0">
 <label>Resource Type</label>
 <select name="type" onchange="this.form.submit()">
-<option value="service" {{if eq .ResourceType "service"}}selected{{end}}>service</option>
-<option value="pod" {{if eq .ResourceType "pod"}}selected{{end}}>pod</option>
-<option value="deployment" {{if eq .ResourceType "deployment"}}selected{{end}}>deployment</option>
-<option value="namespace" {{if eq .ResourceType "namespace"}}selected{{end}}>namespace</option>
-<option value="configmap" {{if eq .ResourceType "configmap"}}selected{{end}}>configmap</option>
-<option value="secret" {{if eq .ResourceType "secret"}}selected{{end}}>secret</option>
-<option value="dashboard" {{if eq .ResourceType "dashboard"}}selected{{end}}>dashboard</option>
+<option value="kube_service" {{if eq .ResourceType "kube_service"}}selected{{end}}>kube_service</option>
+<option value="group" {{if eq .ResourceType "group"}}selected{{end}}>group</option>
 </select>
 </div>
 </form>

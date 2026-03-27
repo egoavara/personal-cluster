@@ -51,7 +51,7 @@ export const cephRoute = new k8s.apiextensions.CustomResource("ceph-private-rout
     },
 }, { parent: authPhase, dependsOn: [privateGateway] });
 
-// --- Guard ext-authz (auth NS) --- OIDC 로그인/콜백 엔드포인트
+// --- Guard dashboard (auth NS) --- 대시보드 UI + OIDC 로그인 플로우
 export const guardRoute = new k8s.apiextensions.CustomResource("guard-private-route", {
     apiVersion: "gateway.networking.k8s.io/v1",
     kind: "HTTPRoute",
@@ -64,7 +64,7 @@ export const guardRoute = new k8s.apiextensions.CustomResource("guard-private-ro
         parentRefs: [parentRef],
         hostnames: [`guard.${privateDomain}`],
         rules: [{
-            backendRefs: [{ name: "guard-ext-authz", port: 4180 }],
+            backendRefs: [{ name: "guard-dashboard", port: 8080 }],
         }],
     },
 }, { parent: authPhase, dependsOn: [privateGateway] });

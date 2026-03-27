@@ -72,6 +72,7 @@ type DashboardConfig struct {
 	ExternalURL string        `mapstructure:"externalURL"`
 	OIDC        OIDCConfig    `mapstructure:"oidc"`
 	Session     SessionConfig `mapstructure:"session"`
+	Cookie      CookieConfig  `mapstructure:"cookie"`
 	RoutesFile  string        `mapstructure:"routesFile"`
 }
 

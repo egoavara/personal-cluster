@@ -48,6 +48,35 @@ func (c *Client) CheckPermission(ctx context.Context, resource *v1.ObjectReferen
 	return resp.Permissionship, nil
 }
 
+// ReadSchema returns the current SpiceDB schema text.
+func (c *Client) ReadSchema(ctx context.Context) (string, error) {
+	resp, err := c.client.ReadSchema(ctx, &v1.ReadSchemaRequest{})
+	if err != nil {
+		return "", fmt.Errorf("read schema: %w", err)
+	}
+	return resp.SchemaText, nil
+}
+
+// CountRelationships reads all relationships of a given type and returns the count.
+func (c *Client) CountRelationships(ctx context.Context, resourceType string) (int, error) {
+	stream, err := c.client.ReadRelationships(ctx, &v1.ReadRelationshipsRequest{
+		RelationshipFilter: &v1.RelationshipFilter{ResourceType: resourceType},
+		Consistency:        &v1.Consistency{Requirement: &v1.Consistency_FullyConsistent{FullyConsistent: true}},
+	})
+	if err != nil {
+		return 0, err
+	}
+	count := 0
+	for {
+		_, err := stream.Recv()
+		if err != nil {
+			break
+		}
+		count++
+	}
+	return count, nil
+}
+
 func ObjectRef(objectType, objectID string) *v1.ObjectReference {
 	return &v1.ObjectReference{
 		ObjectType: objectType,

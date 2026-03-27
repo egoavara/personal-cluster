@@ -7,34 +7,29 @@
 <div class="form-group">
 <label>Resource Type</label>
 <select name="resource_type">
-<option value="service">service</option>
-<option value="pod">pod</option>
-<option value="deployment">deployment</option>
-<option value="namespace">namespace</option>
-<option value="configmap">configmap</option>
-<option value="secret">secret</option>
-<option value="dashboard">dashboard</option>
+<option value="kube_service">kube_service</option>
+<option value="group">group</option>
 </select>
 </div>
 <div class="form-group">
 <label>Resource ID</label>
-<input name="resource_id" placeholder="default/nginx" required>
+<input name="resource_id" placeholder="auth/guard-dashboard" required>
 </div>
 <div class="form-group">
 <label>Relation</label>
 <select name="relation">
-<option value="allow">allow</option>
 <option value="viewer">viewer</option>
-<option value="editor">editor</option>
 <option value="admin">admin</option>
+<option value="blocked">blocked</option>
+<option value="member">member (group)</option>
+<option value="parent">parent (group)</option>
 </select>
 </div>
 <div class="form-group">
 <label>Subject Type</label>
 <select name="subject_type">
 <option value="user">user</option>
-<option value="serviceaccount">serviceaccount</option>
-<option value="group">group</option>
+<option value="group#member">group#member</option>
 </select>
 </div>
 <div class="form-group" style="grid-column:span 2">

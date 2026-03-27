@@ -38,7 +38,7 @@ func NewServer(spice *spicedb.Client, cfg config.DashboardConfig, logger *zap.Lo
 
 	// OIDC handler
 	redirectURL := cfg.ExternalURL + "/callback"
-	oidc, err := NewOIDCHandler(cfg.OIDC.IssuerURL, cfg.OIDC.ClientID, cfg.OIDC.ClientSecret, redirectURL, cfg.Session.Secret, cfg.IsSecure(), logger)
+	oidc, err := NewOIDCHandler(cfg.OIDC.IssuerURL, cfg.OIDC.ClientID, cfg.OIDC.ClientSecret, redirectURL, cfg.Session.Secret, cfg.Cookie.Domain, cfg.ExternalURL, cfg.IsSecure(), logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OIDC handler: %w", err)
 	}
@@ -53,6 +53,8 @@ func NewServer(spice *spicedb.Client, cfg config.DashboardConfig, logger *zap.Lo
 	mux.HandleFunc("/login", oidc.HandleLogin)
 	mux.HandleFunc("/callback", oidc.HandleCallback)
 	mux.HandleFunc("/logout", oidc.HandleLogout)
+	mux.HandleFunc("/sign_out", oidc.HandleLogout)
+	mux.HandleFunc("/signed_out", oidc.HandleSignedOut)
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
@@ -68,11 +70,29 @@ func NewServer(spice *spicedb.Client, cfg config.DashboardConfig, logger *zap.Lo
 			return
 		}
 		session := sessionFromContext(r.Context())
+		stats := fetchOverviewStats(r.Context(), spice, logger)
 		data := map[string]interface{}{
 			"Session":    session,
 			"Dashboards": routes.Dashboards,
+			"Stats":      stats,
 		}
 		if err := tmpl.ExecuteTemplate(w, "home", data); err != nil {
+			logger.Error("template error", zap.Error(err))
+		}
+	})
+
+	// Schema viewer
+	authMux.HandleFunc("/schema", func(w http.ResponseWriter, r *http.Request) {
+		schema, err := spice.ReadSchema(r.Context())
+		if err != nil {
+			logger.Error("failed to read schema", zap.Error(err))
+			schema = "Error loading schema: " + err.Error()
+		}
+		data := map[string]interface{}{
+			"Session": sessionFromContext(r.Context()),
+			"Schema":  schema,
+		}
+		if err := tmpl.ExecuteTemplate(w, "schema", data); err != nil {
 			logger.Error("template error", zap.Error(err))
 		}
 	})

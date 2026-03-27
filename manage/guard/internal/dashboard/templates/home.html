@@ -1,7 +1,27 @@
 {{define "home"}}{{template "layout" .}}{{end}}
 {{define "content"}}
-<h1>Dashboards</h1>
-<div class="dashboard-grid">
+<h1>Guard Dashboard</h1>
+
+{{if .Stats}}
+<div class="dashboard-grid" style="margin-bottom:24px">
+<div class="dashboard-card">
+<div style="color:#666;font-size:13px;margin-bottom:4px">Service Policies</div>
+<div style="font-size:32px;font-weight:bold;color:#2d6cdf">{{.Stats.ServicePolicyCount}}</div>
+</div>
+<div class="dashboard-card">
+<div style="color:#666;font-size:13px;margin-bottom:4px">Group Policies</div>
+<div style="font-size:32px;font-weight:bold;color:#28a745">{{.Stats.GroupPolicyCount}}</div>
+</div>
+<div class="dashboard-card">
+<div style="color:#666;font-size:13px;margin-bottom:4px">Total Policies</div>
+<div style="font-size:32px;font-weight:bold;color:#333">{{.Stats.TotalPolicyCount}}</div>
+</div>
+</div>
+{{end}}
+
+{{if .Dashboards}}
+<h2 style="font-size:18px;margin-bottom:12px">Protected Dashboards</h2>
+<div class="dashboard-grid" style="margin-bottom:24px">
 {{range .Dashboards}}
 <div class="dashboard-card">
 <h3>{{.Name}}</h3>
@@ -10,11 +30,12 @@
 </div>
 {{end}}
 </div>
-<div style="margin-top:32px">
-<h2 style="font-size:18px;margin-bottom:12px">Quick Links</h2>
-<div style="display:flex;gap:12px">
-<a href="/policy/" class="btn">Manage Policies</a>
+{{end}}
+
+<h2 style="font-size:18px;margin-bottom:12px">Management</h2>
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+<a href="/policy/" class="btn">Policies</a>
 <a href="/check" class="btn" style="background:#28a745">Permission Check</a>
-</div>
+<a href="/schema" class="btn" style="background:#6f42c1">Schema</a>
 </div>
 {{end}}
