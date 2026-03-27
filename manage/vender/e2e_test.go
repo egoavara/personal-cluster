@@ -25,21 +25,23 @@ import (
 
 var (
 	// Port-forwarded local addresses
-	pgAddr      string // localhost:<port>
-	valkeyAddr  string
-	natsAddr    string
-	etcdAddr    string
-	qdrantAddr  string
-	spicedbAddr string
-	zitadelAddr string
+	pgAddr         string // localhost:<port>
+	valkeyAddr     string
+	natsAddr       string
+	etcdAddr       string
+	qdrantAddr     string
+	clickhouseAddr string
+	spicedbAddr    string
+	zitadelAddr    string
 
 	// Credentials from cluster secrets
-	pgDSN            string
-	valkeyPassword   string
-	etcdRootPassword string
-	spicedbKey       string
-	zitadelPAT       string
-	zitadelProjectID string
+	pgDSN              string
+	valkeyPassword     string
+	etcdRootPassword   string
+	clickhousePassword string
+	spicedbKey         string
+	zitadelPAT         string
+	zitadelProjectID   string
 
 	// NATS JWT auth
 	natsAccountSeed  string
@@ -78,6 +80,7 @@ func TestMain(m *testing.M) {
 		{"persistence", "svc/nats", 4222, &natsAddr},
 		{"persistence", "svc/etcd", 2379, &etcdAddr},
 		{"persistence", "svc/qdrant", 6333, &qdrantAddr},
+		{"persistence", "svc/clickhouse-clickhouse", 9000, &clickhouseAddr},
 		{"auth", "deploy/spicedb", 50051, &spicedbAddr},
 		{"auth", "deploy/zitadel", 8080, &zitadelAddr},
 	}
@@ -103,6 +106,7 @@ func TestMain(m *testing.M) {
 	fmt.Printf("  NATS:    %s\n", natsAddr)
 	fmt.Printf("  etcd:    %s\n", etcdAddr)
 	fmt.Printf("  Qdrant:  %s\n", qdrantAddr)
+	fmt.Printf("  ClickH:  %s\n", clickhouseAddr)
 	fmt.Printf("  SpiceDB: %s\n", spicedbAddr)
 	fmt.Printf("  Zitadel: %s\n", zitadelAddr)
 
@@ -155,6 +159,8 @@ func readClusterSecrets() error {
 	if err != nil {
 		return fmt.Errorf("etcd root password: %w", err)
 	}
+
+	clickhousePassword, _ = kubectlGetSecret("persistence", "clickhouse-credentials", "password")
 
 	spicedbKey, err = kubectlGetSecret("auth", "spicedb-preshared-key", "SPICEDB_GRPC_PRESHARED_KEY")
 	if err != nil {

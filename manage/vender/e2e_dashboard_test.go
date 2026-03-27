@@ -86,7 +86,7 @@ func startTestDashboard(t *testing.T, templates []config.Template, adapters map[
 	logger, _ := zap.NewDevelopment()
 
 	go func() {
-		if err := dashboard.Run(ctx, cfg, adapters, credStore, logger); err != nil && ctx.Err() == nil {
+		if err := dashboard.Run(ctx, cfg, adapters, credStore, nil, logger); err != nil && ctx.Err() == nil {
 			t.Errorf("dashboard.Run error: %v", err)
 		}
 	}()
@@ -592,7 +592,7 @@ func TestReaper_AutoRevoke(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 
 	// Start reaper with 1-second interval
-	reap := reaper.New(credStore, adapters, logger, 1*time.Second)
+	reap := reaper.New(credStore, adapters, nil, logger, 1*time.Second)
 	go reap.Run(ctx)
 
 	// Start dashboard
@@ -611,7 +611,7 @@ func TestReaper_AutoRevoke(t *testing.T) {
 	}
 
 	go func() {
-		dashboard.Run(ctx, cfg, adapters, credStore, logger)
+		dashboard.Run(ctx, cfg, adapters, credStore, nil, logger)
 	}()
 
 	baseURL := fmt.Sprintf("http://localhost:%d", port)
@@ -735,7 +735,7 @@ func TestReaper_Valkey_CleanupAndLoginDenied(t *testing.T) {
 
 	// Start reaper with 1s interval
 	logger, _ := zap.NewDevelopment()
-	reap := reaper.New(credStore, adapters, logger, 1*time.Second)
+	reap := reaper.New(credStore, adapters, nil, logger, 1*time.Second)
 	go reap.Run(ctx)
 
 	// Wait for TTL expiry + reaper sweep
@@ -830,7 +830,7 @@ func TestReaper_Postgres_CleanupAndLoginDenied(t *testing.T) {
 
 	// Start reaper
 	logger, _ := zap.NewDevelopment()
-	reap := reaper.New(credStore, adapters, logger, 1*time.Second)
+	reap := reaper.New(credStore, adapters, nil, logger, 1*time.Second)
 	go reap.Run(ctx)
 
 	t.Log("  waiting 4s for TTL expiry + reaper sweep...")
@@ -937,7 +937,7 @@ func TestReaper_NATS_CleanupAndLoginDenied(t *testing.T) {
 
 	// Start reaper
 	logger, _ := zap.NewDevelopment()
-	reap := reaper.New(credStore, adapters, logger, 1*time.Second)
+	reap := reaper.New(credStore, adapters, nil, logger, 1*time.Second)
 	go reap.Run(ctx)
 
 	t.Log("  waiting 4s for TTL expiry + reaper sweep...")
@@ -1043,7 +1043,7 @@ func TestReaper_Etcd_CleanupAndLoginDenied(t *testing.T) {
 
 	// Start reaper
 	logger, _ := zap.NewDevelopment()
-	reap := reaper.New(credStore, adapters, logger, 1*time.Second)
+	reap := reaper.New(credStore, adapters, nil, logger, 1*time.Second)
 	go reap.Run(ctx)
 
 	t.Log("  waiting 4s for TTL expiry + reaper sweep...")
@@ -1154,7 +1154,7 @@ func TestReaper_Qdrant_JWTExpiryAndStoreCleanup(t *testing.T) {
 
 	// Start reaper
 	logger, _ := zap.NewDevelopment()
-	reap := reaper.New(credStore, adapters, logger, 1*time.Second)
+	reap := reaper.New(credStore, adapters, nil, logger, 1*time.Second)
 	go reap.Run(ctx)
 
 	t.Log("  waiting 4s for TTL expiry + reaper sweep...")
@@ -1220,7 +1220,7 @@ func TestReaper_CephS3_CleanupAndCRDDeleted(t *testing.T) {
 
 	// Start reaper
 	logger, _ := zap.NewDevelopment()
-	reap := reaper.New(credStore, adapters, logger, 1*time.Second)
+	reap := reaper.New(credStore, adapters, nil, logger, 1*time.Second)
 	go reap.Run(ctx)
 
 	t.Log("  waiting 5s for TTL expiry + reaper sweep...")
@@ -1298,7 +1298,7 @@ func TestReaper_Manticore_CleanupAndTokenDenied(t *testing.T) {
 
 	// Start reaper
 	logger, _ := zap.NewDevelopment()
-	reap := reaper.New(credStore, adapters, logger, 1*time.Second)
+	reap := reaper.New(credStore, adapters, nil, logger, 1*time.Second)
 	go reap.Run(ctx)
 
 	t.Log("  waiting 4s for TTL expiry + reaper sweep...")

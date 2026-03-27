@@ -9,11 +9,17 @@ import (
 )
 
 type Config struct {
-	ListenAddr string        `yaml:"listenAddr"`
-	SpiceDB    SpiceDBConfig `yaml:"spicedb"`
-	Zitadel    ZitadelConfig `yaml:"zitadel"`
-	Templates  []Template    `yaml:"templates"`
+	ListenAddr string         `yaml:"listenAddr"`
+	SpiceDB    SpiceDBConfig  `yaml:"spicedb"`
+	Zitadel    ZitadelConfig  `yaml:"zitadel"`
+	PAT        PATConfig      `yaml:"pat"`
+	Templates  []Template     `yaml:"templates"`
 	Services   ServicesConfig `yaml:"services"`
+}
+
+type PATConfig struct {
+	MaxPerUser int           `yaml:"maxPerUser"`
+	MaxTTL     time.Duration `yaml:"maxTTL"`
 }
 
 type SpiceDBConfig struct {
@@ -94,6 +100,10 @@ func Load(files []string) (*Config, error) {
 		ListenAddr: ":8080",
 		SpiceDB: SpiceDBConfig{
 			Endpoint: "spicedb.auth.svc.cluster.local:50051",
+		},
+		PAT: PATConfig{
+			MaxPerUser: 10,
+			MaxTTL:     8760 * time.Hour, // 1 year
 		},
 	}
 

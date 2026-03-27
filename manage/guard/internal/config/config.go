@@ -49,6 +49,12 @@ type HostResourceEntry struct {
 	Resource string `mapstructure:"resource"`
 }
 
+type PATConfig struct {
+	Enabled  bool          `mapstructure:"enabled"`
+	Prefix   string        `mapstructure:"prefix"`
+	CacheTTL time.Duration `mapstructure:"cacheTTL"`
+}
+
 type ExtAuthzConfig struct {
 	ListenAddr      string              `mapstructure:"listenAddr"`
 	ExternalURL     string              `mapstructure:"externalURL"`
@@ -56,6 +62,7 @@ type ExtAuthzConfig struct {
 	Session         SessionConfig       `mapstructure:"session"`
 	Cookie          CookieConfig        `mapstructure:"cookie"`
 	HostResources   []HostResourceEntry `mapstructure:"hostResources"`
+	PAT             PATConfig           `mapstructure:"pat"`
 }
 
 // HostResourceMap returns a map[host]resource built from the HostResources slice.
@@ -118,6 +125,10 @@ func setDefaults() {
 	viper.SetDefault("dashboard.oidc.clientID", "guard")
 	viper.SetDefault("dashboard.routesFile", "/config/routes.yaml")
 
+	viper.SetDefault("extAuthz.pat.enabled", false)
+	viper.SetDefault("extAuthz.pat.prefix", "vdpat_")
+	viper.SetDefault("extAuthz.pat.cacheTTL", "30s")
+
 	viper.SetDefault("rateLimit.enabled", false)
 	viper.SetDefault("rateLimit.slowStartDuration", "60s")
 	viper.SetDefault("rateLimit.l1MaxItems", 10000)
@@ -142,6 +153,8 @@ func bindLegacyEnvVars() {
 	viper.BindEnv("dashboard.oidc.clientID", "OIDC_CLIENT_ID")
 	viper.BindEnv("dashboard.oidc.clientSecret", "OIDC_CLIENT_SECRET")
 	viper.BindEnv("dashboard.routesFile", "DASHBOARD_ROUTES_FILE")
+
+	viper.BindEnv("extAuthz.pat.enabled", "PAT_ENABLED")
 
 	viper.BindEnv("valkey.password", "VALKEY_PASSWORD")
 	viper.BindEnv("rateLimit.enabled", "RATE_LIMIT_ENABLED")

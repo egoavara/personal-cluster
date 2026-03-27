@@ -80,6 +80,36 @@ func (s *Store) Migrate(ctx context.Context) error {
 	}
 
 	s.takeOwnership(ctx, currentUser, "vender_templates")
+
+	// --- vender_pats ---
+	_, err = s.db.ExecContext(ctx, `
+		CREATE TABLE IF NOT EXISTS vender_pats (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			zitadel_user_id TEXT NOT NULL,
+			zitadel_pat_id TEXT NOT NULL,
+			machine_username TEXT NOT NULL,
+			owner TEXT NOT NULL,
+			template_ids JSONB NOT NULL DEFAULT '[]',
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			expires_at TIMESTAMPTZ NOT NULL,
+			revoked BOOLEAN NOT NULL DEFAULT FALSE,
+			revoked_at TIMESTAMPTZ
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("migrate pats: %w", err)
+	}
+
+	s.takeOwnership(ctx, currentUser, "vender_pats")
+
+	_, err = s.db.ExecContext(ctx, `
+		CREATE INDEX IF NOT EXISTS idx_vender_pats_owner ON vender_pats(owner) WHERE NOT revoked
+	`)
+	if err != nil {
+		return fmt.Errorf("migrate pats index: %w", err)
+	}
+
 	return nil
 }
 
@@ -363,6 +393,137 @@ func (s *Store) DeleteTemplate(ctx context.Context, id string) error {
 		return fmt.Errorf("template not found: %s", id)
 	}
 	return nil
+}
+
+// PAT represents a Personal Access Token record.
+type PAT struct {
+	ID               string    `json:"id"`
+	Name             string    `json:"name"`
+	ZitadelUserID    string    `json:"-"`
+	ZitadelPATID     string    `json:"-"`
+	MachineUsername  string    `json:"machineUsername"`
+	Owner            string    `json:"owner"`
+	TemplateIDs      []string  `json:"templateIds"`
+	CreatedAt        time.Time `json:"createdAt"`
+	ExpiresAt        time.Time `json:"expiresAt"`
+	Revoked          bool      `json:"revoked"`
+}
+
+// CreatePAT inserts a new PAT record.
+func (s *Store) CreatePAT(ctx context.Context, p *PAT) error {
+	tidsJSON, err := json.Marshal(p.TemplateIDs)
+	if err != nil {
+		return fmt.Errorf("marshal template_ids: %w", err)
+	}
+	_, err = s.db.ExecContext(ctx,
+		`INSERT INTO vender_pats (id, name, zitadel_user_id, zitadel_pat_id, machine_username, owner, template_ids, created_at, expires_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		p.ID, p.Name, p.ZitadelUserID, p.ZitadelPATID, p.MachineUsername,
+		p.Owner, tidsJSON, p.CreatedAt, p.ExpiresAt,
+	)
+	return err
+}
+
+// ListPATsByOwner returns active PATs for the given owner.
+func (s *Store) ListPATsByOwner(ctx context.Context, owner string) ([]*PAT, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id, name, machine_username, owner, template_ids, created_at, expires_at, revoked
+		 FROM vender_pats
+		 WHERE owner = $1 AND NOT revoked AND expires_at > $2
+		 ORDER BY created_at DESC`,
+		owner, time.Now(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pats []*PAT
+	for rows.Next() {
+		var p PAT
+		var tidsJSON []byte
+		if err := rows.Scan(&p.ID, &p.Name, &p.MachineUsername, &p.Owner, &tidsJSON, &p.CreatedAt, &p.ExpiresAt, &p.Revoked); err != nil {
+			return nil, err
+		}
+		_ = json.Unmarshal(tidsJSON, &p.TemplateIDs)
+		pats = append(pats, &p)
+	}
+	return pats, rows.Err()
+}
+
+// CountActivePATsByOwner returns the number of active PATs for the given owner.
+func (s *Store) CountActivePATsByOwner(ctx context.Context, owner string) (int, error) {
+	var count int
+	err := s.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM vender_pats WHERE owner = $1 AND NOT revoked AND expires_at > $2`,
+		owner, time.Now(),
+	).Scan(&count)
+	return count, err
+}
+
+// RevokePAT marks a PAT as revoked. Returns the Zitadel user ID and machine username for cleanup.
+func (s *Store) RevokePAT(ctx context.Context, patID, owner string) (zitadelUserID, machineUsername string, err error) {
+	err = s.db.QueryRowContext(ctx,
+		`UPDATE vender_pats SET revoked = TRUE, revoked_at = NOW()
+		 WHERE id = $1 AND owner = $2 AND NOT revoked
+		 RETURNING zitadel_user_id, machine_username`,
+		patID, owner,
+	).Scan(&zitadelUserID, &machineUsername)
+	if err != nil {
+		return "", "", fmt.Errorf("revoke pat: %w", err)
+	}
+	return zitadelUserID, machineUsername, nil
+}
+
+// GetPATByMachineUsername looks up a PAT by its Zitadel machine username.
+func (s *Store) GetPATByMachineUsername(ctx context.Context, machineUsername string) (*PAT, error) {
+	var p PAT
+	var tidsJSON []byte
+	err := s.db.QueryRowContext(ctx,
+		`SELECT id, name, machine_username, owner, template_ids, created_at, expires_at, revoked
+		 FROM vender_pats
+		 WHERE machine_username = $1 AND NOT revoked AND expires_at > $2`,
+		machineUsername, time.Now(),
+	).Scan(&p.ID, &p.Name, &p.MachineUsername, &p.Owner, &tidsJSON, &p.CreatedAt, &p.ExpiresAt, &p.Revoked)
+	if err != nil {
+		return nil, err
+	}
+	_ = json.Unmarshal(tidsJSON, &p.TemplateIDs)
+	return &p, nil
+}
+
+// ListExpiredPATs returns PATs that have expired but not yet revoked.
+func (s *Store) ListExpiredPATs(ctx context.Context) ([]*PAT, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id, zitadel_user_id, machine_username, owner
+		 FROM vender_pats
+		 WHERE NOT revoked AND expires_at <= $1
+		 ORDER BY expires_at ASC`,
+		time.Now(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pats []*PAT
+	for rows.Next() {
+		var p PAT
+		if err := rows.Scan(&p.ID, &p.ZitadelUserID, &p.MachineUsername, &p.Owner); err != nil {
+			return nil, err
+		}
+		pats = append(pats, &p)
+	}
+	return pats, rows.Err()
+}
+
+// MarkPATRevokedByID marks a PAT as revoked without requiring owner.
+func (s *Store) MarkPATRevokedByID(ctx context.Context, patID string) error {
+	_, err := s.db.ExecContext(ctx,
+		`UPDATE vender_pats SET revoked = TRUE, revoked_at = NOW() WHERE id = $1 AND NOT revoked`,
+		patID,
+	)
+	return err
 }
 
 // SeedTemplatesFromConfig inserts config templates into DB if the table is empty.

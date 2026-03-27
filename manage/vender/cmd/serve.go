@@ -5,6 +5,7 @@ import (
 
 	"github.com/egoavara/personal-cluster/manage/vender/internal/adapter"
 	"github.com/egoavara/personal-cluster/manage/vender/internal/dashboard"
+	"github.com/egoavara/personal-cluster/manage/vender/internal/pat"
 	"github.com/egoavara/personal-cluster/manage/vender/internal/reaper"
 	"github.com/egoavara/personal-cluster/manage/vender/internal/store"
 	"github.com/spf13/cobra"
@@ -133,8 +134,20 @@ var serveCmd = &cobra.Command{
 			}
 		}
 
+		// Initialize PAT issuer (reuses Zitadel config)
+		var patIssuer *pat.Issuer
+		if cfg.Zitadel.APIEndpoint != "" && cfg.Zitadel.PAT != "" {
+			patIssuer = pat.NewIssuer(cfg.Zitadel.APIEndpoint, cfg.Zitadel.PAT)
+			if cfg.Zitadel.HostHeader != "" {
+				patIssuer.SetHostHeader(cfg.Zitadel.HostHeader)
+			}
+			logger.Info("PAT issuer initialized")
+		} else {
+			logger.Warn("PAT issuer unavailable: zitadel API endpoint or PAT not configured")
+		}
+
 		// Start credential reaper (background goroutine)
-		reap := reaper.New(credStore, adapters, logger, 1*time.Minute)
+		reap := reaper.New(credStore, adapters, patIssuer, logger, 1*time.Minute)
 		go reap.Run(ctx)
 		logger.Info("credential reaper started", zap.Duration("interval", 1*time.Minute))
 
@@ -143,7 +156,7 @@ var serveCmd = &cobra.Command{
 			zap.Int("adapters", len(adapters)),
 		)
 
-		return dashboard.Run(ctx, cfg, adapters, credStore, logger)
+		return dashboard.Run(ctx, cfg, adapters, credStore, patIssuer, logger)
 	},
 }
 

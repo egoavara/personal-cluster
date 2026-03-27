@@ -17,6 +17,10 @@ definition group {
 	permission is_member = member + parent->is_member
 }
 
+definition pat {
+	relation owner: user
+}
+
 definition kube_service {
 	relation admin: user | group#member
 	relation viewer: user | group#member
@@ -25,6 +29,13 @@ definition kube_service {
 	permission is_blocked = blocked
 	permission manage = admin
 	permission view = viewer + manage - is_blocked
+}
+
+definition template {
+	relation use: user | group#member
+	relation pat_filter: pat
+
+	permission can_use = use
 }
 `
 

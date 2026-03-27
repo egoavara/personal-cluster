@@ -77,6 +77,27 @@ func (c *Client) CountRelationships(ctx context.Context, resourceType string) (i
 	return count, nil
 }
 
+// ReadPATOwner resolves the owner of a PAT by reading the "owner" relation
+// from SpiceDB. Returns the owner username and true if found, or ("", false).
+func (c *Client) ReadPATOwner(ctx context.Context, patID string) (string, bool, error) {
+	stream, err := c.client.ReadRelationships(ctx, &v1.ReadRelationshipsRequest{
+		RelationshipFilter: &v1.RelationshipFilter{
+			ResourceType:       "pat",
+			OptionalResourceId: patID,
+			OptionalRelation:   "owner",
+		},
+		Consistency: &v1.Consistency{Requirement: &v1.Consistency_FullyConsistent{FullyConsistent: true}},
+	})
+	if err != nil {
+		return "", false, fmt.Errorf("read pat owner: %w", err)
+	}
+	rel, err := stream.Recv()
+	if err != nil {
+		return "", false, nil // no relationship found
+	}
+	return rel.Relationship.Subject.Object.ObjectId, true, nil
+}
+
 func ObjectRef(objectType, objectID string) *v1.ObjectReference {
 	return &v1.ObjectReference{
 		ObjectType: objectType,

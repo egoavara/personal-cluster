@@ -82,6 +82,7 @@
     <div class="nav" id="nav">
         <button class="active" data-page="templates">Templates</button>
         <button data-page="credentials">My Credentials</button>
+        <button data-page="pats">API Tokens</button>
         {{if .IsAdmin}}
         <button data-page="admin-templates">Manage Templates</button>
         <button data-page="admin-perms">Permissions</button>
@@ -102,6 +103,17 @@
                 <h3>Active Credentials</h3>
                 <div id="filter-credentials" class="filter-bar"></div>
                 <div id="credentials-list"></div>
+            </div>
+        </div>
+
+        <!-- User: API Tokens (PAT) -->
+        <div class="page" id="page-pats">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h3>API Tokens (PAT)</h3>
+                    <button class="btn btn-primary" onclick="openCreatePATModal()">+ Create Token</button>
+                </div>
+                <div id="pats-list"></div>
             </div>
         </div>
 
@@ -221,6 +233,52 @@
     </div>
     {{end}}
 
+    <!-- Create PAT Modal -->
+    <div class="modal-overlay" id="pat-modal">
+        <div class="modal">
+            <h3>Create API Token</h3>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="pat-name" placeholder="e.g. ci-deploy-token">
+            </div>
+            <div class="form-group">
+                <label>Expiry</label>
+                <select id="pat-expiry">
+                    <option value="168h">7 days</option>
+                    <option value="720h" selected>30 days</option>
+                    <option value="2160h">90 days</option>
+                    <option value="4320h">180 days</option>
+                    <option value="8760h">1 year</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Allowed Templates</label>
+                <div id="pat-templates" style="max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:0.5rem;">
+                    <p>Loading templates...</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('pat-modal')" style="background:#eee;">Cancel</button>
+                <button class="btn btn-primary" id="pat-create-btn" onclick="createPAT()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Display Modal -->
+    <div class="modal-overlay" id="token-modal">
+        <div class="modal">
+            <h3>Token Created</h3>
+            <div class="secrets-box">
+                <strong>Copy this token now. It will not be shown again.</strong>
+                <pre id="token-value" style="white-space:pre-wrap;"></pre>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="copyToken()">Copy</button>
+                <button class="btn" onclick="closeModal('token-modal')" style="background:#eee;">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
@@ -265,6 +323,7 @@
         switch(page) {
             case 'templates': loadTemplates(); break;
             case 'credentials': loadCredentials(); break;
+            case 'pats': loadPATs(); break;
             case 'admin-templates': loadAdminTemplates(); break;
             case 'admin-perms': loadAdminPerms(); break;
             case 'admin-history': loadAdminHistory(); break;
@@ -429,6 +488,108 @@
             });
             showToast('Credential revoked');
             loadCredentials();
+        } catch (e) {
+            showToast('Revoke failed: ' + e.message, 'error');
+            btn.disabled = false;
+        }
+    }
+
+    // --- User: PATs ---
+    async function loadPATs() {
+        const el = document.getElementById('pats-list');
+        try {
+            const pats = await api('/api/pats') || [];
+            if (!pats || pats.length === 0) {
+                el.innerHTML = '<p class="empty">No active API tokens.</p>';
+                return;
+            }
+            el.innerHTML = `<table>
+                <thead><tr><th>Name</th><th>Templates</th><th>Created</th><th>Expires</th><th></th></tr></thead>
+                <tbody>${pats.map(p => {
+                    const badges = (p.templateIds || []).map(t => '<span class="badge" style="background:#607d8b;color:#fff;">' + esc(t) + '</span>').join(' ');
+                    return '<tr>' +
+                        '<td>' + esc(p.name) + '</td>' +
+                        '<td>' + badges + '</td>' +
+                        '<td>' + new Date(p.createdAt).toLocaleDateString() + '</td>' +
+                        '<td>' + new Date(p.expiresAt).toLocaleString() + '</td>' +
+                        '<td><button class="btn btn-revoke btn-sm" onclick="revokePAT(\'' + p.id + '\',this)">Revoke</button></td>' +
+                    '</tr>';
+                }).join('')}</tbody>
+            </table>`;
+        } catch (e) {
+            el.innerHTML = '<p class="empty" style="color:#f44336;">Failed to load tokens.</p>';
+        }
+    }
+
+    async function openCreatePATModal() {
+        try {
+            const templates = await api('/api/templates') || [];
+            const container = document.getElementById('pat-templates');
+            if (!templates || templates.length === 0) {
+                container.innerHTML = '<p>No templates available.</p>';
+            } else {
+                container.innerHTML = templates.map(t =>
+                    '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0;cursor:pointer;font-size:0.85rem;">' +
+                    '<input type="checkbox" value="' + t.id + '"> ' +
+                    '<span class="badge badge-' + t.service + '">' + t.service + '</span> ' +
+                    esc(t.name) + ' (' + t.id + ')' +
+                    '</label>'
+                ).join('');
+            }
+        } catch (e) {
+            document.getElementById('pat-templates').innerHTML = '<p>Failed to load templates.</p>';
+        }
+        document.getElementById('pat-name').value = '';
+        document.getElementById('pat-modal').classList.add('show');
+    }
+
+    async function createPAT() {
+        const name = document.getElementById('pat-name').value.trim();
+        const expiresIn = document.getElementById('pat-expiry').value;
+        const checked = document.querySelectorAll('#pat-templates input:checked');
+        const templateIds = Array.from(checked).map(c => c.value);
+
+        if (!name) { showToast('Name is required', 'error'); return; }
+        if (templateIds.length === 0) { showToast('Select at least one template', 'error'); return; }
+
+        const btn = document.getElementById('pat-create-btn');
+        btn.disabled = true;
+        btn.textContent = 'Creating...';
+
+        try {
+            const data = await api('/api/pats', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, templateIds, expiresIn})
+            });
+            closeModal('pat-modal');
+            document.getElementById('token-value').textContent = data.token;
+            document.getElementById('token-modal').classList.add('show');
+            loadPATs();
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Create';
+    }
+
+    function copyToken() {
+        const token = document.getElementById('token-value').textContent;
+        navigator.clipboard.writeText(token).then(() => showToast('Copied to clipboard'));
+    }
+
+    async function revokePAT(id, btn) {
+        if (!confirm('Revoke this API token?')) return;
+        btn.disabled = true;
+        try {
+            await api('/api/pats/revoke', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({patId: id})
+            });
+            showToast('Token revoked');
+            loadPATs();
         } catch (e) {
             showToast('Revoke failed: ' + e.message, 'error');
             btn.disabled = false;

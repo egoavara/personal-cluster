@@ -13,8 +13,10 @@ import (
 
 	"github.com/egoavara/personal-cluster/manage/vender/internal/adapter"
 	"github.com/egoavara/personal-cluster/manage/vender/internal/config"
+	"github.com/egoavara/personal-cluster/manage/vender/internal/pat"
 	spicedbpkg "github.com/egoavara/personal-cluster/manage/vender/internal/spicedb"
 	"github.com/egoavara/personal-cluster/manage/vender/internal/store"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -22,15 +24,16 @@ import (
 var templateFS embed.FS
 
 type Server struct {
-	cfg      *config.Config
-	spice    *spicedbpkg.Client
-	adapters map[string]adapter.Adapter
-	store    *store.Store
-	tmpl     *template.Template
-	logger   *zap.Logger
+	cfg       *config.Config
+	spice     *spicedbpkg.Client
+	adapters  map[string]adapter.Adapter
+	store     *store.Store
+	patIssuer *pat.Issuer
+	tmpl      *template.Template
+	logger    *zap.Logger
 }
 
-func Run(ctx context.Context, cfg *config.Config, adapters map[string]adapter.Adapter, credStore *store.Store, logger *zap.Logger) error {
+func Run(ctx context.Context, cfg *config.Config, adapters map[string]adapter.Adapter, credStore *store.Store, patIssuer *pat.Issuer, logger *zap.Logger) error {
 	spice, err := spicedbpkg.NewClient(cfg.SpiceDB.Endpoint, cfg.SpiceDB.PresharedKey)
 	if err != nil {
 		return fmt.Errorf("create spicedb client: %w", err)
@@ -42,12 +45,13 @@ func Run(ctx context.Context, cfg *config.Config, adapters map[string]adapter.Ad
 	}
 
 	srv := &Server{
-		cfg:      cfg,
-		spice:    spice,
-		adapters: adapters,
-		store:    credStore,
-		tmpl:     tmpl,
-		logger:   logger,
+		cfg:       cfg,
+		spice:     spice,
+		adapters:  adapters,
+		store:     credStore,
+		patIssuer: patIssuer,
+		tmpl:      tmpl,
+		logger:    logger,
 	}
 
 	mux := http.NewServeMux()
@@ -60,6 +64,8 @@ func Run(ctx context.Context, cfg *config.Config, adapters map[string]adapter.Ad
 	mux.HandleFunc("/api/credentials", srv.handleCredentials)
 	mux.HandleFunc("/api/credentials/issue", srv.handleIssue)
 	mux.HandleFunc("/api/credentials/revoke", srv.handleRevoke)
+	mux.HandleFunc("/api/pats", srv.handlePATs)
+	mux.HandleFunc("/api/pats/revoke", srv.handlePATRevoke)
 
 	// Admin APIs
 	mux.HandleFunc("/api/admin/templates", srv.handleAdminTemplates)
@@ -73,6 +79,8 @@ func Run(ctx context.Context, cfg *config.Config, adapters map[string]adapter.Ad
 	mux.HandleFunc("/credentials", srv.handleCredentials)
 	mux.HandleFunc("/credentials/issue", srv.handleIssue)
 	mux.HandleFunc("/credentials/revoke", srv.handleRevoke)
+	mux.HandleFunc("/pats", srv.handlePATs)
+	mux.HandleFunc("/pats/revoke", srv.handlePATRevoke)
 
 	// Health
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -127,6 +135,26 @@ func requireAuth(w http.ResponseWriter, r *http.Request) string {
 	return u
 }
 
+const patPrefix = "vdpat_"
+
+// getPATOwner returns the PAT owner username if the request came from a PAT.
+// Guard always sets X-Auth-Request-Pat-Owner (empty for non-PAT requests) to
+// prevent header injection. As defense-in-depth, Vender also validates that
+// the owner header is non-empty only when the username has the PAT prefix.
+func getPATOwner(r *http.Request) string {
+	owner := r.Header.Get("X-Auth-Request-Pat-Owner")
+	if owner == "" {
+		return ""
+	}
+	// Defense-in-depth: if Pat-Owner is set, username MUST have PAT prefix.
+	// This blocks injection even if Envoy misconfiguration lets client headers through.
+	username := r.Header.Get("X-Auth-Request-User")
+	if !strings.HasPrefix(username, patPrefix) {
+		return ""
+	}
+	return owner
+}
+
 // getTemplatesForUser returns templates from DB filtered by SpiceDB permissions.
 func (s *Server) getTemplatesForUser(ctx context.Context, username string) ([]store.DBTemplate, error) {
 	all, err := s.store.ListTemplates(ctx)
@@ -156,6 +184,29 @@ func (s *Server) getTemplatesForUser(ctx context.Context, username string) ([]st
 		}
 	}
 	return result, nil
+}
+
+// checkPATTemplateAccess performs the dual check for PAT template access:
+// 1. pat_filter: the PAT is filtered to this template
+// 2. owner's use: the owner still has use permission
+// The machineUsername is used to look up the PAT ID for the SpiceDB pat_filter check.
+func (s *Server) checkPATTemplateAccess(ctx context.Context, templateID, machineUsername, owner string) (bool, error) {
+	// SpiceDB uses machineUsername as pat object ID (same as Guard)
+	// Check 1: PAT is filtered to this template
+	filtered, err := s.spice.CheckPATTemplateFilter(ctx, templateID, machineUsername)
+	if err != nil {
+		return false, err
+	}
+	if !filtered {
+		return false, nil
+	}
+
+	// Check 2: Owner still has use permission
+	ownerAllowed, err := s.spice.CheckTemplatePermission(ctx, templateID, owner)
+	if err != nil {
+		return false, err
+	}
+	return ownerAllowed, nil
 }
 
 // --- Pages ---
@@ -189,6 +240,37 @@ func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleAPITemplates(w http.ResponseWriter, r *http.Request) {
 	username := requireAuth(w, r)
 	if username == "" {
+		return
+	}
+
+	patOwner := getPATOwner(r)
+
+	if patOwner != "" {
+		// PAT request: intersect pat_filter with owner's use permission
+		all, err := s.store.ListTemplates(r.Context())
+		if err != nil {
+			s.logger.Error("list templates for PAT", zap.Error(err))
+			jsonError(w, "internal", http.StatusInternalServerError)
+			return
+		}
+
+		var result []store.DBTemplate
+		for _, t := range all {
+			allowed, err := s.checkPATTemplateAccess(r.Context(), t.ID, username, patOwner)
+			if err != nil {
+				s.logger.Error("check pat template access", zap.Error(err))
+				continue
+			}
+			if allowed {
+				result = append(result, t)
+			}
+		}
+		if result == nil {
+			result = []store.DBTemplate{}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
 		return
 	}
 
@@ -252,16 +334,33 @@ func (s *Server) handleIssue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check SpiceDB permission
-	ok, err := s.spice.CheckTemplatePermission(r.Context(), tmpl.ID, username)
-	if err != nil {
-		s.logger.Error("check template permission", zap.Error(err))
-		jsonError(w, "internal", http.StatusInternalServerError)
-		return
-	}
-	if !ok {
-		jsonError(w, "forbidden", http.StatusForbidden)
-		return
+	// Check SpiceDB permission — dual check for PAT requests
+	patOwner := getPATOwner(r)
+	if patOwner != "" {
+		// PAT request: check both pat_filter and owner's use permission
+		allowed, err := s.checkPATTemplateAccess(r.Context(), tmpl.ID, username, patOwner)
+		if err != nil {
+			s.logger.Error("check pat template access", zap.Error(err))
+			jsonError(w, "internal", http.StatusInternalServerError)
+			return
+		}
+		if !allowed {
+			jsonError(w, "forbidden", http.StatusForbidden)
+			return
+		}
+		// Use owner as the credential requester so the credential is tracked under the owner
+		username = patOwner
+	} else {
+		ok, err := s.spice.CheckTemplatePermission(r.Context(), tmpl.ID, username)
+		if err != nil {
+			s.logger.Error("check template permission", zap.Error(err))
+			jsonError(w, "internal", http.StatusInternalServerError)
+			return
+		}
+		if !ok {
+			jsonError(w, "forbidden", http.StatusForbidden)
+			return
+		}
 	}
 
 	// Find adapter
@@ -334,6 +433,238 @@ func (s *Server) handleRevoke(w http.ResponseWriter, r *http.Request) {
 		s.logger.Warn("mark revoked in store failed", zap.Error(err))
 	}
 
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// --- PAT APIs ---
+
+func (s *Server) handlePATs(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		s.handlePATList(w, r)
+	case http.MethodPost:
+		s.handlePATCreate(w, r)
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (s *Server) handlePATList(w http.ResponseWriter, r *http.Request) {
+	username := requireAuth(w, r)
+	if username == "" {
+		return
+	}
+
+	pats, err := s.store.ListPATsByOwner(r.Context(), username)
+	if err != nil {
+		s.logger.Error("list pats", zap.Error(err))
+		jsonError(w, "internal", http.StatusInternalServerError)
+		return
+	}
+	if pats == nil {
+		pats = []*store.PAT{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pats)
+}
+
+func (s *Server) handlePATCreate(w http.ResponseWriter, r *http.Request) {
+	username := requireAuth(w, r)
+	if username == "" {
+		return
+	}
+
+	// PAT creation requires direct user auth (not PAT-over-PAT)
+	if getPATOwner(r) != "" {
+		jsonError(w, "cannot create PAT using another PAT", http.StatusForbidden)
+		return
+	}
+
+	if s.patIssuer == nil {
+		jsonError(w, "PAT feature not configured", http.StatusServiceUnavailable)
+		return
+	}
+
+	var req struct {
+		Name        string   `json:"name"`
+		TemplateIDs []string `json:"templateIds"`
+		ExpiresIn   string   `json:"expiresIn"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		jsonError(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.Name == "" || len(req.TemplateIDs) == 0 || req.ExpiresIn == "" {
+		jsonError(w, "name, templateIds, and expiresIn are required", http.StatusBadRequest)
+		return
+	}
+
+	ttl, err := time.ParseDuration(req.ExpiresIn)
+	if err != nil || ttl <= 0 {
+		jsonError(w, "invalid expiresIn duration", http.StatusBadRequest)
+		return
+	}
+	if ttl > s.cfg.PAT.MaxTTL {
+		jsonError(w, fmt.Sprintf("expiresIn exceeds maximum of %s", s.cfg.PAT.MaxTTL), http.StatusBadRequest)
+		return
+	}
+
+	// Check PAT limit
+	count, err := s.store.CountActivePATsByOwner(r.Context(), username)
+	if err != nil {
+		s.logger.Error("count pats", zap.Error(err))
+		jsonError(w, "internal", http.StatusInternalServerError)
+		return
+	}
+	if count >= s.cfg.PAT.MaxPerUser {
+		jsonError(w, fmt.Sprintf("maximum %d active PATs reached", s.cfg.PAT.MaxPerUser), http.StatusConflict)
+		return
+	}
+
+	// Validate: user can only select templates they have access to
+	// Get all template IDs from DB to validate the requested IDs exist
+	allTemplates, err := s.store.ListTemplates(r.Context())
+	if err != nil {
+		s.logger.Error("list templates for PAT validation", zap.Error(err))
+		jsonError(w, "internal", http.StatusInternalServerError)
+		return
+	}
+	templateSet := make(map[string]bool, len(allTemplates))
+	for _, t := range allTemplates {
+		templateSet[t.ID] = true
+	}
+
+	for _, tid := range req.TemplateIDs {
+		if !templateSet[tid] {
+			jsonError(w, fmt.Sprintf("template %s not found", tid), http.StatusBadRequest)
+			return
+		}
+		ok, err := s.spice.CheckTemplatePermission(r.Context(), tid, username)
+		if err != nil {
+			s.logger.Error("check template permission for PAT", zap.Error(err))
+			jsonError(w, "internal", http.StatusInternalServerError)
+			return
+		}
+		if !ok {
+			jsonError(w, fmt.Sprintf("no permission on template %s", tid), http.StatusForbidden)
+			return
+		}
+	}
+
+	// Issue Zitadel machine user + PAT
+	result, err := s.patIssuer.Issue(r.Context(), username, ttl)
+	if err != nil {
+		s.logger.Error("issue pat", zap.String("user", username), zap.Error(err))
+		jsonError(w, "failed to create PAT", http.StatusInternalServerError)
+		return
+	}
+
+	patID := uuid.New().String()
+	// SpiceDB uses machineUsername as the pat object ID so Guard can resolve
+	// the owner directly from the JWKS-authenticated preferred_username.
+	spicedbPATID := result.MachineUsername
+
+	// Write SpiceDB relationships
+	if err := s.spice.WritePATOwner(r.Context(), spicedbPATID, username); err != nil {
+		s.logger.Error("write pat owner to spicedb", zap.Error(err))
+		s.patIssuer.DeleteUser(r.Context(), result.ZitadelUserID)
+		jsonError(w, "failed to configure PAT permissions", http.StatusInternalServerError)
+		return
+	}
+
+	for _, tid := range req.TemplateIDs {
+		if err := s.spice.WritePATTemplateFilter(r.Context(), tid, spicedbPATID); err != nil {
+			s.logger.Error("write pat template filter to spicedb", zap.Error(err))
+			s.spice.DeletePATRelationships(r.Context(), spicedbPATID)
+			s.patIssuer.DeleteUser(r.Context(), result.ZitadelUserID)
+			jsonError(w, "failed to configure PAT permissions", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Save to DB
+	now := time.Now()
+	p := &store.PAT{
+		ID:              patID,
+		Name:            req.Name,
+		ZitadelUserID:   result.ZitadelUserID,
+		ZitadelPATID:    result.ZitadelPATID,
+		MachineUsername: result.MachineUsername,
+		Owner:           username,
+		TemplateIDs:     req.TemplateIDs,
+		CreatedAt:       now,
+		ExpiresAt:       now.Add(ttl),
+	}
+	if err := s.store.CreatePAT(r.Context(), p); err != nil {
+		s.logger.Error("save pat to store", zap.Error(err))
+		s.spice.DeletePATRelationships(r.Context(), spicedbPATID)
+		s.patIssuer.DeleteUser(r.Context(), result.ZitadelUserID)
+		jsonError(w, "failed to save PAT", http.StatusInternalServerError)
+		return
+	}
+
+	s.logger.Info("PAT created",
+		zap.String("patId", patID),
+		zap.String("owner", username),
+		zap.Strings("templates", req.TemplateIDs),
+	)
+
+	// Response with token (one-time)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]any{
+		"id":              patID,
+		"name":            req.Name,
+		"machineUsername": result.MachineUsername,
+		"templateIds":     req.TemplateIDs,
+		"createdAt":       now,
+		"expiresAt":       now.Add(ttl),
+		"token":           result.Token,
+	})
+}
+
+func (s *Server) handlePATRevoke(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	username := requireAuth(w, r)
+	if username == "" {
+		return
+	}
+
+	var req struct {
+		PATID string `json:"patId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		jsonError(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// Revoke in DB and get Zitadel user ID + machine username
+	zitadelUserID, machineUsername, err := s.store.RevokePAT(r.Context(), req.PATID, username)
+	if err != nil {
+		s.logger.Error("revoke pat", zap.Error(err))
+		jsonError(w, "PAT not found or already revoked", http.StatusNotFound)
+		return
+	}
+
+	// Delete SpiceDB relationships (using machineUsername as SpiceDB pat ID)
+	if err := s.spice.DeletePATRelationships(r.Context(), machineUsername); err != nil {
+		s.logger.Error("delete pat spicedb relationships", zap.Error(err))
+	}
+
+	// Delete Zitadel machine user
+	if s.patIssuer != nil {
+		if err := s.patIssuer.DeleteUser(r.Context(), zitadelUserID); err != nil {
+			s.logger.Error("delete zitadel machine user", zap.Error(err))
+		}
+	}
+
+	s.logger.Info("PAT revoked", zap.String("patId", req.PATID), zap.String("owner", username))
 	w.WriteHeader(http.StatusNoContent)
 }
 

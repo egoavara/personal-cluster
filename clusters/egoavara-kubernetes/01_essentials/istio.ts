@@ -93,6 +93,7 @@ export const istiod = new helm.v3.Release("istiod", {
                         headersToUpstreamOnAllow: [
                             "x-auth-request-user",
                             "x-auth-request-email",
+                            "x-auth-request-pat-owner",
                         ],
                         headersToDownstreamOnDeny: [
                             "set-cookie",

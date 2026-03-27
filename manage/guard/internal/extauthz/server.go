@@ -24,6 +24,7 @@ type Server struct {
 	oidc       *OIDCProvider
 	jwks       *oidcpkg.JWKSValidator
 	authz      *Authorizer
+	pat        *PATResolver
 	limiter    *ratelimit.Limiter
 	httpServer *http.Server
 	logger     *zap.Logger
@@ -55,6 +56,12 @@ func Run(ctx context.Context, spiceDBCfg config.SpiceDBConfig, cfg config.ExtAut
 		jwks:     jwks,
 		authz:    NewAuthorizer(spiceClient, spiceDBCfg.Cache, cfg.HostResourceMap(), logger),
 		logger:   logger,
+	}
+
+	// Initialize PAT resolver if enabled
+	if cfg.PAT.Enabled {
+		srv.pat = NewPATResolver(cfg.PAT.Prefix, spiceClient, cfg.PAT.CacheTTL, logger)
+		logger.Info("PAT resolver enabled", zap.String("prefix", cfg.PAT.Prefix))
 	}
 
 	// Initialize rate limiter if enabled
@@ -140,7 +147,7 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Authenticate: try session cookie first, then Bearer token
-	var username, email string
+	var username, email, patOwner string
 
 	session, err := s.sessions.GetSession(r)
 	if err == nil {
@@ -149,6 +156,19 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 	} else if bearerUser, bearerEmail, ok := s.tryBearerAuth(r); ok {
 		username = bearerUser
 		email = bearerEmail
+
+		// PAT detection: if username matches PAT prefix, resolve owner
+		if s.pat != nil && s.pat.IsPAT(bearerUser) {
+			if owner, ok := s.pat.ResolveOwner(r.Context(), bearerUser); ok {
+				patOwner = owner
+			} else {
+				s.logger.Warn("PAT machine user has no owner in SpiceDB",
+					zap.String("machineUsername", bearerUser),
+				)
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+		}
 	} else {
 		// Neither session nor bearer — redirect browsers to login, reject API clients with 401
 		if isBearerRequest(r) {
@@ -164,7 +184,13 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 		host = r.Host
 	}
 
-	allowed, err := s.authz.CheckAccess(r.Context(), host, username)
+	// For PAT requests, check kube_service access using the owner's identity
+	checkUser := username
+	if patOwner != "" {
+		checkUser = patOwner
+	}
+
+	allowed, err := s.authz.CheckAccess(r.Context(), host, checkUser)
 	if err != nil {
 		s.logger.Error("authorization check error",
 			zap.String("user", username),
@@ -201,6 +227,11 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("X-Auth-Request-User", username)
 	w.Header().Set("X-Auth-Request-Email", email)
+	// Always set Pat-Owner header to prevent client-injected header poisoning.
+	// Envoy ext-authz forwards original request headers to upstream; if Guard
+	// only sets this on PAT requests, a client can inject a fake Pat-Owner
+	// header that passes through unchallenged on non-PAT requests.
+	w.Header().Set("X-Auth-Request-Pat-Owner", patOwner)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -440,4 +471,3 @@ func buildOriginalURL(r *http.Request) string {
 	}
 	return fmt.Sprintf("%s://%s%s", proto, host, uri)
 }
-
