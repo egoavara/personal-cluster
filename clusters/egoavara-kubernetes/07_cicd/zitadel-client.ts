@@ -194,7 +194,7 @@ stringData:
             - "urn:zitadel:iam:org:project:id:$PROJECT_ID:aud"
           impersonation:
             username: "claims.sub"
-            groups: "'urn:zitadel:iam:org:project:roles' in claims ? claims['urn:zitadel:iam:org:project:roles'].map(e, e.key) : []"
+            groups: "'urn:zitadel:iam:org:project:roles' in claims ? claims['urn:zitadel:iam:org:project:roles'].map(e, e) : []"
 CONFIGEOF
 
 echo "Restarting flux-operator web server..."
