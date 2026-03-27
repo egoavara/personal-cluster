@@ -1,7 +1,6 @@
 package dashboard
 
 import (
-	"html/template"
 	"net/http"
 
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
@@ -12,12 +11,12 @@ import (
 // PolicyHandler provides HTTP handlers for SpiceDB relationship CRUD.
 type PolicyHandler struct {
 	spice     *spicedb.Client
-	templates *template.Template
+	templates *Templates
 	logger    *zap.Logger
 }
 
 // NewPolicyHandler creates a policy management handler.
-func NewPolicyHandler(spice *spicedb.Client, templates *template.Template, logger *zap.Logger) *PolicyHandler {
+func NewPolicyHandler(spice *spicedb.Client, templates *Templates, logger *zap.Logger) *PolicyHandler {
 	return &PolicyHandler{
 		spice:     spice,
 		templates: templates,
@@ -85,7 +84,7 @@ func (h *PolicyHandler) HandleList(w http.ResponseWriter, r *http.Request) {
 		"Items":        items,
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "policy_list", data); err != nil {
+	if err := h.templates.Render(w, "policy_list", data); err != nil {
 		h.logger.Error("template error", zap.Error(err))
 	}
 }
@@ -96,7 +95,7 @@ func (h *PolicyHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{
 			"Session": sessionFromContext(r.Context()),
 		}
-		if err := h.templates.ExecuteTemplate(w, "policy_create", data); err != nil {
+		if err := h.templates.Render(w, "policy_create", data); err != nil {
 			h.logger.Error("template error", zap.Error(err))
 		}
 		return
@@ -201,7 +200,7 @@ func (h *PolicyHandler) HandleCheck(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "check", data); err != nil {
+	if err := h.templates.Render(w, "check", data); err != nil {
 		h.logger.Error("template error", zap.Error(err))
 	}
 }

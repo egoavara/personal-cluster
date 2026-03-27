@@ -17,16 +17,55 @@ import (
 //go:embed templates/*.html templates/policy/*.html
 var templateFS embed.FS
 
+// Templates holds per-page template sets to avoid "content" block name collisions.
+type Templates struct {
+	pages map[string]*template.Template
+}
+
+// parsePageTemplate parses layout.html together with a single page template.
+func parsePageTemplate(page string) (*template.Template, error) {
+	return template.New("").ParseFS(templateFS, "templates/layout.html", page)
+}
+
+func loadTemplates() (*Templates, error) {
+	pages := map[string]string{
+		"home":          "templates/home.html",
+		"check":         "templates/check.html",
+		"schema":        "templates/schema.html",
+		"login":         "templates/login.html",
+		"policy_list":   "templates/policy/list.html",
+		"policy_create": "templates/policy/create.html",
+	}
+
+	ts := &Templates{pages: make(map[string]*template.Template, len(pages))}
+	for name, path := range pages {
+		t, err := parsePageTemplate(path)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse template %s: %w", name, err)
+		}
+		ts.pages[name] = t
+	}
+	return ts, nil
+}
+
+func (ts *Templates) Render(w http.ResponseWriter, name string, data interface{}) error {
+	t, ok := ts.pages[name]
+	if !ok {
+		return fmt.Errorf("template %q not found", name)
+	}
+	return t.ExecuteTemplate(w, name, data)
+}
+
 type Server struct {
 	httpServer *http.Server
 	logger     *zap.Logger
 }
 
 func NewServer(spice *spicedb.Client, cfg config.DashboardConfig, logger *zap.Logger) (*Server, error) {
-	// Load templates
-	tmpl, err := template.New("").ParseFS(templateFS, "templates/*.html", "templates/policy/*.html")
+	// Load templates (each page parsed separately with layout)
+	tmpl, err := loadTemplates()
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse templates: %w", err)
+		return nil, fmt.Errorf("failed to load templates: %w", err)
 	}
 
 	// Load dashboard routes
@@ -76,7 +115,7 @@ func NewServer(spice *spicedb.Client, cfg config.DashboardConfig, logger *zap.Lo
 			"Dashboards": routes.Dashboards,
 			"Stats":      stats,
 		}
-		if err := tmpl.ExecuteTemplate(w, "home", data); err != nil {
+		if err := tmpl.Render(w, "home", data); err != nil {
 			logger.Error("template error", zap.Error(err))
 		}
 	})
@@ -92,7 +131,7 @@ func NewServer(spice *spicedb.Client, cfg config.DashboardConfig, logger *zap.Lo
 			"Session": sessionFromContext(r.Context()),
 			"Schema":  schema,
 		}
-		if err := tmpl.ExecuteTemplate(w, "schema", data); err != nil {
+		if err := tmpl.Render(w, "schema", data); err != nil {
 			logger.Error("template error", zap.Error(err))
 		}
 	})
