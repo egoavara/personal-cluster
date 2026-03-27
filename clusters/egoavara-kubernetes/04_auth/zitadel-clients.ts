@@ -92,6 +92,13 @@ if [ -z "$PROJECT_ID" ]; then
 fi
 echo "Project ID: $PROJECT_ID"
 
+# Enable projectRoleAssertion — Action의 ctx.v1.grants에 role 정보 제공에 필요
+echo "=== Enabling project role assertion ==="
+curl -s -X PUT "$API/management/v1/projects/$PROJECT_ID" \\
+    -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+    -d "{\\"name\\":\\"Infrastructure\\",\\"projectRoleAssertion\\":true,\\"projectRoleCheck\\":true}" > /dev/null
+echo "Project role assertion enabled"
+
 # ensure_app: idempotent client registration
 # - If K8s Secret exists with client-id/client-secret → skip (already registered)
 # - If Zitadel app exists but no Secret → regenerate secret, create Secret
@@ -244,7 +251,47 @@ else
     fi
 fi
 
-echo "=== ALL CLIENTS & IdPs ENSURED ==="
+# --- Zitadel Action: flatten project roles → groups claim ---
+# 모든 OIDC 클라이언트의 토큰에 project roles를 flat groups claim으로 주입
+echo "=== Ensuring groups claim Action ==="
+
+# JS에서 작은따옴표 사용 → JSON 이스케이핑 불필요
+ACTION_SCRIPT="function flattenRolesToGroups(ctx, api) { if (!ctx.v1.grants || !ctx.v1.grants.userGrants) return; var groups = []; ctx.v1.grants.userGrants.forEach(function(grant) { grant.roles.forEach(function(role) { if (groups.indexOf(role) === -1) groups.push(role); }); }); if (groups.length > 0) { api.v1.claims.setClaim('groups', groups); } }"
+ACTION_JSON="{\\"name\\":\\"flattenRolesToGroups\\",\\"script\\":\\"$ACTION_SCRIPT\\",\\"timeout\\":\\"10s\\",\\"allowedToFail\\":false}"
+
+ACTIONS=$(curl -s -X POST "$API/management/v1/actions/_search" \\
+    -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+    -d '{"queries":[{"actionNameQuery":{"name":"flattenRolesToGroups","method":"TEXT_QUERY_METHOD_EQUALS"}}]}')
+echo "Actions search response: $ACTIONS"
+ACTION_ID=$(echo "$ACTIONS" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4 || true)
+
+if [ -n "$ACTION_ID" ]; then
+    echo "Action flattenRolesToGroups exists (id=$ACTION_ID), updating..."
+    curl -s -X PUT "$API/management/v1/actions/$ACTION_ID" \\
+        -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+        -d "$ACTION_JSON"
+else
+    echo "Creating Action flattenRolesToGroups..."
+    RESULT=$(curl -s -X POST "$API/management/v1/actions" \\
+        -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+        -d "$ACTION_JSON")
+    echo "Create action response: $RESULT"
+    ACTION_ID=$(echo "$RESULT" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+    echo "Action created (id=$ACTION_ID)"
+fi
+
+if [ -n "$ACTION_ID" ]; then
+    # Complement Token flow (type=2): trigger 4 = Pre Access Token, trigger 5 = Pre Userinfo
+    # trigger 4 = Pre Userinfo, trigger 5 = Pre Access Token
+    for TRIGGER in 4 5; do
+        FLOW_RESULT=$(curl -s -X POST "$API/management/v1/flows/2/trigger/$TRIGGER" \\
+            -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+            -d "{\\"actionIds\\":[\\"$ACTION_ID\\"]}")
+        echo "Trigger $TRIGGER response: $FLOW_RESULT"
+    done
+fi
+
+echo "=== ALL CLIENTS, IdPs & ACTIONS ENSURED ==="
 `,
     },
 }, { parent: authPhase });
