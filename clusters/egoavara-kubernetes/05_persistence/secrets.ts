@@ -13,7 +13,7 @@ export const etcdRootPassword = new random.RandomPassword("etcd-root-password", 
     special: false,
 }, { parent: persistencePhase });
 
-export const natsAuthToken = new random.RandomPassword("nats-auth-token", {
-    length: 48,
+export const pgVenderPassword = new random.RandomPassword("pg-vender-password", {
+    length: 32,
     special: false,
 }, { parent: persistencePhase });

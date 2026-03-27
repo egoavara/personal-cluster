@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credential Vending</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+        .header { background: #1a1a2e; color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.2rem; }
+        .user { font-size: 0.9rem; opacity: 0.8; }
+        .container { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem; padding: 1.5rem; }
+        .card h3 { margin-bottom: 0.5rem; }
+        .card p { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .badge-postgres { background: #336791; color: #fff; }
+        .badge-valkey { background: #d82c20; color: #fff; }
+        .badge-nats { background: #27aae1; color: #fff; }
+        .badge-etcd { background: #419eda; color: #fff; }
+        .badge-qdrant { background: #dc4a38; color: #fff; }
+        .badge-ceph { background: #f05a28; color: #fff; }
+        .badge-manticore { background: #3c8dbc; color: #fff; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+        .btn-issue { background: #4caf50; color: #fff; }
+        .btn-issue:hover { background: #45a049; }
+        .result { margin-top: 1rem; padding: 1rem; background: #f9f9f9; border-radius: 4px; font-family: monospace; font-size: 0.85rem; display: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Credential Vending Service</h1>
+        <span class="user">{{.Username}}</span>
+    </div>
+    <div class="container">
+        <h2 style="margin-bottom: 1rem;">Available Templates</h2>
+        {{range .Templates}}
+        <div class="card">
+            <span class="badge badge-{{.Service}}">{{.Service}}</span>
+            <h3>{{.Name}}</h3>
+            <p>{{.Description}}</p>
+            <button class="btn btn-issue" onclick="issueCredential('{{.ID}}', this)">Issue Credential</button>
+            <div class="result" id="result-{{.ID}}"></div>
+        </div>
+        {{else}}
+        <div class="card">
+            <p>No templates available. Contact your administrator to request access.</p>
+        </div>
+        {{end}}
+    </div>
+    <script>
+    async function issueCredential(templateId, btn) {
+        btn.disabled = true;
+        btn.textContent = 'Issuing...';
+        const resultDiv = document.getElementById('result-' + templateId);
+        try {
+            const resp = await fetch('/credentials/issue', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({templateId: templateId})
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<strong>Credential issued:</strong><br><pre>' + JSON.stringify(data.details, null, 2) + '</pre><br><small>Expires: ' + data.expiresAt + '</small>';
+            } else {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<span style="color:red">Error: ' + (data.error || 'unknown') + '</span>';
+            }
+        } catch (e) {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span style="color:red">Network error</span>';
+        }
+        btn.disabled = false;
+        btn.textContent = 'Issue Credential';
+    }
+    </script>
+</body>
+</html>

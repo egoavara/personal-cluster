@@ -21,6 +21,7 @@ export const etcd = new helm.v3.Release("etcd", {
         auth: {
             rbac: {
                 create: true,
+                allowNoneAuthentication: false,
                 rootPassword: etcdRootPassword.result,
             },
             client: { secureTransport: false }, // Istio mTLS

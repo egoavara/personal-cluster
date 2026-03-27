@@ -32,6 +32,22 @@ const roleBinding = new k8s.rbac.v1.RoleBinding("zitadel-clients-rb", {
     subjects: [{ kind: "ServiceAccount", name: "zitadel-clients", namespace }],
 }, { parent: authPhase });
 
+// persistence NS — vender-auth-secrets (SpiceDB key, Zitadel PAT, project ID) 생성 권한
+const persistenceRole = new k8s.rbac.v1.Role("zitadel-clients-persistence-role", {
+    metadata: { name: "zitadel-clients", namespace: "persistence" },
+    rules: [{
+        apiGroups: [""],
+        resources: ["secrets"],
+        verbs: ["get", "create", "update", "patch"],
+    }],
+}, { parent: authPhase });
+
+const persistenceRoleBinding = new k8s.rbac.v1.RoleBinding("zitadel-clients-persistence-rb", {
+    metadata: { name: "zitadel-clients", namespace: "persistence" },
+    roleRef: { apiGroup: "rbac.authorization.k8s.io", kind: "Role", name: "zitadel-clients" },
+    subjects: [{ kind: "ServiceAccount", name: "zitadel-clients", namespace: "auth" }],
+}, { parent: authPhase });
+
 // telemetry NS — Grafana OIDC Secret 생성 + Deployment restart 권한
 const telemetryRole = new k8s.rbac.v1.Role("zitadel-clients-telemetry-role", {
     metadata: { name: "zitadel-clients", namespace: "telemetry" },
@@ -291,6 +307,17 @@ if [ -n "$ACTION_ID" ]; then
     done
 fi
 
+# --- Vender cross-phase secrets ---
+# persistence NS에 SpiceDB key, Zitadel PAT, project ID를 복제
+echo "=== Creating vender-auth-secrets in persistence NS ==="
+SPICEDB_KEY=$(kubectl get secret spicedb-preshared-key -n auth -o jsonpath='{.data.SPICEDB_GRPC_PRESHARED_KEY}' | base64 -d)
+kubectl create secret generic vender-auth-secrets -n persistence \\
+    --from-literal=spicedb-preshared-key="$SPICEDB_KEY" \\
+    --from-literal=zitadel-pat="$PAT" \\
+    --from-literal=zitadel-project-id="$PROJECT_ID" \\
+    --dry-run=client -o yaml | kubectl apply -f -
+echo "vender-auth-secrets created in persistence NS"
+
 echo "=== ALL CLIENTS, IdPs & ACTIONS ENSURED ==="
 `,
     },
@@ -350,6 +377,6 @@ export const zitadelClients = new k8s.batch.v1.Job("zitadel-clients", {
     },
 }, {
     parent: authPhase,
-    dependsOn: [zitadel, script, sa, role, roleBinding, telemetryRole, telemetryRoleBinding, googleOAuthSecret],
+    dependsOn: [zitadel, script, sa, role, roleBinding, telemetryRole, telemetryRoleBinding, persistenceRole, persistenceRoleBinding, googleOAuthSecret],
     replaceOnChanges: ["metadata.annotations"],
 });

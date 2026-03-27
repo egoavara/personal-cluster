@@ -84,18 +84,16 @@ templates:
     },
 }, { parent: persistencePhase });
 
-// --- Secret: 민감 설정 (서비스 접속 정보, SpiceDB, Zitadel) ---
-// CNPG는 pg-persistence-superuser Secret을 자동 생성 (username/password 포함)
-// 이 Secret에서 DSN을 조합
-const pgSuperuserSecret = core.v1.Secret.get("pg-persistence-superuser", pulumi.interpolate`${namespace}/pg-persistence-superuser`);
+import { pgVenderPassword } from "./secrets.ts";
+import { pgCluster, pgVenderSecret } from "./postgres.ts";
+import { nats } from "./nats.ts";
+import { etcd } from "./etcd.ts";
 
+// --- Secret: 민감 설정 (서비스 접속 정보, SpiceDB, Zitadel) ---
 const venderSecrets = new core.v1.Secret("vender-secrets", {
     metadata: { name: "vender-secrets", namespace },
     stringData: {
-        "secrets.yaml": pulumi.all([
-            pgSuperuserSecret.data["username"].apply(v => Buffer.from(v, "base64").toString()),
-            pgSuperuserSecret.data["password"].apply(v => Buffer.from(v, "base64").toString()),
-        ]).apply(([pgUser, pgPass]) => `
+        "secrets.yaml": pgVenderPassword.result.apply(pgPass => `
 spicedb:
   endpoint: "spicedb.auth.svc.cluster.local:50051"
   presharedKey: ""
@@ -105,7 +103,7 @@ zitadel:
   projectID: ""
 services:
   postgres:
-    dsn: "postgresql://${pgUser}:${pgPass}@pg-persistence-rw.persistence.svc.cluster.local:5432/app?sslmode=disable"
+    dsn: "postgresql://vender:${pgPass}@pg-persistence-rw.persistence.svc.cluster.local:5432/app?sslmode=disable"
   valkey:
     addr: "valkey-node-0.valkey-headless.persistence.svc.cluster.local:6379"
     password: ""
@@ -198,7 +196,7 @@ export const venderDeployment = new apps.v1.Deployment("vender", {
             },
         },
     },
-}, { parent: persistencePhase, dependsOn: [venderConfig, venderSecrets] });
+}, { parent: persistencePhase, dependsOn: [venderConfig, venderSecrets, pgVenderSecret, pgCluster, nats, etcd] });
 
 // --- Service ---
 export const venderService = new core.v1.Service("vender-svc", {

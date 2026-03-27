@@ -1,8 +1,19 @@
 import * as k8s from "@pulumi/kubernetes";
 import { persistencePhase } from "./phase.ts";
 import { ns } from "./namespace.ts";
+import { pgVenderPassword } from "./secrets.ts";
 
 const namespace = ns.metadata.name;
+
+// --- CNPG managed role Secret (vender용 CREATEROLE 권한 롤) ---
+// CNPG가 이 Secret에서 비밀번호를 읽어 PostgreSQL role에 설정
+export const pgVenderSecret = new k8s.core.v1.Secret("pg-persistence-vender", {
+    metadata: { name: "pg-persistence-vender", namespace },
+    stringData: {
+        username: "vender",
+        password: pgVenderPassword.result,
+    },
+}, { parent: persistencePhase });
 
 // --- S3 WAL Archive ---
 // pg_rewind timeline divergence 방지를 위해 WAL을 S3에 아카이브
@@ -39,6 +50,17 @@ export const pgCluster = new k8s.apiextensions.CustomResource("pg-persistence", 
     spec: {
         instances: 3,
         imageName: "ghcr.io/cloudnative-pg/postgresql:17",
+        managed: {
+            roles: [{
+                name: "vender",
+                login: true,
+                createdb: false,
+                createrole: true,
+                superuser: false,
+                passwordSecret: { name: "pg-persistence-vender" },
+                ensure: "present",
+            }],
+        },
         postgresql: {
             parameters: {
                 max_connections: "200",
@@ -75,7 +97,7 @@ export const pgCluster = new k8s.apiextensions.CustomResource("pg-persistence", 
             retentionPolicy: "7d",
         },
     },
-}, { parent: persistencePhase, dependsOn: [walBucket] });
+}, { parent: persistencePhase, dependsOn: [walBucket, pgVenderSecret] });
 
 // ScheduledBackup — 매일 full backup, retention 정리의 기준점
 // full backup 없이 WAL만 쌓으면 retention이 동작하지 않음
