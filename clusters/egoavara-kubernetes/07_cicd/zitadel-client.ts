@@ -90,9 +90,10 @@ ensure_role "flux-viewer" "Flux Viewer"
 
 # Check existing Secret
 EXISTING=$(kubectl get secret "flux-web-config" -n "$NS" -o jsonpath='{.data.config\\.yaml}' 2>/dev/null | base64 -d 2>/dev/null | grep clientID || true)
+SKIP_SECRET=false
 if [ -n "$EXISTING" ]; then
-    echo "flux-web-config Secret already exists, skipping"
-    exit 0
+    echo "flux-web-config Secret already exists, will skip Secret creation"
+    SKIP_SECRET=true
 fi
 
 # Register or find OIDC client
@@ -104,32 +105,62 @@ APPS=$(curl -sf -X POST "$API/management/v1/projects/$PROJECT_ID/apps/_search" \
 APP_ID=$(echo "$APPS" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
 CLIENT_ID=$(echo "$APPS" | grep -o '"clientId":"[^"]*"' | head -1 | cut -d'"' -f4)
 
-if [ -n "$APP_ID" ] && [ -n "$CLIENT_ID" ]; then
-    echo "$APP_NAME exists (appId=$APP_ID), regenerating secret..."
-    REGEN=$(curl -sf -X POST "$API/management/v1/projects/$PROJECT_ID/apps/$APP_ID/oidc_config/_generate_client_secret" \\
-        -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" -d '{}')
-    CLIENT_SECRET=$(echo "$REGEN" | grep -o '"clientSecret":"[^"]*"' | cut -d'"' -f4)
-else
-    echo "Creating $APP_NAME..."
-    RESULT=$(curl -sf -X POST "$API/management/v1/projects/$PROJECT_ID/apps/oidc" \\
-        -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
-        -d '{
-            "name": "flux-web-ui",
-            "redirectUris": ["https://gitops.private.egoavara.net/oauth2/callback"],
-            "postLogoutRedirectUris": ["https://gitops.private.egoavara.net"],
-            "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
-            "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"],
-            "appType": "OIDC_APP_TYPE_WEB",
-            "authMethodType": "OIDC_AUTH_METHOD_TYPE_POST",
-            "devMode": true
-        }')
-    CLIENT_ID=$(echo "$RESULT" | grep -o '"clientId":"[^"]*"' | cut -d'"' -f4)
-    CLIENT_SECRET=$(echo "$RESULT" | grep -o '"clientSecret":"[^"]*"' | cut -d'"' -f4)
+if [ "$SKIP_SECRET" = "false" ]; then
+    if [ -n "$APP_ID" ] && [ -n "$CLIENT_ID" ]; then
+        echo "$APP_NAME exists (appId=$APP_ID), regenerating secret..."
+        REGEN=$(curl -sf -X POST "$API/management/v1/projects/$PROJECT_ID/apps/$APP_ID/oidc_config/_generate_client_secret" \\
+            -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" -d '{}')
+        CLIENT_SECRET=$(echo "$REGEN" | grep -o '"clientSecret":"[^"]*"' | cut -d'"' -f4)
+    else
+        echo "Creating $APP_NAME..."
+        RESULT=$(curl -sf -X POST "$API/management/v1/projects/$PROJECT_ID/apps/oidc" \\
+            -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+            -d '{
+                "name": "flux-web-ui",
+                "redirectUris": ["https://gitops.private.egoavara.net/oauth2/callback"],
+                "postLogoutRedirectUris": ["https://gitops.private.egoavara.net"],
+                "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
+                "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"],
+                "appType": "OIDC_APP_TYPE_WEB",
+                "authMethodType": "OIDC_AUTH_METHOD_TYPE_POST",
+                "devMode": true
+            }')
+        CLIENT_ID=$(echo "$RESULT" | grep -o '"clientId":"[^"]*"' | cut -d'"' -f4)
+        CLIENT_SECRET=$(echo "$RESULT" | grep -o '"clientSecret":"[^"]*"' | cut -d'"' -f4)
+        # 방금 생성한 앱의 ID 조회
+        APPS=$(curl -sf -X POST "$API/management/v1/projects/$PROJECT_ID/apps/_search" \\
+            -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+            -d "$SEARCH_BODY")
+        APP_ID=$(echo "$APPS" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+    fi
+
+    if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ]; then
+        echo "ERROR: Failed to get client credentials"
+        exit 1
+    fi
 fi
 
-if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ]; then
-    echo "ERROR: Failed to get client credentials"
-    exit 1
+# Enable idTokenRoleAssertion — 항상 실행 (ID token에 project roles 포함)
+echo "=== Enabling idTokenRoleAssertion ==="
+curl -s -X PUT "$API/management/v1/projects/$PROJECT_ID/apps/$APP_ID/oidc_config" \\
+    -H "$H_AUTH" -H "$H_CT" -H "$H_HOST" \\
+    -d "{
+        \\"redirectUris\\": [\\"https://gitops.private.egoavara.net/oauth2/callback\\"],
+        \\"postLogoutRedirectUris\\": [\\"https://gitops.private.egoavara.net\\"],
+        \\"responseTypes\\": [\\"OIDC_RESPONSE_TYPE_CODE\\"],
+        \\"grantTypes\\": [\\"OIDC_GRANT_TYPE_AUTHORIZATION_CODE\\"],
+        \\"appType\\": \\"OIDC_APP_TYPE_WEB\\",
+        \\"authMethodType\\": \\"OIDC_AUTH_METHOD_TYPE_POST\\",
+        \\"devMode\\": true,
+        \\"idTokenRoleAssertion\\": true,
+        \\"idTokenUserinfoAssertion\\": true,
+        \\"accessTokenRoleAssertion\\": true
+    }"
+echo "idTokenRoleAssertion enabled"
+
+if [ "$SKIP_SECRET" = "true" ]; then
+    echo "=== DONE (Secret already exists, only ensured roles + idTokenRoleAssertion) ==="
+    exit 0
 fi
 
 echo "Creating flux-web-config Secret (clientId=$CLIENT_ID)..."
@@ -160,12 +191,10 @@ stringData:
             - profile
             - email
             - "urn:zitadel:iam:org:project:roles"
-          variables:
-            - name: roles
-              expression: "'urn:zitadel:iam:org:project:roles' in claims ? claims['urn:zitadel:iam:org:project:roles'] : {}"
+            - "urn:zitadel:iam:org:project:id:$PROJECT_ID:aud"
           impersonation:
             username: "claims.sub"
-            groups: "size(roles) > 0 ? roles.map(e, e.key) : []"
+            groups: "'urn:zitadel:iam:org:project:roles' in claims ? claims['urn:zitadel:iam:org:project:roles'].map(e, e.key) : []"
 CONFIGEOF
 
 echo "Restarting flux-operator web server..."
