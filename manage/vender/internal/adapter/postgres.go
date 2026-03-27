@@ -97,13 +97,18 @@ func (a *PostgresAdapter) Issue(ctx context.Context, user string, params map[str
 		return nil, fmt.Errorf("grant connect: %w", err)
 	}
 
+	// Schema-level grants: USAGE (always) + CREATE (if schemaCreate=true)
+	schemaGrant := "USAGE"
+	if params["schemaCreate"] == "true" {
+		schemaGrant = "USAGE, CREATE"
+	}
 	_, err = a.db.ExecContext(ctx, fmt.Sprintf(
-		"GRANT USAGE ON SCHEMA %s TO %s",
-		quoteIdent(schema), quoteIdent(roleName),
+		"GRANT %s ON SCHEMA %s TO %s",
+		schemaGrant, quoteIdent(schema), quoteIdent(roleName),
 	))
 	if err != nil {
 		cleanup()
-		return nil, fmt.Errorf("grant usage: %w", err)
+		return nil, fmt.Errorf("grant schema: %w", err)
 	}
 
 	_, err = a.db.ExecContext(ctx, fmt.Sprintf(
@@ -145,6 +150,8 @@ func (a *PostgresAdapter) Revoke(ctx context.Context, cred *Credential) error {
 		"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = $1", roleName)
 	// Revoke privileges and drop role
 	_, _ = a.db.ExecContext(ctx, fmt.Sprintf("REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM %s", quoteIdent(roleName)))
+	_, _ = a.db.ExecContext(ctx, fmt.Sprintf("REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM %s", quoteIdent(roleName)))
+	_, _ = a.db.ExecContext(ctx, fmt.Sprintf("REVOKE ALL ON SCHEMA public FROM %s", quoteIdent(roleName)))
 	_, _ = a.db.ExecContext(ctx, fmt.Sprintf("REVOKE ALL ON DATABASE app FROM %s", quoteIdent(roleName)))
 	_, err := a.db.ExecContext(ctx, fmt.Sprintf("DROP ROLE IF EXISTS %s", quoteIdent(roleName)))
 	return err

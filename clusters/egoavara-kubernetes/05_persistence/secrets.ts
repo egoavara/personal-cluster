@@ -17,3 +17,13 @@ export const pgVenderPassword = new random.RandomPassword("pg-vender-password", 
     length: 32,
     special: false,
 }, { parent: persistencePhase });
+
+export const clickhousePassword = new random.RandomPassword("clickhouse-password", {
+    length: 32,
+    special: false,
+}, { parent: persistencePhase });
+
+export const qdrantApiKey = new random.RandomPassword("qdrant-api-key", {
+    length: 48,
+    special: false,
+}, { parent: persistencePhase });

@@ -51,6 +51,8 @@ extAuthz:
       resource: "kube-system/hubble-ui"
     - host: "guard.private.egoavara.net"
       resource: "auth/guard-dashboard"
+    - host: "vender.private.egoavara.net"
+      resource: "persistence/vender"
 
 dashboard:
   listenAddr: ":8080"

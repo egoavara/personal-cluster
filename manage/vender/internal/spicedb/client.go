@@ -57,3 +57,105 @@ func (c *Client) ListPermittedTemplates(ctx context.Context, username string, te
 	}
 	return permitted, nil
 }
+
+// Relationship represents a SpiceDB relationship (user ↔ template).
+type Relationship struct {
+	TemplateID string `json:"templateId"`
+	UserID     string `json:"userId"`
+	Relation   string `json:"relation"`
+}
+
+// WriteRelationship creates a relationship between a user and a template.
+func (c *Client) WriteRelationship(ctx context.Context, templateID, userID, relation string) error {
+	if relation == "" {
+		relation = "user"
+	}
+	_, err := c.client.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{
+		Updates: []*v1.RelationshipUpdate{
+			{
+				Operation: v1.RelationshipUpdate_OPERATION_TOUCH,
+				Relationship: &v1.Relationship{
+					Resource: &v1.ObjectReference{ObjectType: "template", ObjectId: templateID},
+					Relation: relation,
+					Subject:  &v1.SubjectReference{Object: &v1.ObjectReference{ObjectType: "user", ObjectId: userID}},
+				},
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("write relationship: %w", err)
+	}
+	return nil
+}
+
+// DeleteRelationship removes a relationship between a user and a template.
+func (c *Client) DeleteRelationship(ctx context.Context, templateID, userID, relation string) error {
+	if relation == "" {
+		relation = "user"
+	}
+	_, err := c.client.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{
+		Updates: []*v1.RelationshipUpdate{
+			{
+				Operation: v1.RelationshipUpdate_OPERATION_DELETE,
+				Relationship: &v1.Relationship{
+					Resource: &v1.ObjectReference{ObjectType: "template", ObjectId: templateID},
+					Relation: relation,
+					Subject:  &v1.SubjectReference{Object: &v1.ObjectReference{ObjectType: "user", ObjectId: userID}},
+				},
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("delete relationship: %w", err)
+	}
+	return nil
+}
+
+// ListRelationships returns all relationships for templates.
+func (c *Client) ListRelationships(ctx context.Context) ([]Relationship, error) {
+	stream, err := c.client.ReadRelationships(ctx, &v1.ReadRelationshipsRequest{
+		RelationshipFilter: &v1.RelationshipFilter{
+			ResourceType: "template",
+		},
+		Consistency: &v1.Consistency{
+			Requirement: &v1.Consistency_FullyConsistent{FullyConsistent: true},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("read relationships: %w", err)
+	}
+
+	var result []Relationship
+	for {
+		resp, err := stream.Recv()
+		if err != nil {
+			break
+		}
+		rel := resp.GetRelationship()
+		if rel == nil {
+			continue
+		}
+		result = append(result, Relationship{
+			TemplateID: rel.GetResource().GetObjectId(),
+			UserID:     rel.GetSubject().GetObject().GetObjectId(),
+			Relation:   rel.GetRelation(),
+		})
+	}
+	return result, nil
+}
+
+// CheckAdmin checks if a user is an admin (organization:default#admin@user:<username>).
+func (c *Client) CheckAdmin(ctx context.Context, username string) (bool, error) {
+	resp, err := c.client.CheckPermission(ctx, &v1.CheckPermissionRequest{
+		Resource:   &v1.ObjectReference{ObjectType: "organization", ObjectId: "default"},
+		Permission: "admin",
+		Subject:    &v1.SubjectReference{Object: &v1.ObjectReference{ObjectType: "user", ObjectId: username}},
+		Consistency: &v1.Consistency{
+			Requirement: &v1.Consistency_FullyConsistent{FullyConsistent: true},
+		},
+	})
+	if err != nil {
+		return false, nil // permission check failure = not admin
+	}
+	return resp.Permissionship == v1.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
+}

@@ -68,6 +68,11 @@ export const pgCluster = new k8s.apiextensions.CustomResource("pg-persistence", 
                 shared_buffers: "512MB",
                 effective_cache_size: "1536MB",
             },
+            pg_hba: [
+                // vend_ prefix role은 app DB만 접속 허용
+                "host app /^vend_.* all scram-sha-256",
+                "host all /^vend_.* all reject",
+            ],
         },
         bootstrap: {
             initdb: {

@@ -9,72 +9,693 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
         .header { background: #1a1a2e; color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
         .header h1 { font-size: 1.2rem; }
+        .header-right { display: flex; align-items: center; gap: 1rem; }
         .user { font-size: 0.9rem; opacity: 0.8; }
-        .container { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+        .nav { background: #16213e; padding: 0 2rem; display: flex; gap: 0; }
+        .nav button { background: none; border: none; color: #aaa; padding: 0.75rem 1.5rem; cursor: pointer; font-size: 0.9rem; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .nav button:hover { color: #fff; }
+        .nav button.active { color: #fff; border-bottom-color: #4caf50; }
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+        .page { display: none; }
+        .page.active { display: block; }
         .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem; padding: 1.5rem; }
         .card h3 { margin-bottom: 0.5rem; }
         .card p { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-right: 0.5rem; }
         .badge-postgres { background: #336791; color: #fff; }
         .badge-valkey { background: #d82c20; color: #fff; }
         .badge-nats { background: #27aae1; color: #fff; }
         .badge-etcd { background: #419eda; color: #fff; }
         .badge-qdrant { background: #dc4a38; color: #fff; }
-        .badge-ceph { background: #f05a28; color: #fff; }
+        .badge-ceph-s3 { background: #f05a28; color: #fff; }
         .badge-manticore { background: #3c8dbc; color: #fff; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+        .badge-clickhouse { background: #f5c829; color: #222; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: opacity 0.2s; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-issue { background: #4caf50; color: #fff; }
-        .btn-issue:hover { background: #45a049; }
-        .result { margin-top: 1rem; padding: 1rem; background: #f9f9f9; border-radius: 4px; font-family: monospace; font-size: 0.85rem; display: none; }
+        .btn-issue:hover:not(:disabled) { background: #45a049; }
+        .btn-revoke { background: #f44336; color: #fff; }
+        .btn-revoke:hover:not(:disabled) { background: #d32f2f; }
+        .btn-primary { background: #2196F3; color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: #1976D2; }
+        .btn-danger { background: #f44336; color: #fff; }
+        .btn-danger:hover:not(:disabled) { background: #d32f2f; }
+        .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; font-weight: 600; color: #555; }
+        .ttl-countdown { font-family: monospace; font-size: 0.85rem; }
+        .ttl-warn { color: #f44336; }
+        .secrets-box { margin-top: 1rem; padding: 1rem; background: #fff3e0; border: 1px solid #ffcc80; border-radius: 4px; font-family: monospace; font-size: 0.85rem; word-break: break-all; }
+        .secrets-box strong { display: block; margin-bottom: 0.5rem; color: #e65100; }
+        .empty { text-align: center; color: #999; padding: 2rem; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: #fff; border-radius: 8px; padding: 2rem; width: 500px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+        .modal h3 { margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: #555; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+        .form-group textarea { height: 60px; resize: vertical; }
+        .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+        .status-active { color: #4caf50; font-weight: 600; }
+        .status-revoked { color: #f44336; }
+        .status-expired { color: #ff9800; }
+        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 8px; color: #fff; font-size: 0.9rem; z-index: 200; opacity: 0; transition: opacity 0.3s; }
+        .toast.show { opacity: 1; }
+        .toast-success { background: #4caf50; }
+        .toast-error { background: #f44336; }
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; align-items: center; }
+        .filter-btn { padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 500; cursor: pointer; border: 2px solid transparent; opacity: 0.5; transition: all 0.15s; }
+        .filter-btn:hover { opacity: 0.8; }
+        .filter-btn.active { opacity: 1; border-color: #333; }
+        .filter-btn-all { background: #e0e0e0; color: #333; }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Credential Vending Service</h1>
-        <span class="user">{{.Username}}</span>
-    </div>
-    <div class="container">
-        <h2 style="margin-bottom: 1rem;">Available Templates</h2>
-        {{range .Templates}}
-        <div class="card">
-            <span class="badge badge-{{.Service}}">{{.Service}}</span>
-            <h3>{{.Name}}</h3>
-            <p>{{.Description}}</p>
-            <button class="btn btn-issue" onclick="issueCredential('{{.ID}}', this)">Issue Credential</button>
-            <div class="result" id="result-{{.ID}}"></div>
+        <div class="header-right">
+            <span class="user">{{.Username}}</span>
         </div>
-        {{else}}
-        <div class="card">
-            <p>No templates available. Contact your administrator to request access.</p>
+    </div>
+    <div class="nav" id="nav">
+        <button class="active" data-page="templates">Templates</button>
+        <button data-page="credentials">My Credentials</button>
+        {{if .IsAdmin}}
+        <button data-page="admin-templates">Manage Templates</button>
+        <button data-page="admin-perms">Permissions</button>
+        <button data-page="admin-history">History</button>
+        {{end}}
+    </div>
+
+    <div class="container">
+        <!-- User: Template List -->
+        <div class="page active" id="page-templates">
+            <div id="filter-templates" class="filter-bar"></div>
+            <div id="templates-list"></div>
+        </div>
+
+        <!-- User: My Credentials -->
+        <div class="page" id="page-credentials">
+            <div class="card">
+                <h3>Active Credentials</h3>
+                <div id="filter-credentials" class="filter-bar"></div>
+                <div id="credentials-list"></div>
+            </div>
+        </div>
+
+        {{if .IsAdmin}}
+        <!-- Admin: Template Management -->
+        <div class="page" id="page-admin-templates">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h3>All Templates</h3>
+                    <button class="btn btn-primary" onclick="showTemplateModal()">+ New Template</button>
+                </div>
+                <div id="filter-admin-templates" class="filter-bar"></div>
+                <div id="admin-templates-list"></div>
+            </div>
+        </div>
+
+        <!-- Admin: Permissions -->
+        <div class="page" id="page-admin-perms">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h3>Permission Assignments</h3>
+                    <button class="btn btn-primary" onclick="showPermModal()">+ Add Permission</button>
+                </div>
+                <div id="filter-admin-perms" class="filter-bar"></div>
+                <div id="admin-perms-list"></div>
+            </div>
+        </div>
+
+        <!-- Admin: History -->
+        <div class="page" id="page-admin-history">
+            <div class="card">
+                <h3>Credential History</h3>
+                <div id="filter-admin-history" class="filter-bar"></div>
+                <div id="admin-history-list"></div>
+            </div>
         </div>
         {{end}}
     </div>
+
+    <!-- Secrets one-time display modal -->
+    <div class="modal-overlay" id="secrets-modal">
+        <div class="modal">
+            <h3>Credential Issued</h3>
+            <div class="secrets-box">
+                <strong>Copy these secrets now. They will not be shown again.</strong>
+                <pre id="secrets-content" style="white-space:pre-wrap;"></pre>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="copySecrets()">Copy</button>
+                <button class="btn" onclick="closeModal('secrets-modal')" style="background:#eee;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    {{if .IsAdmin}}
+    <!-- Template create/edit modal -->
+    <div class="modal-overlay" id="template-modal">
+        <div class="modal">
+            <h3 id="template-modal-title">New Template</h3>
+            <div class="form-group">
+                <label>ID (lowercase, hyphens allowed)</label>
+                <input id="tmpl-id" placeholder="pg-readonly" />
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input id="tmpl-name" placeholder="PostgreSQL Read-Only" />
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="tmpl-desc" placeholder="Read-only access to PostgreSQL"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Service</label>
+                <select id="tmpl-service">
+                    <option value="postgres">postgres</option>
+                    <option value="valkey">valkey</option>
+                    <option value="nats">nats</option>
+                    <option value="etcd">etcd</option>
+                    <option value="qdrant">qdrant</option>
+                    <option value="ceph-s3">ceph-s3</option>
+                    <option value="manticore">manticore</option>
+                    <option value="clickhouse">clickhouse</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>TTL (e.g., 24h, 168h)</label>
+                <input id="tmpl-ttl" placeholder="24h" />
+            </div>
+            <div class="form-group">
+                <label>Params (JSON)</label>
+                <textarea id="tmpl-params" placeholder='{"grants":"SELECT","schema":"public"}'></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('template-modal')" style="background:#eee;">Cancel</button>
+                <button class="btn btn-primary" id="tmpl-save-btn" onclick="saveTemplate()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permission add modal -->
+    <div class="modal-overlay" id="perm-modal">
+        <div class="modal">
+            <h3>Add Permission</h3>
+            <div class="form-group">
+                <label>Template ID</label>
+                <select id="perm-template"></select>
+            </div>
+            <div class="form-group">
+                <label>User ID</label>
+                <input id="perm-user" placeholder="username" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('perm-modal')" style="background:#eee;">Cancel</button>
+                <button class="btn btn-primary" onclick="savePerm()">Add</button>
+            </div>
+        </div>
+    </div>
+    {{end}}
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
     <script>
+    // --- Filter state per page ---
+    const filters = {};
+
+    function buildFilterBar(containerId, services, onChange) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        const uniqueServices = [...new Set(services)].sort();
+        filters[containerId] = 'all';
+        el.innerHTML = `<button class="filter-btn filter-btn-all active" data-svc="all" onclick="setFilter('${containerId}', 'all', this)">All</button>` +
+            uniqueServices.map(s => `<button class="filter-btn badge-${s}" data-svc="${s}" onclick="setFilter('${containerId}', '${s}', this)">${s}</button>`).join('');
+        el._onChange = onChange;
+    }
+
+    function setFilter(containerId, service, btn) {
+        filters[containerId] = service;
+        const bar = document.getElementById(containerId);
+        bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (bar._onChange) bar._onChange(service);
+    }
+
+    function getFilter(containerId) {
+        return filters[containerId] || 'all';
+    }
+
+    // --- Navigation ---
+    document.querySelectorAll('#nav button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#nav button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('page-' + btn.dataset.page).classList.add('active');
+            loadPage(btn.dataset.page);
+        });
+    });
+
+    function loadPage(page) {
+        switch(page) {
+            case 'templates': loadTemplates(); break;
+            case 'credentials': loadCredentials(); break;
+            case 'admin-templates': loadAdminTemplates(); break;
+            case 'admin-perms': loadAdminPerms(); break;
+            case 'admin-history': loadAdminHistory(); break;
+        }
+    }
+
+    // --- Toast ---
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast show toast-' + (type || 'success');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // --- Modal ---
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+    // --- API ---
+    async function api(url, opts) {
+        const resp = await fetch(url, opts);
+        if (resp.status === 204) return null;
+        const data = await resp.json().catch(() => null);
+        if (!resp.ok) throw new Error(data?.error || 'request failed');
+        return data;
+    }
+
+    // --- User: Templates ---
+    let _cachedTemplates = [];
+    async function loadTemplates() {
+        try {
+            _cachedTemplates = await api('/api/templates') || [];
+            const services = _cachedTemplates.map(t => t.service);
+            buildFilterBar('filter-templates', services, () => renderTemplates());
+            renderTemplates();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    function renderTemplates() {
+        const f = getFilter('filter-templates');
+        const filtered = f === 'all' ? _cachedTemplates : _cachedTemplates.filter(t => t.service === f);
+        const el = document.getElementById('templates-list');
+        if (!filtered || filtered.length === 0) {
+            el.innerHTML = '<div class="card"><p class="empty">No templates available.</p></div>';
+            return;
+        }
+        el.innerHTML = filtered.map(t => `
+            <div class="card">
+                <span class="badge badge-${t.service}">${t.service}</span>
+                <h3>${esc(t.name)}</h3>
+                <p>${esc(t.description)}</p>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <button class="btn btn-issue" onclick="issueCredential('${t.id}', this)">Issue</button>
+                    <span style="color:#999; font-size:0.8rem;">TTL: ${fmtDuration(t.ttl)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
     async function issueCredential(templateId, btn) {
         btn.disabled = true;
         btn.textContent = 'Issuing...';
-        const resultDiv = document.getElementById('result-' + templateId);
         try {
-            const resp = await fetch('/credentials/issue', {
+            const data = await api('/api/credentials/issue', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({templateId: templateId})
+                body: JSON.stringify({templateId})
             });
-            const data = await resp.json();
-            if (resp.ok) {
-                resultDiv.style.display = 'block';
-                resultDiv.innerHTML = '<strong>Credential issued:</strong><br><pre>' + JSON.stringify(data.details, null, 2) + '</pre><br><small>Expires: ' + data.expiresAt + '</small>';
-            } else {
-                resultDiv.style.display = 'block';
-                resultDiv.innerHTML = '<span style="color:red">Error: ' + (data.error || 'unknown') + '</span>';
+            const content = document.getElementById('secrets-content');
+            let txt = 'Service: ' + data.service + '\nTemplate: ' + data.template + '\nExpires: ' + new Date(data.expiresAt).toLocaleString() + '\n\n';
+            if (data.secrets) {
+                txt += '--- Secrets ---\n';
+                for (const [k, v] of Object.entries(data.secrets)) {
+                    txt += k + ': ' + v + '\n';
+                }
             }
+            if (data.details) {
+                txt += '\n--- Details ---\n';
+                for (const [k, v] of Object.entries(data.details)) {
+                    txt += k + ': ' + v + '\n';
+                }
+            }
+            content.textContent = txt;
+            document.getElementById('secrets-modal').classList.add('show');
+            showToast('Credential issued', 'success');
         } catch (e) {
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = '<span style="color:red">Network error</span>';
+            showToast('Issue failed: ' + e.message, 'error');
         }
         btn.disabled = false;
-        btn.textContent = 'Issue Credential';
+        btn.textContent = 'Issue';
     }
+
+    function copySecrets() {
+        const text = document.getElementById('secrets-content').textContent;
+        navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+    }
+
+    // --- User: Credentials ---
+    let countdownInterval;
+    let _cachedCreds = [];
+    async function loadCredentials() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        try {
+            _cachedCreds = await api('/api/credentials') || [];
+            const services = _cachedCreds.map(c => c.service);
+            buildFilterBar('filter-credentials', services, () => renderCredentials());
+            renderCredentials();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    function renderCredentials() {
+        const f = getFilter('filter-credentials');
+        const filtered = f === 'all' ? _cachedCreds : _cachedCreds.filter(c => c.service === f);
+        const el = document.getElementById('credentials-list');
+        if (!filtered || filtered.length === 0) {
+            el.innerHTML = '<p class="empty">No active credentials.</p>';
+            return;
+        }
+        el.innerHTML = `<table>
+            <thead><tr><th>Service</th><th>Template</th><th>Issued</th><th>TTL</th><th></th></tr></thead>
+            <tbody>${filtered.map(c => `
+                <tr>
+                    <td><span class="badge badge-${c.service}">${c.service}</span></td>
+                    <td>${esc(c.template)}</td>
+                    <td>${new Date(c.issuedAt).toLocaleString()}</td>
+                    <td class="ttl-countdown" data-expires="${c.expiresAt}">${ttlText(c.expiresAt)}</td>
+                    <td><button class="btn btn-revoke btn-sm" onclick="revokeCredential('${c.id}','${c.service}',this)">Revoke</button></td>
+                </tr>
+            `).join('')}</tbody>
+        </table>`;
+        countdownInterval = setInterval(updateCountdowns, 1000);
+    }
+
+    function updateCountdowns() {
+        document.querySelectorAll('.ttl-countdown[data-expires]').forEach(el => {
+            el.textContent = ttlText(el.dataset.expires);
+            const remaining = new Date(el.dataset.expires) - Date.now();
+            el.classList.toggle('ttl-warn', remaining < 3600000);
+        });
+    }
+
+    function ttlText(expiresAt) {
+        const ms = new Date(expiresAt) - Date.now();
+        if (ms <= 0) return 'Expired';
+        const h = Math.floor(ms / 3600000);
+        const m = Math.floor((ms % 3600000) / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        return `${h}h ${m}m ${s}s`;
+    }
+
+    async function revokeCredential(id, service, btn) {
+        if (!confirm('Are you sure you want to revoke this credential?')) return;
+        btn.disabled = true;
+        try {
+            await api('/api/credentials/revoke', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({credentialId: id, service})
+            });
+            showToast('Credential revoked');
+            loadCredentials();
+        } catch (e) {
+            showToast('Revoke failed: ' + e.message, 'error');
+            btn.disabled = false;
+        }
+    }
+
+    {{if .IsAdmin}}
+    // --- Admin: Templates ---
+    let editingTemplateId = null;
+    let _cachedAdminTemplates = [];
+
+    async function loadAdminTemplates() {
+        try {
+            _cachedAdminTemplates = await api('/api/admin/templates') || [];
+            const services = _cachedAdminTemplates.map(t => t.service);
+            buildFilterBar('filter-admin-templates', services, () => renderAdminTemplates());
+            renderAdminTemplates();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    function renderAdminTemplates() {
+        const f = getFilter('filter-admin-templates');
+        const filtered = f === 'all' ? _cachedAdminTemplates : _cachedAdminTemplates.filter(t => t.service === f);
+        const el = document.getElementById('admin-templates-list');
+        if (!filtered || filtered.length === 0) {
+            el.innerHTML = '<p class="empty">No templates.</p>';
+            return;
+        }
+        el.innerHTML = `<table>
+            <thead><tr><th>ID</th><th>Name</th><th>Service</th><th>TTL</th><th>Params</th><th></th></tr></thead>
+            <tbody>${filtered.map(t => `
+                <tr>
+                    <td><code>${esc(t.id)}</code></td>
+                    <td>${esc(t.name)}</td>
+                    <td><span class="badge badge-${t.service}">${t.service}</span></td>
+                    <td>${fmtDuration(t.ttl)}</td>
+                    <td style="font-size:0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${esc(JSON.stringify(t.params))}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick='editTemplate(${JSON.stringify(t).replace(/'/g,"&#39;")})'>Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTemplate('${t.id}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('')}</tbody>
+        </table>`;
+    }
+
+    function showTemplateModal() {
+        editingTemplateId = null;
+        document.getElementById('template-modal-title').textContent = 'New Template';
+        document.getElementById('tmpl-id').value = '';
+        document.getElementById('tmpl-id').disabled = false;
+        document.getElementById('tmpl-name').value = '';
+        document.getElementById('tmpl-desc').value = '';
+        document.getElementById('tmpl-service').value = 'postgres';
+        document.getElementById('tmpl-ttl').value = '24h';
+        document.getElementById('tmpl-params').value = '{}';
+        document.getElementById('template-modal').classList.add('show');
+    }
+
+    function editTemplate(t) {
+        editingTemplateId = t.id;
+        document.getElementById('template-modal-title').textContent = 'Edit Template';
+        document.getElementById('tmpl-id').value = t.id;
+        document.getElementById('tmpl-id').disabled = true;
+        document.getElementById('tmpl-name').value = t.name;
+        document.getElementById('tmpl-desc').value = t.description;
+        document.getElementById('tmpl-service').value = t.service;
+        document.getElementById('tmpl-ttl').value = fmtDuration(t.ttl);
+        document.getElementById('tmpl-params').value = JSON.stringify(t.params || {}, null, 2);
+        document.getElementById('template-modal').classList.add('show');
+    }
+
+    async function saveTemplate() {
+        const id = document.getElementById('tmpl-id').value.trim();
+        const name = document.getElementById('tmpl-name').value.trim();
+        const desc = document.getElementById('tmpl-desc').value.trim();
+        const service = document.getElementById('tmpl-service').value;
+        const ttlStr = document.getElementById('tmpl-ttl').value.trim();
+        let params;
+        try { params = JSON.parse(document.getElementById('tmpl-params').value || '{}'); }
+        catch { showToast('Invalid JSON in params', 'error'); return; }
+
+        const ttl = parseDuration(ttlStr);
+        if (!ttl) { showToast('Invalid TTL format (use e.g., 24h, 168h)', 'error'); return; }
+
+        const body = {id, name, description: desc, service, ttl, params};
+        try {
+            if (editingTemplateId) {
+                await api('/api/admin/templates/' + editingTemplateId, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+                showToast('Template updated');
+            } else {
+                await api('/api/admin/templates', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+                showToast('Template created');
+            }
+            closeModal('template-modal');
+            loadAdminTemplates();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    async function deleteTemplate(id) {
+        if (!confirm('Delete template "' + id + '"?')) return;
+        try {
+            await api('/api/admin/templates/' + id, {method: 'DELETE'});
+            showToast('Template deleted');
+            loadAdminTemplates();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    // --- Admin: Permissions ---
+    let _cachedPerms = [];
+
+    async function loadAdminPerms() {
+        try {
+            const [perms, templates] = await Promise.all([
+                api('/api/permissions'),
+                api('/api/admin/templates')
+            ]);
+            _cachedPerms = (perms || []).map(p => {
+                const tmpl = (templates || []).find(t => t.id === p.templateId);
+                return {...p, service: tmpl ? tmpl.service : ''};
+            });
+            const services = _cachedPerms.map(p => p.service).filter(Boolean);
+            buildFilterBar('filter-admin-perms', services, () => renderAdminPerms());
+            renderAdminPerms();
+
+            const sel = document.getElementById('perm-template');
+            sel.innerHTML = (templates || []).map(t => `<option value="${t.id}">${t.name} (${t.id})</option>`).join('');
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    function renderAdminPerms() {
+        const f = getFilter('filter-admin-perms');
+        const filtered = f === 'all' ? _cachedPerms : _cachedPerms.filter(p => p.service === f);
+        const el = document.getElementById('admin-perms-list');
+        if (!filtered || filtered.length === 0) {
+            el.innerHTML = '<p class="empty">No permissions assigned.</p>';
+            return;
+        }
+        el.innerHTML = `<table>
+            <thead><tr><th>Template</th><th>Service</th><th>User</th><th>Relation</th><th></th></tr></thead>
+            <tbody>${filtered.map(p => `
+                <tr>
+                    <td><code>${esc(p.templateId)}</code></td>
+                    <td>${p.service ? '<span class="badge badge-' + p.service + '">' + p.service + '</span>' : ''}</td>
+                    <td>${esc(p.userId)}</td>
+                    <td>${esc(p.relation)}</td>
+                    <td><button class="btn btn-sm btn-danger" onclick="deletePerm('${p.templateId}','${p.userId}')">Remove</button></td>
+                </tr>
+            `).join('')}</tbody>
+        </table>`;
+    }
+
+    function showPermModal() {
+        document.getElementById('perm-user').value = '';
+        document.getElementById('perm-modal').classList.add('show');
+    }
+
+    async function savePerm() {
+        const templateId = document.getElementById('perm-template').value;
+        const userId = document.getElementById('perm-user').value.trim();
+        if (!templateId || !userId) { showToast('Select template and enter user', 'error'); return; }
+        try {
+            await api('/api/permissions', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({templateId, userId})
+            });
+            showToast('Permission added');
+            closeModal('perm-modal');
+            loadAdminPerms();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    async function deletePerm(templateId, userId) {
+        if (!confirm('Remove permission for "' + userId + '" on "' + templateId + '"?')) return;
+        try {
+            await api('/api/permissions/' + templateId + '/' + userId, {method: 'DELETE'});
+            showToast('Permission removed');
+            loadAdminPerms();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    // --- Admin: History ---
+    let _cachedHistory = [];
+    async function loadAdminHistory() {
+        try {
+            _cachedHistory = await api('/api/credentials/history') || [];
+            const services = _cachedHistory.map(h => h.service);
+            buildFilterBar('filter-admin-history', services, () => renderAdminHistory());
+            renderAdminHistory();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    function renderAdminHistory() {
+        const f = getFilter('filter-admin-history');
+        const filtered = f === 'all' ? _cachedHistory : _cachedHistory.filter(h => h.service === f);
+        const el = document.getElementById('admin-history-list');
+        if (!filtered || filtered.length === 0) {
+            el.innerHTML = '<p class="empty">No credential history.</p>';
+            return;
+        }
+        el.innerHTML = `<table>
+            <thead><tr><th>User</th><th>Service</th><th>Template</th><th>Issued</th><th>Expires</th><th>Status</th></tr></thead>
+            <tbody>${filtered.map(h => {
+                let status;
+                if (h.revoked) status = '<span class="status-revoked">Revoked' + (h.revokedAt ? ' ' + new Date(h.revokedAt).toLocaleString() : '') + '</span>';
+                else if (new Date(h.expiresAt) < Date.now()) status = '<span class="status-expired">Expired</span>';
+                else status = '<span class="status-active">Active</span>';
+                return `<tr>
+                    <td>${esc(h.username)}</td>
+                    <td><span class="badge badge-${h.service}">${h.service}</span></td>
+                    <td>${esc(h.template)}</td>
+                    <td>${new Date(h.issuedAt).toLocaleString()}</td>
+                    <td>${new Date(h.expiresAt).toLocaleString()}</td>
+                    <td>${status}</td>
+                </tr>`;
+            }).join('')}</tbody>
+        </table>`;
+    }
+    {{end}}
+
+    // --- Helpers ---
+    function esc(s) {
+        if (!s) return '';
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    function fmtDuration(ns) {
+        const hours = Math.round(ns / 3600000000000);
+        if (hours >= 24 && hours % 24 === 0) return (hours / 24) + 'd';
+        return hours + 'h';
+    }
+
+    function parseDuration(s) {
+        const m = s.match(/^(\d+)(h|d)$/);
+        if (!m) return 0;
+        const n = parseInt(m[1]);
+        if (m[2] === 'd') return n * 24 * 3600000000000;
+        return n * 3600000000000;
+    }
+
+    // Initial load
+    loadTemplates();
     </script>
 </body>
 </html>

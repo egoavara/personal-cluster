@@ -54,6 +54,20 @@ func startTestDashboard(t *testing.T, templates []config.Template, adapters map[
 		t.Fatalf("store.Migrate: %v", err)
 	}
 
+	// Seed templates into DB so dashboard can read them
+	for _, tmpl := range templates {
+		dt := store.DBTemplate{
+			ID:          tmpl.ID,
+			Name:        tmpl.Name,
+			Description: tmpl.Description,
+			Service:     tmpl.Service,
+			TTL:         tmpl.TTL,
+			Params:      tmpl.Params,
+		}
+		// Ignore duplicate key errors (templates may already exist from previous test runs)
+		_ = credStore.CreateTemplate(ctx, &dt)
+	}
+
 	// Find a free port
 	port, err := freePortForDashboard()
 	if err != nil {

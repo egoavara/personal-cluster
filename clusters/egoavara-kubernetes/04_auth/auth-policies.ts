@@ -27,6 +27,7 @@ export const privateAuthPolicy = new k8s.apiextensions.CustomResource("private-e
                     hosts: [
                         `ceph.${privateDomain}`,
                         `hubble.${privateDomain}`,
+                        `vender.${privateDomain}`,
                     ],
                 },
             }],

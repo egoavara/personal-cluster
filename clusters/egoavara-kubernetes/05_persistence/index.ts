@@ -7,5 +7,6 @@ import "./valkey.ts";
 import "./nats.ts";
 import "./etcd.ts";
 import "./manticoresearch.ts";
+import "./clickhouse.ts";
 import "./ceph-object-store.ts";
 import "./vender.ts";

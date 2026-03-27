@@ -25,6 +25,24 @@ var serveCmd = &cobra.Command{
 		if err := credStore.Migrate(ctx); err != nil {
 			return err
 		}
+
+		// Seed DB templates from config YAML if the templates table is empty
+		if len(cfg.Templates) > 0 {
+			var seeds []store.DBTemplate
+			for _, t := range cfg.Templates {
+				seeds = append(seeds, store.DBTemplate{
+					ID:          t.ID,
+					Name:        t.Name,
+					Description: t.Description,
+					Service:     t.Service,
+					TTL:         t.TTL,
+					Params:      t.Params,
+				})
+			}
+			if err := credStore.SeedTemplatesFromConfig(ctx, seeds); err != nil {
+				logger.Warn("seed templates from config", zap.Error(err))
+			}
+		}
 		logger.Info("credential store initialized")
 
 		// Initialize adapters
@@ -94,10 +112,25 @@ var serveCmd = &cobra.Command{
 
 		// Manticore
 		if cfg.Zitadel.APIEndpoint != "" && cfg.Zitadel.PAT != "" {
-			adapters["manticore"] = adapter.NewManticoreAdapter(cfg.Zitadel.APIEndpoint, cfg.Zitadel.PAT, cfg.Zitadel.ProjectID)
+			ma := adapter.NewManticoreAdapter(cfg.Zitadel.APIEndpoint, cfg.Zitadel.PAT, cfg.Zitadel.ProjectID)
+			if cfg.Zitadel.HostHeader != "" {
+				ma.SetHostHeader(cfg.Zitadel.HostHeader)
+			}
+			adapters["manticore"] = ma
 			logger.Info("manticore adapter registered")
 		} else {
 			logger.Warn("manticore adapter unavailable: zitadel API endpoint or PAT not configured")
+		}
+
+		// ClickHouse
+		if cfg.Services.ClickHouse.DSN != "" {
+			ch, err := adapter.NewClickHouseAdapter(cfg.Services.ClickHouse.DSN)
+			if err != nil {
+				logger.Warn("clickhouse adapter unavailable", zap.Error(err))
+			} else {
+				adapters["clickhouse"] = ch
+				logger.Info("clickhouse adapter registered")
+			}
 		}
 
 		// Start credential reaper (background goroutine)

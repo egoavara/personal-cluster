@@ -25,6 +25,7 @@ type ZitadelConfig struct {
 	APIEndpoint string `yaml:"apiEndpoint"`
 	PAT         string `yaml:"pat"`
 	ProjectID   string `yaml:"projectID"`
+	HostHeader  string `yaml:"hostHeader"`
 }
 
 type Template struct {
@@ -44,6 +45,7 @@ type ServicesConfig struct {
 	Qdrant      QdrantConfig      `yaml:"qdrant"`
 	CephS3      CephS3Config      `yaml:"cephS3"`
 	Manticore   ManticoreConfig   `yaml:"manticore"`
+	ClickHouse  ClickHouseConfig  `yaml:"clickhouse"`
 }
 
 type PostgresConfig struct {
@@ -81,6 +83,10 @@ type CephS3Config struct {
 
 type ManticoreConfig struct {
 	// Uses Zitadel machine users — no direct Manticore credentials needed
+}
+
+type ClickHouseConfig struct {
+	DSN string `yaml:"dsn"`
 }
 
 func Load(files []string) (*Config, error) {

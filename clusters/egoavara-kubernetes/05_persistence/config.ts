@@ -33,4 +33,8 @@ export const persistence = {
         version: config.get("persistence.manticoresearch.version") ?? "15.1.0",
         repository: "https://helm.manticoresearch.com",
     },
+    clickhouse: {
+        version: config.get("persistence.clickhouse.version") ?? "0.3.10",
+        repository: "https://helm.altinity.com",
+    },
 };
